@@ -1,0 +1,13 @@
+.custom-header {
+  height: 60px;
+  background: white;
+  display: flex;
+  align-items: center;
+  padding: 0 24px;
+  border-bottom: 1px solid #e0e0e0;
+}
+
+.custom-logo {
+  height: 36px;
+  object-fit: contain;
+}

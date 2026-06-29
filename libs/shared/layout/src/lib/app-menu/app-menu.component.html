@@ -1,0 +1,76 @@
+<bal-sheet class="sidebar-sheet">
+  <div class="sidebar-wrapper" [class.sidebar-collapsed]="!isOpen">
+    <button
+      class="sidebar-toggle"
+      (click)="togglePanel()"
+      [title]="isOpen ? 'Cerrar menú' : 'Abrir menú'"
+    >
+      <i class="pi" [class]="isOpen ? 'pi-angle-left' : 'pi-angle-right'"></i>
+    </button>
+
+    <div class="sidebar-content" [class.open]="isOpen">
+      <button class="sidebar-back" type="button">
+        <i class="pi pi-arrow-left"></i>
+        <span>Volver a Vehículos</span>
+      </button>
+
+      <div class="sidebar-title">
+        <span class="sidebar-title__label">Tu cotización</span>
+      </div>
+
+      <nav class="sidebar-nav" aria-label="Pasos del formulario">
+        <div *ngFor="let step of steps(); let i = index; let last = last; trackBy: trackByStepLabel">
+          <div
+            class="sidebar-step"
+            [class.sidebar-step--active]="isStepActive(step)"
+            [class.sidebar-step--done]="isStepDone(step)"
+            (click)="onStepClick(step, i)"
+            [attr.aria-current]="isStepActive(step) ? 'step' : null"
+          >
+            <div class="sidebar-step__bullet" aria-hidden="true">
+              <ng-container *ngIf="isStepDone(step); else notDone">
+                <i class="pi pi-check"></i>
+              </ng-container>
+              <ng-template #notDone>
+                <span
+                  class="sidebar-step__dot"
+                  [class.sidebar-step__dot--active]="isStepActive(step)"
+                ></span>
+              </ng-template>
+            </div>
+
+            <div class="sidebar-step__text">
+              <span class="sidebar-step__label">{{ step.label }}</span>
+
+              <span *ngIf="step.subSteps?.length" class="sidebar-step__sublabel">
+                {{ activeSubLabel(step) }}
+              </span>
+            </div>
+
+            <div *ngIf="!last" class="sidebar-step__line" aria-hidden="true"></div>
+          </div>
+
+          <ul
+            *ngIf="step.subSteps?.length && isStepActive(step)"
+            class="sidebar-substeps"
+            [attr.aria-label]="'Sub-pasos de ' + step.label"
+          >
+            <li
+              *ngFor="let sub of step.subSteps!"
+              class="sidebar-substep"
+              [class.sidebar-substep--active]="isSubActive(sub)"
+              [class.sidebar-substep--done]="isSubDone(step.label, sub)"
+              (click)="onSubStepClick(step, sub, $event)"
+              [attr.aria-current]="isSubActive(sub) ? 'step' : null"
+            >
+              <span class="sidebar-substep__bullet" aria-hidden="true">
+                <i *ngIf="isSubDone(step.label, sub)" class="pi pi-check"></i>
+              </span>
+              <span class="sidebar-substep__label">{{ sub }}</span>
+            </li>
+          </ul>
+        </div>
+      </nav>
+    </div>
+  </div>
+</bal-sheet>

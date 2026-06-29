@@ -1,0 +1,29 @@
+:host {
+  display: block;
+  background: white;
+}
+
+.contenedor {
+  display: flex;
+  flex-direction: row;
+  align-items: stretch;
+  min-height: calc(100vh - 60px);
+}
+
+.principal {
+  flex: 1;
+  background-color: #ffffff;
+  padding: 40px 48px;
+  min-height: 100%;
+  overflow-y: auto;
+}
+
+@media (max-width: 992px) {
+  .contenedor {
+    flex-direction: column;
+  }
+
+  .principal {
+    padding: 20px 16px;
+  }
+}

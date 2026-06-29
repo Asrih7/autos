@@ -1,0 +1,26 @@
+{
+  "compileOnSave": false,
+  "compilerOptions": {
+    "rootDir": ".",
+    "sourceMap": true,
+    "declaration": false,
+    "moduleResolution": "node",
+    "emitDecoratorMetadata": true,
+    "experimentalDecorators": true,
+    "importHelpers": true,
+    "target": "es2015",
+    "module": "esnext",
+    "lib": ["es2020", "dom"],
+    "skipLibCheck": true,
+    "skipDefaultLibCheck": true,
+    "baseUrl": ".",
+    "paths": {
+      "@mnv-autos-ng/layout": ["libs/shared/layout/src/index.ts"],
+      "@mnv-autos-ng/models": ["libs/shared/models/src/index.ts"],
+      "@mnv-autos-ng/navigation": ["libs/shared/navigation/src/index.ts"],
+      "@mnv-autos-ng/layout-state": ["libs/shared/layout-state/src/index.ts"],
+      "@mnv-autos-ng/app-state": ["libs/shared/app-state/src/index.ts"]
+    }
+  },
+  "exclude": ["node_modules", "tmp"]
+}
