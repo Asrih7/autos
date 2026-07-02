@@ -1,1 +1,9 @@
-<p>uso-conductores works!</p>
+<!-- Step principal -->
+<ng-container [ngComponentOutlet]="currentComponent()"></ng-container>
+
+<!-- Botones del wizard -->
+@if (!isLastStep()) {
+  <div class="uso-actions">
+    <bal-button color="green" (click)="navigateNext()">Siguiente</bal-button>
+  </div>
+}

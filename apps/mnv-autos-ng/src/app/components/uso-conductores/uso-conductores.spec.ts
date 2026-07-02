@@ -1,16 +1,16 @@
+import { UsoConductoresComponent } from './uso-conductores';
 import { ComponentFixture, TestBed } from "@angular/core/testing";
-import { UsoConductores } from "./uso-conductores";
 
 describe("UsoConductores", () => {
-  let component: UsoConductores;
-  let fixture: ComponentFixture<UsoConductores>;
+  let component: UsoConductoresComponent;
+  let fixture: ComponentFixture<UsoConductoresComponent>;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [UsoConductores],
+      imports: [UsoConductoresComponent],
     }).compileComponents();
 
-    fixture = TestBed.createComponent(UsoConductores);
+    fixture = TestBed.createComponent(UsoConductoresComponent);
     component = fixture.componentInstance;
     await fixture.whenStable();
   });

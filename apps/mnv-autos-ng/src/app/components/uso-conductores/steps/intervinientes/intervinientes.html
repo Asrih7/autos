@@ -1,1 +1,246 @@
-<p>Intervinientes</p>
+<!-- apps/mnv-autos-ng/src/app/components/uso-conductores/steps/intervinientes/intervinientes.html -->
+<div class="intervinientes">
+
+  <!-- Dirección del propietario: se muestra cuando showDireccionPropietario === true
+       (se abre automáticamente si el usuario desmarca "Tomador es propietario") -->
+ 
+
+  <h2 class="page-title">Incluye los datos de los intervinientes</h2>
+
+  <!-- Toggles pequeños: switch a la izquierda, label a la derecha -->
+  <div class="toggles-section" role="group" aria-label="Intervinientes toggles">
+    <div class="toggle-row">
+      <div class="switch switch--small" role="switch" [attr.aria-checked]="tomadorEsPropietario()">
+        <input
+          id="toggle-propietario"
+          type="checkbox"
+          class="switch-input"
+          [checked]="tomadorEsPropietario()"
+          (change)="onTomadorEsPropietarioChange($any($event).target.checked)"
+          aria-label="Tomador es propietario">
+        <label for="toggle-propietario" class="switch-track" aria-hidden="true">
+          <span class="switch-thumb" aria-hidden="true"></span>
+        </label>
+      </div>
+      <div class="toggle-label">Tomador es propietario</div>
+    </div>
+
+    <div class="toggle-row">
+      <div class="switch switch--small" role="switch" [attr.aria-checked]="tomadorEsConductorHabitual()">
+        <input
+          id="toggle-conductor"
+          type="checkbox"
+          class="switch-input"
+          [checked]="tomadorEsConductorHabitual()"
+          (change)="onTomadorEsConductorHabitualChange($any($event).target.checked)"
+          aria-label="Tomador es conductor habitual">
+        <label for="toggle-conductor" class="switch-track" aria-hidden="true">
+          <span class="switch-thumb" aria-hidden="true"></span>
+        </label>
+      </div>
+      <div class="toggle-label">Tomador es conductor habitual</div>
+    </div>
+  </div>
+  @if (showDireccionPropietario()) {
+    <app-direccion-tomador
+      [initial]="propietarioDireccion()"
+      (save)="onDireccionGuardada($any($event).detail ?? $any($event))">
+    </app-direccion-tomador>
+  }
+  @if (!tomadorEsPropietario()) {
+    <div class="propietario-info">
+      <p>El tomador no es propietario, introduce o edita su dirección.</p>
+    </div>
+  }
+
+  <!-- CASOS: mostrar tablas/formularios según combinaciones de toggles -->
+  @switch (true) {
+    @case (tomadorEsPropietario() && tomadorEsConductorHabitual()) {
+      <div class="bloque">
+        <div class="bloque-header">TOMADOR, PROPIETARIO Y CONDUCTOR HABITUAL</div>
+        <div class="bloque-body">
+        <ng-container [ngTemplateOutlet]="personaForm" [ngTemplateOutletContext]="{ $implicit: tomador, showDocumento: true, showCarnet: true, useEdad: false }"></ng-container>
+      </div>
+    }
+
+    @case (!tomadorEsPropietario() && tomadorEsConductorHabitual()) {
+      <div class="bloque">
+        <div class="bloque-header">TOMADOR Y CONDUCTOR HABITUAL</div>
+        <div class="bloque-body">
+          <ng-container [ngTemplateOutlet]="personaForm" [ngTemplateOutletContext]="{ $implicit: tomador, showDocumento: true, showCarnet: true, useEdad: false }"></ng-container>
+        </div>
+      </div>
+
+      <div class="bloque">
+        <div class="bloque-header">PROPIETARIO DEL VEHÍCULO</div>
+        <div class="bloque-body">
+        <ng-container [ngTemplateOutlet]="personaForm" [ngTemplateOutletContext]="{ $implicit: propietario, showDocumento: true, showCarnet: false, useEdad: false }"></ng-container>
+      </div>
+    }
+
+    @case (tomadorEsPropietario() && !tomadorEsConductorHabitual()) {
+      <div class="bloque">
+        <div class="bloque-header">TOMADOR Y PROPIETARIO</div>
+        <div class="bloque-body">
+          <ng-container [ngTemplateOutlet]="personaForm" [ngTemplateOutletContext]="{ $implicit: tomador, showDocumento: false, showCarnet: true, useEdad: true }"></ng-container>
+        </div>
+      </div>
+
+      <div class="bloque">
+        <div class="bloque-header">CONDUCTOR HABITUAL</div>
+        <div class="bloque-body">
+        <ng-container [ngTemplateOutlet]="personaForm" [ngTemplateOutletContext]="{ $implicit: conductorHabitual, showDocumento: false, showCarnet: true, useEdad: true }"></ng-container>
+      </div>
+    }
+
+    @case (!tomadorEsPropietario() && !tomadorEsConductorHabitual()) {
+      <div class="bloque">
+        <div class="bloque-header">TOMADOR</div>
+        <div class="bloque-body">
+          <ng-container [ngTemplateOutlet]="personaForm" [ngTemplateOutletContext]="{ $implicit: tomador, showDocumento: true, showCarnet: true, useEdad: false }"></ng-container>
+        </div>
+      </div>
+
+      <div class="bloque">
+        <div class="bloque-header">PROPIETARIO</div>
+        <div class="bloque-body">
+          <ng-container [ngTemplateOutlet]="personaForm" [ngTemplateOutletContext]="{ $implicit: propietario, showDocumento: true, showCarnet: false, useEdad: false }"></ng-container>
+        </div>
+      </div>
+
+      <div class="bloque">
+        <div class="bloque-header">CONDUCTOR HABITUAL</div>
+        <div class="bloque-body">
+          <ng-container [ngTemplateOutlet]="personaForm" [ngTemplateOutletContext]="{ $implicit: conductorHabitual, showDocumento: true, showCarnet: true, useEdad: false }"></ng-container>
+        </div>
+      </div>
+    }
+  }
+
+  <!-- Conductores ocasionales -->
+  @for (let oc of conductoresOcasionales(); let i = index) {
+    <div class="bloque">
+      <div class="bloque-header bloque-header--action">
+        <span>CONDUCTOR OCASIONAL</span>
+        <button class="btn-remove" type="button" (click)="removeConductorOcasional(i)" aria-label="Eliminar conductor ocasional">
+          <bal-icon name="close" size="small" aria-hidden="true"></bal-icon>
+        </button>
+      </div>
+      <div class="bloque-body">
+        <ng-container [ngTemplateOutlet]="personaForm" [ngTemplateOutletContext]="{ $implicit: oc, showDocumento: true, showCarnet: true, useEdad: false }"></ng-container>
+      </div>
+    </div>
+  }
+
+  <div class="add-conductor-box">
+    <bal-button (click)="addConductorOcasional()" variant="ghost" class="btn-add-conductor">
+      Añadir conductor ocasional
+      <span class="add-icon"><bal-icon name="plus" size="small" aria-hidden="true"></bal-icon></span>
+    </bal-button>
+  </div>
+
+  @if (formErrors().length > 0) {
+    <div class="step-errors">
+      <ul>
+        @for (let error of formErrors()) {
+          <li>{{ error }}</li>
+        }
+      </ul>
+    </div>
+  }
+</div>
+
+<!-- TEMPLATE personaForm -->
+<ng-template #personaForm let-model let-showDocumento="showDocumento" let-showCarnet="showCarnet" let-useEdad="useEdad">
+  <div class="fields-labels">
+      @if (showDocumento) {
+        <span class="fl fl--documento">Documento</span>
+      }
+      <span class="fl fl--nif">Número NIF</span>
+      <span class="fl fl--pais">País</span>
+      @if (!esCIF(model)) {
+        <span class="fl fl--fecha">Fecha nacimiento</span>
+        @if (showCarnet) {
+          <span class="fl fl--carnet">Tipo de Carnet</span>
+          @if (useEdad) {
+            <span class="fl fl--edad">Edad obtuvo el carnet</span>
+          } @else {
+            <span class="fl fl--fecha">Fecha obtuvo carnet</span>
+          }
+        }
+      }
+    </div>
+
+    <div class="fields-inputs">
+      @if (showDocumento) {
+        <div class="fi fi--documento">
+          <bal-select
+            [value]="model.documento"
+            (balChange)="onSelectChange($any($event), model, 'documento')"
+            data-testid="select-documento">
+            @for (let opt of documentos$ | async) {
+              <bal-select-option [value]="opt.value" [label]="opt.label">{{ opt.label }}</bal-select-option>
+            }
+          </bal-select>
+        </div>
+      }
+
+      <div class="fi fi--nif">
+        <bal-input
+          [value]="model.numeroDocumento"
+          (balInput)="onInputChange($any($event), model, 'numeroDocumento')"
+          (input)="onInputChange($any($event), model, 'numeroDocumento')">
+        </bal-input>
+      </div>
+
+      <div class="fi fi--pais">
+        <bal-select
+          [value]="model.pais"
+          (balChange)="onSelectChange($any($event), model, 'pais')"
+          data-testid="select-pais">
+          @for (let opt of paises$ | async) {
+            <bal-select-option [value]="opt.value" [label]="opt.label">{{ opt.label }}</bal-select-option>
+          }
+        </bal-select>
+      </div>
+
+      @if (!esCIF(model)) {
+        <div class="fi fi--fecha">
+          <bal-date
+            [value]="dateToIso(model.fechaNacimiento)"
+            (balChange)="onDateChange($any($event), model, 'fechaNacimiento')"
+            placeholder="dd.MM.yyyy">
+          </bal-date>
+        </div>
+
+        @if (showCarnet) {
+          <div class="fi fi--carnet">
+            <bal-select
+              [value]="model.tipoCarnet"
+              (balChange)="onSelectChange($any($event), model, 'tipoCarnet')">
+              @for (let opt of tiposCarnet$ | async) {
+                <bal-select-option [value]="opt.value" [label]="opt.label">{{ opt.label }}</bal-select-option>
+              }
+            </bal-select>
+          </div>
+
+          @if (useEdad) {
+            <div class="fi fi--edad">
+              <bal-input
+                [value]="model.edadObtencionCarnet"
+                maxlength="2"
+                (balInput)="onInputChange($any($event), model, 'edadObtencionCarnet')"
+                (input)="onInputChange($any($event), model, 'edadObtencionCarnet')">
+              </bal-input>
+            </div>
+          } @else {
+            <div class="fi fi--fecha">
+              <bal-date
+                [value]="dateToIso(model.fechaObtencionCarnet)"
+                (balChange)="onDateChange($any($event), model, 'fechaObtencionCarnet')"
+                placeholder="dd.MM.yyyy">
+              </bal-date>
+            </div>
+          }
+        }
+      }

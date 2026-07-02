@@ -1,0 +1,31 @@
+<!-- apps/mnv-autos-ng/src/app/components/uso-conductores/steps/intervinientes/components/direccion-tomador/direccion-tomador.component.html -->
+<section class="direccion-card" role="region" aria-labelledby="direccion-title">
+  <div class="direccion-card__header">
+    <h3 id="direccion-title" class="direccion-card__title">Dirección del propietario</h3>
+    <p class="direccion-card__subtitle">Introduce la dirección completa</p>
+  </div>
+
+  <div class="direccion-card__body">
+    <label for="domicilio" class="direccion-label">Domicilio</label>
+
+    <bal-select
+      id="domicilio"
+      class="direccion-select"
+      data-testid="select-domicilio"
+        [value]="model().domicilio"
+        typeahead
+        placeholder="Buscar dirección"
+        (balInput)="searchQueryChanged($any($event).detail ?? $any($event))"
+        (balChange)="onSelectChange($any($event))"
+        aria-label="Buscar dirección del propietario">
+        @if ((suggestions$ | async)?.length) {
+          @for (let opt of suggestions$ | async) {
+            <bal-select-option [value]="opt" [label]="opt">{{ opt }}</bal-select-option>
+          }
+        } @else {
+          <bal-select-option value="Calle Mayor 1, 28013 Madrid" label="Calle Mayor 1, 28013 Madrid">Calle Mayor 1, 28013 Madrid</bal-select-option>
+          <bal-select-option value="Plaza España 5, 28008 Madrid" label="Plaza España 5, 28008 Madrid">Plaza España 5, 28008 Madrid</bal-select-option>
+        }
+      </bal-select>
+  </div>
+</section>
