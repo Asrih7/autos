@@ -18,7 +18,6 @@ import { BdiService } from '../../services/bdi.service';
 import { SisnetService } from '../../services/sisnet.service';
 
 import { Persona } from '../../models/persona.model';
-import { UsoConductoresStateService } from '../../uso-conductores-state.service';
 import { DireccionTomadorComponent } from './components/direccion-tomador/direccion-tomador.component';
 import { DireccionPropietarioComponent } from '../direccion-propietario/direccion-propietario';
 
@@ -94,7 +93,6 @@ export class IntervinientesComponent implements OnInit {
   private hasEmittedCompleted = false;
 
   constructor(
-    private stateService: UsoConductoresStateService,
     private bdi: BdiService,
     private sisnet: SisnetService
   ) {
@@ -300,7 +298,6 @@ export class IntervinientesComponent implements OnInit {
     if (allComplete && !this.hasEmittedCompleted) {
       this.hasEmittedCompleted = true;
       this.intervinientesCompleted.emit();
-      this.stateService.completeIntervinientes();
     } else if (!allComplete && this.hasEmittedCompleted) {
       this.hasEmittedCompleted = false;
     }

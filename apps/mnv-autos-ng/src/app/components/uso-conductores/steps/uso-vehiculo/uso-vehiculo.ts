@@ -1,9 +1,8 @@
-import { Component, signal, Signal, CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
+import { Component, EventEmitter, Output, signal, Signal, CUSTOM_ELEMENTS_SCHEMA } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { BalCard, BalRadioGroup, BalRadio } from '@baloise/ds-angular';
 import { UsoVehiculoService } from '../../services/uso-vehiculo.service';
-import { UsoConductoresStateService } from '../../uso-conductores-state.service';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { catchError, of } from 'rxjs';
 
@@ -19,10 +18,9 @@ export class UsoVehiculoComponent {
   usoSeleccionado = signal<string | null>(null);
   opciones!: Signal<{ label: string; value: string }[]>;
 
-  constructor(
-    private usoVehiculoService: UsoVehiculoService,
-    private stateService: UsoConductoresStateService
-  ) {
+  @Output() selected = new EventEmitter<string>();
+
+  constructor(private usoVehiculoService: UsoVehiculoService) {
     this.opciones = toSignal(
       this.usoVehiculoService.getUsos().pipe(catchError(() => of([]))),
       { initialValue: [] }
@@ -31,6 +29,6 @@ export class UsoVehiculoComponent {
 
   selectUso(value: string) {
     this.usoSeleccionado.set(value);
-    this.stateService.selectUso(value); // 🔥 triggers parent navigation reliably
+    this.selected.emit(value);
   }
 }

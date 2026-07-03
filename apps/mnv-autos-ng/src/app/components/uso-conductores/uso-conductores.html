@@ -1,3 +1,15 @@
-@for (cmp of currentComponents(); track cmp) {
-  <ng-container [ngComponentOutlet]="cmp"></ng-container>
-}
+<div class="uso-conductores">
+  <div class="steps-container">
+    <ng-container #stepOutlet></ng-container>
+  </div>
+
+  <div class="navigation-actions">
+    <button
+      class="btn-next"
+      type="button"
+      [disabled]="!nextEnabled()"
+      (click)="goNext()">
+      Siguiente
+    </button>
+  </div>
+</div>
