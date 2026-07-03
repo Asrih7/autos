@@ -1,61 +1,23 @@
-
 <div class="intervinientes">
   <h2 class="step-title">Uso principal del vehículo</h2>
-  <span class="step-subtitle">
-    Determina las coberturas disponibles y el cálculo de la prima
-  </span>
 
   <div class="uso-options">
 
-    @for (let opcion of opciones(); track opcion.value) {
-
-      <bal-card
-        class="uso-option"
-        [class.selected]="usoSeleccionado() === opcion.value"
-        (click)="selectUso(opcion.value)"
-      >
-
-        <div class="uso-option-header">
-
-          <bal-radio
-            name="uso"
-            [value]="opcion.value"
-            [checked]="usoSeleccionado() === opcion.value"
-            (balChange)="selectUso(opcion.value)"
-          ></bal-radio>
-
-          <span class="uso-label">
-            {{ opcion.value === 'otros' && otroUsoSeleccionado() ? selectedOtherLabel() : opcion.label }}
-          </span>
-
-          @if (opcion.value === 'otros') {
-            <bal-icon
-              name="{{ usoSeleccionado() === 'otros' ? 'chevron-up' : 'chevron-down' }}"
-              class="uso-chevron"
-            ></bal-icon>
-          }
-        </div>
-
-        @if (opcion.value === 'otros' && usoSeleccionado() === 'otros') {
-          <div class="uso-expanded" (click)="$event.stopPropagation()">
-
-            @for (let subOpcion of otrosUsos(); track subOpcion.value) {
-              <div
-                class="uso-sub-option"
-                [class.sub-selected]="otroUsoSeleccionado() === subOpcion.value"
-                (click)="onSelectSubUso(subOpcion.value); $event.stopPropagation()"
-              >
-                {{ subOpcion.label }}
-              </div>
-            }
-
+    <bal-radio-group
+    [value]="usoSeleccionado()"
+    (balChange)="selectUso($any($event).detail)">
+    <div class="uso-options">
+      @for (opcion of opciones(); track opcion.value) {
+        <bal-card class="uso-option">
+          <div class="uso-option-header">
+            <bal-radio [value]="opcion.value"></bal-radio>
+            <span class="uso-label">{{ opcion.label }}</span>
           </div>
-        }
-
-      </bal-card>
-    }
+        </bal-card>
+      }
+    </div>
+  </bal-radio-group>
 
   </div>
-
-  
 </div>
+

@@ -1,71 +1,73 @@
-import { Component, inject, signal, OnDestroy } from '@angular/core';
+import { Component, inject, signal } from '@angular/core';
 import { ActivatedRoute, Router, Params } from '@angular/router';
 import { NgComponentOutlet } from '@angular/common';
-import { BalButton } from '@baloise/ds-angular';
-import { USO_CONDUCTORES_STEPS } from './uso-conductores.steps';
-import { PageNavigationService } from '@mnv-autos-ng/navigation';
-import { Subscription } from 'rxjs';
+import { UsoConductoresStateService } from './uso-conductores-state.service';
 
 @Component({
   selector: 'app-uso-conductores',
   standalone: true,
-  imports: [NgComponentOutlet, BalButton],
+  imports: [NgComponentOutlet],
   templateUrl: './uso-conductores.html',
   styleUrl: './uso-conductores.scss'
 })
-export class UsoConductoresComponent implements OnDestroy {
+export class UsoConductoresComponent {
   private route = inject(ActivatedRoute);
   private router = inject(Router);
-  private navigation = inject(PageNavigationService);
+  private stateService = inject(UsoConductoresStateService);
 
-  steps = USO_CONDUCTORES_STEPS;
-  currentComponent = signal<any>(null);
-  isLastStep = this.navigation.isLastStep('uso-conductores');
+  steps = [
+    {
+      id: 'uso-vehiculo',
+      component: () =>
+        import('./steps/uso-vehiculo/uso-vehiculo')
+          .then(m => m.UsoVehiculoComponent),
+    },
+    {
+      id: 'intervinientes',
+      component: () =>
+        import('./steps/intervinientes/intervinientes')
+          .then(m => m.IntervinientesComponent),
+    },
+    {
+      id: 'direccion-propietario',
+      component: () =>
+        import('./steps/intervinientes/components/direccion-tomador/direccion-tomador.component')
+          .then(m => m.DireccionTomadorComponent),
+    }
+  ];
 
-  private subs = new Subscription();
+  currentComponents = signal<any[]>([]);
 
   constructor() {
-    const initialStep = this.route.snapshot.params['step'] ?? this.steps[0]?.id ?? 'uso-vehiculo';
-    this.loadStep(initialStep);
+    this.route.params.subscribe((params: Params) => {
+      const step = params['step'];
+      if (!step || step === ':step') {
+        this.router.navigate(['/uso-conductores', 'uso-vehiculo'], { replaceUrl: true });
+        return;
+      }
+      this.loadStep(step);
+    });
 
-    this.subs.add(
-      this.route.params.subscribe((params: Params) => {
-        const nextStep = params['step'] ?? this.steps[0]?.id ?? 'uso-vehiculo';
-        this.loadStep(nextStep);
-      })
-    );
+    this.stateService.usoSelected$.subscribe(() => {
+      this.navigateTo('intervinientes');
+    });
 
-    if ((this.navigation as any).pageNext$) {
-      this.subs.add(
-        (this.navigation as any).pageNext$.subscribe((pageId: string) => {
-          if (pageId === 'uso-conductores') {
-            this.navigateNext();
-          }
-        })
-      );
+    this.stateService.intervinientesCompleted$.subscribe(() => {
+      this.navigateTo('direccion-propietario');
+    });
+  }
+
+  navigateTo(stepId: string) {
+    this.router.navigate(['/uso-conductores', stepId]);
+  }
+
+  async loadStep(stepId: string) {
+    const index = this.steps.findIndex(s => s.id === stepId);
+    const componentsToLoad = [];
+    for (let i = 0; i <= index; i++) {
+      const cmp = await this.steps[i].component();
+      componentsToLoad.push(cmp);
     }
-  }
-
-  private async loadStep(stepId: string) {
-    const validStep = this.steps.some((step) => step.id === stepId);
-    const targetStepId = validStep ? stepId : this.steps[0]?.id ?? 'uso-vehiculo';
-
-    if (!validStep && stepId) {
-      void this.router.navigate(['/uso-conductores', targetStepId], { replaceUrl: true });
-    }
-
-    const stepDefinition = this.steps.find((step) => step.id === targetStepId) ?? this.steps[0];
-    if (!stepDefinition) return;
-
-    const component = await stepDefinition.component();
-    this.currentComponent.set(component);
-  }
-
-  navigateNext() {
-    this.navigation.next('uso-conductores');
-  }
-
-  ngOnDestroy() {
-    this.subs.unsubscribe();
+    this.currentComponents.set(componentsToLoad);
   }
 }

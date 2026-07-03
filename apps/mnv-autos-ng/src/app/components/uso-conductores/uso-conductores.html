@@ -1,9 +1,3 @@
-<!-- Step principal -->
-<ng-container [ngComponentOutlet]="currentComponent()"></ng-container>
-
-<!-- Botones del wizard -->
-@if (!isLastStep()) {
-  <div class="uso-actions">
-    <bal-button color="green" (click)="navigateNext()">Siguiente</bal-button>
-  </div>
+@for (cmp of currentComponents(); track cmp) {
+  <ng-container [ngComponentOutlet]="cmp"></ng-container>
 }
