@@ -1,46 +1,30 @@
 /* apps/mnv-autos-ng/src/app/components/uso-conductores/steps/intervinientes/components/direccion-tomador/direccion-tomador.component.scss */
 
-/* Card */
-.direccion-card {
-  display: block;
-  width: 100%;
-  max-width: 720px;
-  background: #ffffff;
-  border: 1px solid #e6eaeb;
-  border-radius: 6px;
-  padding: 12px 14px;
-  box-sizing: border-box;
-  color: #222;
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
-}
-
-/* Header */
-.direccion-card__header {
-  margin-bottom: 8px;
-}
-
-.direccion-card__title {
-  margin: 0;
-  font-size: 13px; /* reducido para ajustarse a pantalla Uso Vehículo */
-  font-weight: 700;
-  color: #1a1a1a;
-  line-height: 1.2;
-}
-
-.direccion-card__subtitle {
-  margin: 4px 0 0 0;
-  font-size: 12px;
-  color: #666;
-  line-height: 1.2;
-}
-
-/* Body */
-.direccion-card__body {
+.intervinientes {
   display: flex;
   flex-direction: column;
-  gap: 8px;
+  gap: 16px;
+  max-width: 960px;
+  background: #fff;
+  margin-bottom: 2rem;
 }
 
+.step-title {
+  font-size: 1.2rem;
+  font-weight: 600;
+  color: #1A1A1A;
+}
+
+.step-sub-title {
+  font-size: 1.2rem;
+  font-weight: 300;
+  color: #1A1A1A;
+}
+.page-title {
+ font-size: 1.2rem;
+  font-weight: 600;
+  color: #1A1A1A;
+}
 /* Label */
 .direccion-label {
   display: block;

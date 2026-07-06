@@ -1,104 +1,221 @@
-/* apps/mnv-autos-ng/src/app/components/uso-conductores/steps/intervinientes/intervinientes.scss */
+:host {
+  display: block;
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif;
+  color: #222;
+}
 
-/* Host y tipografía */
-:host { display:block; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Arial, sans-serif; color:#222; }
-.intervinientes { display:flex; flex-direction:column; gap:16px; padding:24px 28px; max-width:860px; background:#fff; }
-.page-title { font-size:15px; font-weight:700; margin:0 0 8px 0; }
+.intervinientes {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+  max-width: 960px;
+  background: #fff;
+  margin-bottom: 2rem;
+}
+
+.page-title {
+ font-size: 1.2rem;
+  font-weight: 600;
+  color: #1A1A1A;
+}
 
 /* Toggles */
-.toggles-section { display:flex; flex-direction:column; gap:12px; margin-bottom:14px; }
-.toggle-row { display:flex; align-items:center; gap:12px; }
-/* switch a la izquierda, label a la derecha */
-.toggle-row .switch { order: 0; margin-right: 8px; }
-.toggle-row .toggle-label { order: 1; font-weight:600; color:#333; }
+.toggles-section {
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  margin-bottom: 14px;
+}
 
-/* SWITCH pequeño (sin texto interno) */
-.switch { display:inline-flex; align-items:center; position:relative; user-select:none; }
+.toggle-row {
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
 
-/* ocultar checkbox nativo pero mantener accesibilidad */
+.toggle-label {
+  font-weight: 600;
+  color: #333;
+}
+
+/* Switch */
+.switch {
+  display: inline-flex;
+  align-items: center;
+  position: relative;
+}
+
 .switch-input {
-  position:absolute;
-  width:1px; height:1px;
-  margin:-1px; padding:0; border:0;
-  clip:rect(0 0 0 0); clip-path: inset(50%);
-  overflow:hidden; white-space:nowrap;
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  margin: -1px;
+  padding: 0;
+  border: 0;
+  clip: rect(0 0 0 0);
+  clip-path: inset(50%);
+  overflow: hidden;
 }
 
-/* variante small: track y thumb reducidos */
 .switch--small .switch-track {
-  display:inline-block;
-  width:44px;            /* ancho total pequeño */
-  height:24px;           /* alto pequeño */
-  background:#eef7f6;
-  border-radius:999px;
-  padding:2px;
-  box-sizing:border-box;
-  cursor:pointer;
-  border:1px solid rgba(0,0,0,0.04);
-  transition: background .12s ease, box-shadow .12s ease;
-  position:relative;
+  width: 44px;
+  height: 24px;
+  background: #eef7f6;
+  border-radius: 999px;
+  padding: 2px;
+  border: 1px solid rgba(0, 0, 0, 0.04);
+  cursor: pointer;
+  position: relative;
 }
 
-/* thumb reducido */
 .switch--small .switch-thumb {
-  position:absolute;
-  left:4px;
-  top:4px;
-  width:16px;
-  height:16px;
-  background:#fff;
-  border-radius:50%;
-  box-shadow:0 1px 3px rgba(0,0,0,0.12);
-  transition: transform .12s ease;
-  z-index:2;
+  position: absolute;
+  left: 4px;
+  top: 4px;
+  width: 16px;
+  height: 16px;
+  background: #fff;
+  border-radius: 50%;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.12);
+  transition: transform 0.12s ease;
 }
 
-/* checked: mover thumb a la derecha y cambiar fondo */
 .switch--small .switch-input:checked + .switch-track {
-  background:#0aa89e;
-  border-color: rgba(10,168,158,0.9);
+  background: #0aa89e;
+  border-color: rgba(10, 168, 158, 0.9);
 }
+
 .switch--small .switch-input:checked + .switch-track .switch-thumb {
-  transform: translateX(20px); /* 44 - (4 + 16 + 4) = 20 */
+  transform: translateX(20px);
 }
 
-/* foco accesible */
-.switch--small .switch-input:focus + .switch-track { box-shadow:0 0 0 4px rgba(10,168,158,0.12); outline:none; }
-
-/* hover */
-.switch--small .switch-track:hover { filter:brightness(0.99); }
-
-/* responsive: mantener pequeño en móviles */
-@media (max-width:480px) {
-  .switch--small .switch-track { width:40px; height:22px; padding:2px; }
-  .switch--small .switch-thumb { width:14px; height:14px; left:3px; top:3px; }
-  .switch--small .switch-input:checked + .switch-track .switch-thumb { transform: translateX(18px); }
+/* Bloques */
+.bloque {
+  border: 1px solid #dde0e2;
+  border-radius: 4px;
+  background: #fff;
+  overflow: visible; /* importante para dropdowns */
 }
 
-/* Bloques y layout de formularios */
-.bloque { border:1px solid #dde0e2; border-radius:2px; background:#fff; overflow:hidden; }
-.bloque-header { background:#f5f5f5; border-bottom:1px solid #dde0e2; padding:8px 14px; font-size:11px; font-weight:700; color:#444; text-transform:uppercase; letter-spacing:0.04em; }
-.bloque-header--action { display:flex; align-items:center; justify-content:space-between; }
-.bloque-body { padding:14px; display:flex; flex-direction:column; gap:8px; }
+.bloque-header {
+  background: #f5f5f5;
+  border-bottom: 1px solid #dde0e2;
+  padding: 10px 14px;
+  font-size: 12px;
+  font-weight: 700;
+  color: #444;
+  text-transform: uppercase;
+}
 
-/* Labels y campos */
-.fields-labels { display:flex; align-items:flex-end; gap:0; margin-bottom:4px; }
-.fl { font-size:11px; font-weight:600; color:#555; white-space:nowrap; padding-right:8px; }
-.fl--documento { width:96px; } .fl--nif { width:138px; } .fl--pais { width:108px; } .fl--fecha { width:122px; } .fl--carnet { width:108px; } .fl--edad { width:130px; }
+.bloque-header--action {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+}
 
-.fields-inputs { display:flex; gap:8px; flex-wrap:wrap; align-items:center; }
-.fi { display:flex; flex-direction:column; flex-shrink:0; }
-.fi--documento { width:88px; } .fi--nif { width:130px; } .fi--pais { width:100px; } .fi--fecha { width:114px; } .fi--carnet { width:76px; } .fi--edad { width:54px; }
-.fi > * { width:100% !important; }
+.bloque-body {
+  padding: 16px;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
 
-/* botones */
-.btn-remove { background:transparent; border:none; cursor:pointer; color:#888; padding:2px 4px; border-radius:2px; transition:color .15s; }
-.btn-remove:hover { color:#c0392b; }
-.add-conductor-box { border:1px dashed #c8cdd2; border-radius:2px; background:#fff; display:flex; align-items:center; justify-content:flex-end; padding:12px 20px; }
-.btn-add-conductor { display:inline-flex; align-items:center; gap:8px; background:transparent; border:none; cursor:pointer; font-size:13px; color:#333; padding:0; }
-.btn-add-conductor .add-icon { display:inline-flex; align-items:center; justify-content:center; width:18px; height:18px; border:1.5px solid #666; border-radius:50%; color:#444; transition:border-color .15s, color .15s; }
-.btn-add-conductor:hover { color:#5cb8b2; } 
-.btn-add-conductor:hover .add-icon { border-color:#5cb8b2; color:#5cb8b2; }
+/* Labels + Inputs en la misma línea (grid) */
+.fields-labels,
+.fields-inputs {
+  display: grid;
+  grid-auto-flow: column;
+  grid-auto-columns: minmax(0, 1fr);
+  column-gap: 12px;
+  align-items: end;
+}
 
-.footer { margin-top:12px; display:flex; justify-content:flex-start; padding-top:4px; }
-.btn-siguiente { min-width:120px; }
+/* Labels */
+.fl {
+  font-size: 12px;
+  font-weight: 600;
+  color: #555;
+  white-space: nowrap;
+}
+
+/* Inputs */
+.fi {
+  display: flex;
+  flex-direction: column;
+}
+
+.fi > * {
+  width: 100% !important;
+}
+
+/* Anchura visual cómoda */
+.fields-inputs bal-input,
+.fields-inputs bal-select,
+.fields-inputs bal-date {
+  min-width: 140px;
+}
+
+/* Dropdowns visibles */
+bal-select::part(menu),
+bal-date::part(menu) {
+  z-index: 9999 !important;
+}
+
+bal-select,
+bal-date {
+  overflow: visible !important;
+}
+
+/* Botones */
+.btn-remove {
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  color: #888;
+}
+
+.btn-remove:hover {
+  color: #c0392b;
+}
+
+.add-conductor-box {
+  border: 1px dashed #c8cdd2;
+  border-radius: 2px;
+  background: #fff;
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  padding: 12px 20px;
+}
+
+.btn-add-conductor {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: transparent;
+  border: none;
+  cursor: pointer;
+  font-size: 13px;
+  color: #333;
+  padding: 0;
+}
+
+.btn-add-conductor .add-icon {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 18px;
+  height: 18px;
+  border: 1.5px solid #666;
+  border-radius: 50%;
+  color: #444;
+}
+
+.btn-add-conductor:hover {
+  color: #5cb8b2;
+}
+
+.btn-add-conductor:hover .add-icon {
+  border-color: #5cb8b2;
+  color: #5cb8b2;
+}

@@ -1,43 +1,42 @@
-<!-- apps/mnv-autos-ng/src/app/components/uso-conductores/steps/intervinientes/intervinientes.html -->
 <div class="intervinientes">
 
   <h2 class="page-title">Incluye los datos de los intervinientes</h2>
 
   <div class="toggles-section" role="group" aria-label="Intervinientes toggles">
-    <div class="toggle-row">
+
+    <div class="toggle-row toggle-row--vertical">
       <div class="switch switch--small" role="switch" [attr.aria-checked]="tomadorEsPropietario()">
         <input
           id="toggle-propietario"
           type="checkbox"
           class="switch-input"
           [checked]="tomadorEsPropietario()"
-          (change)="onTomadorEsPropietarioChange($any($event).target.checked)"
-          aria-label="Tomador es propietario">
-        <label for="toggle-propietario" class="switch-track" aria-hidden="true">
-          <span class="switch-thumb" aria-hidden="true"></span>
+          (change)="onTomadorEsPropietarioChange($event.target.checked)">
+        <label for="toggle-propietario" class="switch-track">
+          <span class="switch-thumb"></span>
         </label>
       </div>
       <div class="toggle-label">Tomador es propietario</div>
     </div>
 
-    <div class="toggle-row">
+    <div class="toggle-row toggle-row--vertical">
       <div class="switch switch--small" role="switch" [attr.aria-checked]="tomadorEsConductorHabitual()">
         <input
           id="toggle-conductor"
           type="checkbox"
           class="switch-input"
           [checked]="tomadorEsConductorHabitual()"
-          (change)="onTomadorEsConductorHabitualChange($any($event).target.checked)"
-          aria-label="Tomador es conductor habitual">
-        <label for="toggle-conductor" class="switch-track" aria-hidden="true">
-          <span class="switch-thumb" aria-hidden="true"></span>
+          (change)="onTomadorEsConductorHabitualChange($event.target.checked)">
+        <label for="toggle-conductor" class="switch-track">
+          <span class="switch-thumb"></span>
         </label>
       </div>
       <div class="toggle-label">Tomador es conductor habitual</div>
     </div>
+
   </div>
 
-  <!-- CASOS -->
+  <!-- SWITCH PRINCIPAL -->
   @switch (true) {
 
     @case (tomadorEsPropietario() && tomadorEsConductorHabitual()) {
@@ -84,14 +83,6 @@
           </ng-container>
         </div>
       </div>
-
-      <!-- DOMICILIO DEL PROPIETARIO -->
-      <div class="bloque">
-        <div class="bloque-header">DOMICILIO DEL PROPIETARIO</div>
-        <div class="bloque-body">
-       <app-direccion-tomador></app-direccion-tomador>
-        </div>
-      </div>
     }
 
     @case (tomadorEsPropietario() && !tomadorEsConductorHabitual()) {
@@ -101,9 +92,9 @@
           <ng-container [ngTemplateOutlet]="personaForm"
             [ngTemplateOutletContext]="{
               $implicit: tomador,
-              showDocumento: false,
+              showDocumento: true,
               showCarnet: true,
-              useEdad: true
+              useEdad: useEdadTomador()
             }">
           </ng-container>
         </div>
@@ -115,9 +106,9 @@
           <ng-container [ngTemplateOutlet]="personaForm"
             [ngTemplateOutletContext]="{
               $implicit: conductorHabitual,
-              showDocumento: false,
+              showDocumento: true,
               showCarnet: true,
-              useEdad: true
+              useEdad: useEdadConductorHabitual()
             }">
           </ng-container>
         </div>
@@ -153,14 +144,6 @@
         </div>
       </div>
 
-      <!-- DOMICILIO DEL PROPIETARIO -->
-      <div class="bloque">
-        <div class="bloque-header">DOMICILIO DEL PROPIETARIO</div>
-        <div class="bloque-body">
-         <app-direccion-propietario></app-direccion-propietario>
-        </div>
-      </div>
-
       <div class="bloque">
         <div class="bloque-header">CONDUCTOR HABITUAL</div>
         <div class="bloque-body">
@@ -178,7 +161,7 @@
 
   }
 
-  <!-- Conductores ocasionales -->
+  <!-- CONDUCTORES OCASIONALES -->
   @for (oc of conductoresOcasionales(); track oc) {
     <div class="bloque">
       <div class="bloque-header bloque-header--action">
@@ -207,25 +190,32 @@
     </bal-button>
   </div>
 
+  <!-- DIRECCIÓN DEL PROPIETARIO -->
+  @if (!tomadorEsPropietario()) {
+    <app-direccion-tomador
+      [initial]="propietarioDireccion"
+      (save)="onPropietarioDireccionSave($event)"
+      (direccionCompleted)="onPropietarioDireccionCompleted()">
+    </app-direccion-tomador>
+  }
+
 </div>
 
-<!-- TEMPLATE personaForm -->
+<!-- TEMPLATE PERSONA -->
 <ng-template #personaForm let-model let-showDocumento="showDocumento" let-showCarnet="showCarnet" let-useEdad="useEdad">
 
   <div class="fields-labels">
-    @if (showDocumento) {
-      <span class="fl fl--documento">Documento</span>
-    }
-    <span class="fl fl--nif">Número NIF</span>
-    <span class="fl fl--pais">País</span>
+    @if (showDocumento) { <span class="fl">Documento</span> }
+    <span class="fl">Número NIF</span>
+    <span class="fl">País</span>
     @if (!esCIF(model)) {
-      <span class="fl fl--fecha">Fecha nacimiento</span>
+      <span class="fl">Fecha nacimiento</span>
       @if (showCarnet) {
-        <span class="fl fl--carnet">Tipo de Carnet</span>
+        <span class="fl">Tipo de Carnet</span>
         @if (useEdad) {
-          <span class="fl fl--edad">Edad obtuvo el carnet</span>
+          <span class="fl">Edad obtuvo el carnet</span>
         } @else {
-          <span class="fl fl--fecha">Fecha obtuvo carnet</span>
+          <span class="fl">Fecha obtuvo carnet</span>
         }
       }
     }
@@ -234,7 +224,7 @@
   <div class="fields-inputs">
 
     @if (showDocumento) {
-      <div class="fi fi--documento">
+      <div class="fi">
         <bal-select
           [value]="model.documento"
           (balChange)="onSelectChange($any($event), model, 'documento')">
@@ -245,15 +235,24 @@
       </div>
     }
 
-    <div class="fi fi--nif">
+
+    <div class="fi">
       <bal-input
-        [value]="model.numeroDocumento"
-        (balInput)="onInputChange($any($event), model, 'numeroDocumento')"
-        (input)="onInputChange($any($event), model, 'numeroDocumento')">
-      </bal-input>
+  type="text"
+  inputmode="text"
+  maxlength="12"
+  placeholder="Número NIF / NIE / CIF / Pasaporte"
+  [value]="model.numeroDocumento"
+  (balInput)="onInputChange($event, model, 'numeroDocumento')"
+  (balChange)="onInputChange($event, model, 'numeroDocumento')"
+  (balBlur)="onNumeroDocumentoBlur(model)"
+  
+  aria-label="Número NIF">
+</bal-input>
+
     </div>
 
-    <div class="fi fi--pais">
+       <div class="fi">
       <bal-select
         [value]="model.pais"
         (balChange)="onSelectChange($any($event), model, 'pais')">
@@ -263,43 +262,48 @@
       </bal-select>
     </div>
 
+
     @if (!esCIF(model)) {
-      <div class="fi fi--fecha">
+
+      <div class="fi">
         <bal-date
           [value]="dateToIso(model.fechaNacimiento)"
-          (balChange)="onDateChange($any($event), model, 'fechaNacimiento')">
+          (balChange)="onDateChange($event, model, 'fechaNacimiento')">
         </bal-date>
       </div>
 
       @if (showCarnet) {
-        <div class="fi fi--carnet">
+
+        <div class="fi">
           <bal-select
             [value]="model.tipoCarnet"
-            (balChange)="onSelectChange($any($event), model, 'tipoCarnet')">
+            (balChange)="onSelectChange($event, model, 'tipoCarnet')">
             @for (opt of tiposCarnet$ | async; track opt.value) {
-              <bal-select-option [value]="opt.value" [label]="opt.label">{{ opt.label }}</bal-select-option>
+              <bal-select-option [value]="opt.value" [label]="opt.label"></bal-select-option>
             }
           </bal-select>
         </div>
 
         @if (useEdad) {
-          <div class="fi fi--edad">
+          <div class="fi">
             <bal-input
-              [value]="model.edadObtencionCarnet"
+              type="text"
               maxlength="2"
-              (balInput)="onInputChange($any($event), model, 'edadObtencionCarnet')"
-              (input)="onInputChange($any($event), model, 'edadObtencionCarnet')">
+              [value]="model.edadObtencionCarnet"
+              (balInput)="onInputChange($event, model, 'edadObtencionCarnet')">
             </bal-input>
           </div>
         } @else {
-          <div class="fi fi--fecha">
+          <div class="fi">
             <bal-date
               [value]="dateToIso(model.fechaObtencionCarnet)"
-              (balChange)="onDateChange($any($event), model, 'fechaObtencionCarnet')">
+              (balChange)="onDateChange($event, model, 'fechaObtencionCarnet')">
             </bal-date>
           </div>
         }
+
       }
+
     }
 
   </div>

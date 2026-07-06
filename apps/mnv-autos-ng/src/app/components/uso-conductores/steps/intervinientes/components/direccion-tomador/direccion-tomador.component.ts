@@ -57,6 +57,11 @@ export class DireccionTomadorComponent implements OnInit {
     const v = event?.detail ?? event?.detail?.value ?? event?.target?.value ?? null;
     const domicilio = typeof v === 'object' && 'value' in v ? v.value : v;
     this.model.set({ ...this.model(), domicilio });
+
+    if (domicilio && domicilio.toString().trim().length >= 3) {
+      this.save.emit({ domicilio });
+      this.direccionCompleted.emit();
+    }
   }
 
   onSave() {

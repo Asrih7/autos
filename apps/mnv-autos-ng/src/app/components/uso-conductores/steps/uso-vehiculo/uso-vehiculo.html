@@ -1,23 +1,49 @@
-<div class="intervinientes">
+<div class="uso-vehiculo">
   <h2 class="step-title">Uso principal del vehículo</h2>
+    <h3 class="step-sub-title">Determina las coberturas disponibles y el cálculo de la prima </h3>
 
-  <div class="uso-options">
 
-    <bal-radio-group
+  <bal-radio-group
+    class="uso-options"
+    name="usoVehiculo"
     [value]="usoSeleccionado()"
-    (balChange)="selectUso($any($event).detail)">
-    <div class="uso-options">
-      @for (opcion of opciones(); track opcion.value) {
-        <bal-card class="uso-option">
-          <div class="uso-option-header">
-            <bal-radio [value]="opcion.value"></bal-radio>
-            <span class="uso-label">{{ opcion.label }}</span>
+    (balChange)="onUsoChange($event.detail)">
+
+    @for (opcion of opciones(); track opcion.value) {
+      <div
+        class="uso-option"
+        [class.selected]="usoSeleccionado() === opcion.value"
+        (click)="selectUso(opcion.value)">
+
+        <div class="uso-option-header">
+          <bal-radio [value]="opcion.value"></bal-radio>
+          <span class="uso-label">{{ getOtroUsoLabel(opcion) }}</span>
+
+          @if (opcion.value === 'otros') {
+            <button
+              class="chevron-btn"
+              type="button"
+              (click)="$event.stopPropagation(); toggleExpand('otros')"
+              aria-label="Abrir lista de otros usos">
+              <bal-icon class="uso-chevron" name="caret-down" size="small" [class.expanded]="isExpanded('otros')"></bal-icon>
+            </button>
+          }
+        </div>
+
+        @if (opcion.value === 'otros' && isExpanded('otros')) {
+          <div class="otros-usos-list" (click)="$event.stopPropagation()">
+            @for (opt of otrosUsos(); track opt.value) {
+              <button
+                type="button"
+                class="otros-usos-item"
+                [class.selected]="otroUsoSeleccionado() === opt.value"
+                (click)="$event.stopPropagation(); selectOtroUso(opt.value)">
+                {{ opt.label }}
+              </button>
+            }
           </div>
-        </bal-card>
-      }
-    </div>
+        }
+      </div>
+    }
   </bal-radio-group>
-
-  </div>
 </div>
-

@@ -1,15 +1,15 @@
-<div class="uso-conductores">
+<div >
   <div class="steps-container">
     <ng-container #stepOutlet></ng-container>
   </div>
 
   <div class="navigation-actions">
-    <button
-      class="btn-next"
-      type="button"
-      [disabled]="!nextEnabled()"
-      (click)="goNext()">
-      Siguiente
-    </button>
+   <bal-button
+  [disabled]="!nextEnabled()"
+  (click)="goNext()"
+>
+  Siguiente
+</bal-button>
   </div>
 </div>
+
