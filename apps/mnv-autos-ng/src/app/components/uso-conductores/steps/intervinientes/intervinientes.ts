@@ -119,7 +119,7 @@ export class IntervinientesComponent implements OnInit {
     this.enforceAllCIFRules();
     this.checkCompletion();
   }
-   // ---------------- USE EDAD ----------------
+
   useEdadTomador(): boolean {
     return this.tomadorEsPropietario() && !this.tomadorEsConductorHabitual();
   }
@@ -128,8 +128,6 @@ export class IntervinientesComponent implements OnInit {
     return this.tomadorEsPropietario();
   }
 
-
-  // ---------------- CIF RULES ----------------
   private enforceAllCIFRules(): void {
     if (this.tomador.documento === 'CIF' && this.conductorHabitual.documento === 'CIF') {
       this.conductorHabitual.documento = 'NIF';
@@ -148,12 +146,12 @@ export class IntervinientesComponent implements OnInit {
       }
     });
 
-    [this.tomador, this.propietario, this.conductorHabitual].forEach(p => {
-      if (p.documento === 'CIF') {
-        p.fechaNacimiento = null;
-        p.fechaObtencionCarnet = null;
-        p.tipoCarnet = undefined;
-        p.edadObtencionCarnet = undefined;
+    [this.tomador, this.propietario, this.conductorHabitual].forEach(persona => {
+      if (persona.documento === 'CIF') {
+        persona.fechaNacimiento = null;
+        persona.fechaObtencionCarnet = null;
+        persona.tipoCarnet = undefined;
+        persona.edadObtencionCarnet = undefined;
       }
     });
   }
@@ -395,68 +393,40 @@ export class IntervinientesComponent implements OnInit {
 
     // al final de checkCompletion()
     if (allComplete) {
-      // 1) persistir estado de formulario (ya lo haces)
       this.persistIntervinientesState();
-
-      // 2) marcar que el step está visitado (evita race)
       this.usoState.setStepLoaded(1);
-
-      // 3) marcar completado (esto activa canContinueFromIntervinientes)
       this.usoState.completeIntervinientes();
-
-      console.log('Intervinientes completos: stepsLoaded=', this.usoState.stepsLoaded(), 'intervinientesCompleted=', this.usoState.intervinientesCompleted());
     } else {
       this.usoState.resetIntervinientes();
-      console.log('Intervinientes incompletos: tomadorOk=', tomadorOk, 'propietarioOk=', propietarioOk, 'conductorOk=', conductorOk, 'ocasionalesOk=', ocasionalesOk, 'propietarioDireccionOk=', propietarioDireccionOk);
     }
   }
 
-  // ---------------- INPUT NORMALIZATION & VALIDATION HELPERS ----------------
-
-  // Normalizar y leer valor robustamente
   private readInputValue(event: any): string {
-    // bal-input: prefer event.detail?.value, fallback a event.target?.value, fallback a event itself (string)
     const raw = event?.detail?.value ?? event?.target?.value ?? event ?? '';
-    // A veces bal-input emite undefined for empty; forzamos string ''
     return String(raw ?? '').trim().toUpperCase();
   }
 
   onInputChange(event: any, model: any, field: string): void {
     const value = this.readInputValue(event);
 
-    // actualizar el modelo incluso si value === ''
     model[field] = value;
-
-    // persistir inmediatamente
     this.persistIntervinientesState();
-
-    // comprobar completitud (no marcar step aquí, solo comprobar)
     this.checkCompletion();
-
-    // debug temporal
-    console.log('onInputChange', field, value, 'model now', model);
   }
 
-  // Al perder foco: formatear y validar
   onNumeroDocumentoBlur(model: any): void {
-    if (!model) return;
+    if (!model) {
+      return;
+    }
 
-    // limpiar espacios y caracteres no alfanuméricos salvo X/Y/Z/Ñ
-    let v = String(model.numeroDocumento ?? '').toUpperCase().replace(/[^A-Z0-9ÑXYZ]/g, '');
+    let value = String(model.numeroDocumento ?? '').toUpperCase().replace(/[^A-Z0-9ÑXYZ]/g, '');
+    value = value.replace(/^X/, 'X').replace(/^Y/, 'Y').replace(/^Z/, 'Z');
 
-    // normalización mínima para NIE (X/Y/Z) ya en mayúsculas
-    v = v.replace(/^X/, 'X').replace(/^Y/, 'Y').replace(/^Z/, 'Z');
-
-    model.numeroDocumento = v;
-
-    // persistir y revalidar
+    model.numeroDocumento = value;
     this.persistIntervinientesState();
     this.checkCompletion();
-
-    console.log('onNumeroDocumentoBlur normalized', v);
   }
 
-  // Validación de NIF/NIE/CIF/PASAPORTE básica
   isDocumentoValid(value: string): boolean {
     if (!value) return false;
     const v = String(value).toUpperCase().trim();
@@ -509,7 +479,6 @@ export class IntervinientesComponent implements OnInit {
     return this.validateNifControl(nifLike);
   }
 
-  // Helper para mostrar error en plantilla (opcional)
   numeroDocumentoError(model: Persona): string | null {
     if (!model.numeroDocumento || model.numeroDocumento.trim().length === 0) return 'Campo obligatorio';
     if ((model.documento === 'NIF' || model.documento === 'NIE') && !this.isDocumentoValid(model.numeroDocumento)) return 'Formato inválido';

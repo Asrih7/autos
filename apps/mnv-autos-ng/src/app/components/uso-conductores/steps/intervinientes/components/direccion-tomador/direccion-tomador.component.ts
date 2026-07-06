@@ -1,10 +1,10 @@
-import { Component, EventEmitter, Input, OnInit, Output, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { Component, EventEmitter, Input, OnInit, Output, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { BalSelect, BalSelectOption } from '@baloise/ds-angular';
-import { Observable, Subject, of, startWith } from 'rxjs';
-import { catchError, debounceTime, distinctUntilChanged, switchMap } from 'rxjs/operators';
 import { toSignal } from '@angular/core/rxjs-interop';
+import { BalSelect, BalSelectOption } from '@baloise/ds-angular';
+import { Subject, of, startWith } from 'rxjs';
+import { catchError, debounceTime, distinctUntilChanged, switchMap } from 'rxjs/operators';
 
 import { DireccionModel } from '../../../../models/direccion.model';
 import { DireccionService } from '../../../../services/direccion.service';
@@ -31,31 +31,29 @@ export class DireccionTomadorComponent implements OnInit {
       distinctUntilChanged(),
       switchMap((query: string) =>
         query
-          ? this.direccionService.searchAddress(query).pipe(
-              catchError(() => of([]))
-            )
+          ? this.direccionService.searchAddress(query).pipe(catchError(() => of([])))
           : of([])
       ),
       startWith<string[]>([])
     )
   );
 
-  constructor(private direccionService: DireccionService) {}
+  constructor(private readonly direccionService: DireccionService) {}
 
-  ngOnInit() {
+  ngOnInit(): void {
     if (this.initial?.domicilio) {
-      this.model.set({ domicilio: this.initial.domicilio! });
+      this.model.set({ domicilio: this.initial.domicilio });
       this.query$.next(this.initial.domicilio);
     }
   }
 
-  searchQueryChanged(q: string) {
-    this.query$.next((q || '').toString().trim());
+  searchQueryChanged(query: string): void {
+    this.query$.next((query || '').toString().trim());
   }
 
-  onSelectChange(event: any) {
-    const v = event?.detail ?? event?.detail?.value ?? event?.target?.value ?? null;
-    const domicilio = typeof v === 'object' && 'value' in v ? v.value : v;
+  onSelectChange(event: any): void {
+    const value = event?.detail ?? event?.detail?.value ?? event?.target?.value ?? null;
+    const domicilio = typeof value === 'object' && 'value' in value ? value.value : value;
     this.model.set({ ...this.model(), domicilio });
 
     if (domicilio && domicilio.toString().trim().length >= 3) {
@@ -64,13 +62,16 @@ export class DireccionTomadorComponent implements OnInit {
     }
   }
 
-  onSave() {
+  onSave(): void {
     const domicilio = (this.model().domicilio || '').trim();
-    if (!domicilio || domicilio.length < 3) return;
+    if (!domicilio || domicilio.length < 3) {
+      return;
+    }
+
     this.save.emit({ domicilio });
   }
 
-  saveDireccion() {
+  saveDireccion(): void {
     this.direccionCompleted.emit();
   }
 }

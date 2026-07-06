@@ -1,20 +1,17 @@
 <div class="uso-vehiculo">
   <h2 class="step-title">Uso principal del vehículo</h2>
-    <h3 class="step-sub-title">Determina las coberturas disponibles y el cálculo de la prima </h3>
-
+  <h3 class="step-sub-title">Determina las coberturas disponibles y el cálculo de la prima</h3>
 
   <bal-radio-group
     class="uso-options"
     name="usoVehiculo"
     [value]="usoSeleccionado()"
     (balChange)="onUsoChange($event.detail)">
-
     @for (opcion of opciones(); track opcion.value) {
       <div
         class="uso-option"
         [class.selected]="usoSeleccionado() === opcion.value"
         (click)="selectUso(opcion.value)">
-
         <div class="uso-option-header">
           <bal-radio [value]="opcion.value"></bal-radio>
           <span class="uso-label">{{ getOtroUsoLabel(opcion) }}</span>

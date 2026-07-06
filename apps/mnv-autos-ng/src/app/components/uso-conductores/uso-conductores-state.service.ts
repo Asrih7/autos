@@ -1,4 +1,4 @@
-import { Injectable, signal, computed, effect } from '@angular/core';
+import { computed, effect, Injectable, signal } from '@angular/core';
 
 export interface PersonaState {
   documento: string;
@@ -29,15 +29,15 @@ export interface UsoConductoresGlobalState {
   stepsLoaded: boolean[];
 }
 
-const STEPS_COUNT = 3; // 👈 número real de steps
+const STEPS_COUNT = 3;
 
 @Injectable({ providedIn: 'root' })
 export class UsoConductoresStateService {
   private readonly STORAGE_KEY = 'mnv_autos_uso_conductores_state';
-readonly intervinientesCompleted = computed(() => this._state().intervinientesCompleted);
   private readonly _state = signal<UsoConductoresGlobalState>(this.loadInitialState());
-  readonly state = this._state.asReadonly();
 
+  readonly intervinientesCompleted = computed(() => this._state().intervinientesCompleted);
+  readonly state = this._state.asReadonly();
   readonly usoSelected = computed(() => this._state().usoSelected);
   readonly usoOtrosSelected = computed(() => this._state().usoOtrosSelected);
   readonly intervinientes = computed(() => this._state().intervinientes);
@@ -93,14 +93,20 @@ readonly intervinientesCompleted = computed(() => this._state().intervinientesCo
   setStepLoaded(index: number) {
     this._state.update(current => ({
       ...current,
-      stepsLoaded: current.stepsLoaded.map((v, i) => (i === index ? true : v)),
+      stepsLoaded: current.stepsLoaded.map((value, currentIndex) => (currentIndex === index ? true : value)),
     }));
   }
 
   readonly canContinueFromUso = computed(() => {
     const uso = this.usoSelected();
-    if (!uso) return false;
-    if (uso === 'otros') return !!this.usoOtrosSelected();
+    if (!uso) {
+      return false;
+    }
+
+    if (uso === 'otros') {
+      return !!this.usoOtrosSelected();
+    }
+
     return true;
   });
 
@@ -110,7 +116,9 @@ readonly intervinientesCompleted = computed(() => this._state().intervinientesCo
     effect(() => {
       try {
         sessionStorage.setItem(this.STORAGE_KEY, JSON.stringify(this._state()));
-      } catch {}
+      } catch {
+        // Keep the state resilient even when storage is unavailable.
+      }
     });
   }
 
@@ -120,14 +128,15 @@ readonly intervinientesCompleted = computed(() => this._state().intervinientesCo
       if (cached) {
         const parsed = JSON.parse(cached) as UsoConductoresGlobalState;
 
-        // 🔥 AUTOCORRECCIÓN: asegurar tamaño correcto
         if (!Array.isArray(parsed.stepsLoaded) || parsed.stepsLoaded.length !== STEPS_COUNT) {
           parsed.stepsLoaded = new Array(STEPS_COUNT).fill(false);
         }
 
         return parsed;
       }
-    } catch {}
+    } catch {
+      // Fall back to the default state when storage cannot be read.
+    }
 
     return {
       usoSelected: null,
