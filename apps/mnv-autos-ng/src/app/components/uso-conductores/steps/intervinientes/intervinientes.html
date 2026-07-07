@@ -1,6 +1,6 @@
 <div class="intervinientes">
 
-  <h2 class="page-title">Incluye los datos de los intervinientes</h2>
+  <h2 class="page-title">{{ 'usoConductores.intervinientes.pageTitle' | translate }}</h2>
 
   <div class="toggles-section" role="group" aria-label="Intervinientes toggles">
 
@@ -16,7 +16,7 @@
           <span class="switch-thumb"></span>
         </label>
       </div>
-      <div class="toggle-label">Tomador es propietario</div>
+      <div class="toggle-label">{{ 'usoConductores.intervinientes.toggles.owner' | translate }}</div>
     </div>
 
     <div class="toggle-row toggle-row--vertical">
@@ -31,7 +31,7 @@
           <span class="switch-thumb"></span>
         </label>
       </div>
-      <div class="toggle-label">Tomador es conductor habitual</div>
+      <div class="toggle-label">{{ 'usoConductores.intervinientes.toggles.driver' | translate }}</div>
     </div>
 
   </div>
@@ -41,7 +41,7 @@
 
     @case (tomadorEsPropietario() && tomadorEsConductorHabitual()) {
       <div class="bloque">
-        <div class="bloque-header">TOMADOR, PROPIETARIO Y CONDUCTOR HABITUAL</div>
+        <div class="bloque-header">{{ 'usoConductores.intervinientes.sections.tomadorPropietarioConductor' | translate }}</div>
         <div class="bloque-body">
           <ng-container [ngTemplateOutlet]="personaForm"
             [ngTemplateOutletContext]="{
@@ -57,7 +57,7 @@
 
     @case (!tomadorEsPropietario() && tomadorEsConductorHabitual()) {
       <div class="bloque">
-        <div class="bloque-header">TOMADOR Y CONDUCTOR HABITUAL</div>
+        <div class="bloque-header">{{ 'usoConductores.intervinientes.sections.tomadorConductor' | translate }}</div>
         <div class="bloque-body">
           <ng-container [ngTemplateOutlet]="personaForm"
             [ngTemplateOutletContext]="{
@@ -71,7 +71,7 @@
       </div>
 
       <div class="bloque">
-        <div class="bloque-header">PROPIETARIO DEL VEHÍCULO</div>
+        <div class="bloque-header">{{ 'usoConductores.intervinientes.sections.propietarioVehicle' | translate }}</div>
         <div class="bloque-body">
           <ng-container [ngTemplateOutlet]="personaForm"
             [ngTemplateOutletContext]="{
@@ -87,7 +87,7 @@
 
     @case (tomadorEsPropietario() && !tomadorEsConductorHabitual()) {
       <div class="bloque">
-        <div class="bloque-header">TOMADOR Y PROPIETARIO</div>
+        <div class="bloque-header">{{ 'usoConductores.intervinientes.sections.tomadorPropietario' | translate }}</div>
         <div class="bloque-body">
           <ng-container [ngTemplateOutlet]="personaForm"
             [ngTemplateOutletContext]="{
@@ -101,7 +101,7 @@
       </div>
 
       <div class="bloque">
-        <div class="bloque-header">CONDUCTOR HABITUAL</div>
+        <div class="bloque-header">{{ 'usoConductores.intervinientes.sections.conductorHabitual' | translate }}</div>
         <div class="bloque-body">
           <ng-container [ngTemplateOutlet]="personaForm"
             [ngTemplateOutletContext]="{
@@ -117,7 +117,7 @@
 
     @case (!tomadorEsPropietario() && !tomadorEsConductorHabitual()) {
       <div class="bloque">
-        <div class="bloque-header">TOMADOR</div>
+        <div class="bloque-header">{{ 'usoConductores.intervinientes.sections.tomador' | translate }}</div>
         <div class="bloque-body">
           <ng-container [ngTemplateOutlet]="personaForm"
             [ngTemplateOutletContext]="{
@@ -131,7 +131,7 @@
       </div>
 
       <div class="bloque">
-        <div class="bloque-header">PROPIETARIO</div>
+        <div class="bloque-header">{{ 'usoConductores.intervinientes.sections.propietario' | translate }}</div>
         <div class="bloque-body">
           <ng-container [ngTemplateOutlet]="personaForm"
             [ngTemplateOutletContext]="{
@@ -145,7 +145,7 @@
       </div>
 
       <div class="bloque">
-        <div class="bloque-header">CONDUCTOR HABITUAL</div>
+        <div class="bloque-header">{{ 'usoConductores.intervinientes.sections.conductorHabitual' | translate }}</div>
         <div class="bloque-body">
           <ng-container [ngTemplateOutlet]="personaForm"
             [ngTemplateOutletContext]="{
@@ -165,7 +165,7 @@
   @for (oc of conductoresOcasionales(); track oc) {
     <div class="bloque">
       <div class="bloque-header bloque-header--action">
-        <span>CONDUCTOR OCASIONAL</span>
+        <span>{{ 'usoConductores.intervinientes.sections.conductorOcasional' | translate }}</span>
         <button class="btn-remove" type="button" (click)="removeConductorOcasional($index)">
           <bal-icon name="close" size="small"></bal-icon>
         </button>
@@ -185,7 +185,7 @@
 
   <div class="add-conductor-box">
     <bal-button (click)="addConductorOcasional()" variant="ghost" class="btn-add-conductor">
-      Añadir conductor ocasional
+      {{ 'usoConductores.intervinientes.sections.addConductor' | translate }}
       <span class="add-icon"><bal-icon name="plus" size="small"></bal-icon></span>
     </bal-button>
   </div>
@@ -205,17 +205,17 @@
 <ng-template #personaForm let-model let-showDocumento="showDocumento" let-showCarnet="showCarnet" let-useEdad="useEdad">
 
   <div class="fields-labels">
-    @if (showDocumento) { <span class="fl">Documento</span> }
-    <span class="fl">Número NIF</span>
-    <span class="fl">País</span>
+    @if (showDocumento) { <span class="fl">{{ 'usoConductores.intervinientes.form.document' | translate }}</span> }
+    <span class="fl">{{ 'usoConductores.intervinientes.form.nifNumber' | translate }}</span>
+    <span class="fl">{{ 'usoConductores.intervinientes.form.country' | translate }}</span>
     @if (!esCIF(model)) {
-      <span class="fl">Fecha nacimiento</span>
+      <span class="fl">{{ 'usoConductores.intervinientes.form.birthDate' | translate }}</span>
       @if (showCarnet) {
-        <span class="fl">Tipo de Carnet</span>
+        <span class="fl">{{ 'usoConductores.intervinientes.form.drivingLicenseType' | translate }}</span>
         @if (useEdad) {
-          <span class="fl">Edad obtuvo el carnet</span>
+          <span class="fl">{{ 'usoConductores.intervinientes.form.licenseAge' | translate }}</span>
         } @else {
-          <span class="fl">Fecha obtuvo carnet</span>
+          <span class="fl">{{ 'usoConductores.intervinientes.form.licenseDate' | translate }}</span>
         }
       }
     }
@@ -241,13 +241,13 @@
   type="text"
   inputmode="text"
   maxlength="12"
-  placeholder="Número NIF / NIE / CIF / Pasaporte"
+  [placeholder]="'usoConductores.intervinientes.form.nifPlaceholder' | translate"
   [value]="model.numeroDocumento"
   (balInput)="onInputChange($event, model, 'numeroDocumento')"
   (balChange)="onInputChange($event, model, 'numeroDocumento')"
   (balBlur)="onNumeroDocumentoBlur(model)"
   
-  aria-label="Número NIF">
+  [attr.aria-label]="'usoConductores.intervinientes.form.nifAriaLabel' | translate">
 </bal-input>
 
     </div>

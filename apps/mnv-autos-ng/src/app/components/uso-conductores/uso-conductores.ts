@@ -11,6 +11,7 @@ import {
 import { NavigationEnd, Router } from '@angular/router';
 import { filter } from 'rxjs';
 import { BalButton } from '@baloise/ds-angular';
+import { TranslateModule } from '@ngx-translate/core';
 
 import { USO_CONDUCTORES_STEPS } from './uso-conductores.steps';
 import { UsoConductoresStateService } from './uso-conductores-state.service';
@@ -18,7 +19,7 @@ import { UsoConductoresStateService } from './uso-conductores-state.service';
 @Component({
   selector: 'app-uso-conductores',
   standalone: true,
-  imports: [BalButton],
+  imports: [BalButton, TranslateModule],
   templateUrl: './uso-conductores.html',
   styleUrl: './uso-conductores.scss',
 })

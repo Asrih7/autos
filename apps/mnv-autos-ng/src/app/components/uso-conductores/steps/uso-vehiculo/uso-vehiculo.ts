@@ -3,6 +3,7 @@ import { Component, CUSTOM_ELEMENTS_SCHEMA, EventEmitter, inject, OnInit, Output
 import { FormsModule } from '@angular/forms';
 import { toSignal } from '@angular/core/rxjs-interop';
 import { BalIcon, BalRadio, BalRadioGroup } from '@baloise/ds-angular';
+import { TranslateModule } from '@ngx-translate/core';
 import { catchError, of } from 'rxjs';
 
 import { UsoVehiculoService } from '../../services/uso-vehiculo.service';
@@ -12,7 +13,7 @@ import { UsoConductoresStateService } from '../../uso-conductores-state.service'
   selector: 'app-uso-vehiculo',
   standalone: true,
   schemas: [CUSTOM_ELEMENTS_SCHEMA],
-  imports: [CommonModule, FormsModule, BalRadio, BalRadioGroup, BalIcon],
+  imports: [CommonModule, FormsModule, BalRadio, BalRadioGroup, BalIcon, TranslateModule],
   templateUrl: './uso-vehiculo.html',
   styleUrl: './uso-vehiculo.scss',
 })

@@ -1,6 +1,6 @@
 <div class="uso-vehiculo">
-  <h2 class="step-title">Uso principal del vehículo</h2>
-  <h3 class="step-sub-title">Determina las coberturas disponibles y el cálculo de la prima</h3>
+  <h2 class="step-title">{{ 'usoConductores.usoVehiculo.title' | translate }}</h2>
+  <h3 class="step-sub-title">{{ 'usoConductores.usoVehiculo.subtitle' | translate }}</h3>
 
   <bal-radio-group
     class="uso-options"
@@ -21,7 +21,7 @@
               class="chevron-btn"
               type="button"
               (click)="$event.stopPropagation(); toggleExpand('otros')"
-              aria-label="Abrir lista de otros usos">
+              [attr.aria-label]="'usoConductores.usoVehiculo.toggleOtherUses' | translate">
               <bal-icon class="uso-chevron" name="caret-down" size="small" [class.expanded]="isExpanded('otros')"></bal-icon>
             </button>
           }

@@ -13,6 +13,7 @@ import {
   BalInput,
   BalButton
 } from '@baloise/ds-angular';
+import { TranslateModule } from '@ngx-translate/core';
 
 import { BdiService } from '../../services/bdi.service';
 import { SisnetService } from '../../services/sisnet.service';
@@ -34,7 +35,8 @@ import { UsoConductoresStateService } from '../../uso-conductores-state.service'
     BalDate,
     BalInput,
     BalButton,
-    DireccionTomadorComponent
+    DireccionTomadorComponent,
+    TranslateModule
   ],
   templateUrl: './intervinientes.html',
   styleUrls: ['./intervinientes.scss'],

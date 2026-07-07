@@ -1,0 +1,49 @@
+{
+  "usoConductores": {
+    "navigation": {
+      "next": "Siguiente"
+    },
+    "usoVehiculo": {
+      "title": "Uso principal del vehículo",
+      "subtitle": "Determina las coberturas disponibles y el cálculo de la prima",
+      "toggleOtherUses": "Abrir lista de otros usos"
+    },
+    "intervinientes": {
+      "pageTitle": "Incluye los datos de los intervinientes",
+      "toggles": {
+        "owner": "Tomador es propietario",
+        "driver": "Tomador es conductor habitual"
+      },
+      "sections": {
+        "tomadorPropietarioConductor": "TOMADOR, PROPIETARIO Y CONDUCTOR HABITUAL",
+        "tomadorConductor": "TOMADOR Y CONDUCTOR HABITUAL",
+        "propietarioVehicle": "PROPIETARIO DEL VEHÍCULO",
+        "tomadorPropietario": "TOMADOR Y PROPIETARIO",
+        "conductorHabitual": "CONDUCTOR HABITUAL",
+        "tomador": "TOMADOR",
+        "propietario": "PROPIETARIO",
+        "conductorOcasional": "CONDUCTOR OCASIONAL",
+        "addConductor": "Añadir conductor ocasional"
+      },
+      "form": {
+        "document": "Documento",
+        "nifNumber": "Número NIF",
+        "country": "País",
+        "birthDate": "Fecha nacimiento",
+        "drivingLicenseType": "Tipo de Carnet",
+        "licenseAge": "Edad obtuvo el carnet",
+        "licenseDate": "Fecha obtuvo carnet",
+        "nifPlaceholder": "Número NIF / NIE / CIF / Pasaporte",
+        "nifAriaLabel": "Número NIF"
+      },
+      "address": {
+        "title": "Dirección de residencia del tomador",
+        "subtitle": "La dirección completa influye en el cálculo de la prima",
+        "placeholder": "Buscar dirección",
+        "ariaLabel": "Buscar dirección del propietario",
+        "example1": "Calle Mayor 1, 28013 Madrid",
+        "example2": "Plaza España 5, 28008 Madrid"
+      }
+    }
+  }
+}

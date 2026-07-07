@@ -1,6 +1,6 @@
-import { Component } from '@angular/core';
+import { Component, inject } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
-import { TranslateModule } from '@ngx-translate/core';
+import { TranslateModule, TranslateService } from '@ngx-translate/core';
 
 // Helvetia
 import { EstructuralFormularioModule, InputsModule } from '@helvetia-lib/helvetia-ng-core-lib';
@@ -23,4 +23,11 @@ import { AppHeaderComponent, AppMenuComponent, AppFooterComponent } from '@mnv-a
   templateUrl: './app.html',
   styleUrls: ['./app.scss']
 })
-export class App { }
+export class App {
+  private readonly translate = inject(TranslateService);
+
+  constructor() {
+    this.translate.setDefaultLang('es');
+    this.translate.use('es');
+  }
+}
