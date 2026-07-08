@@ -27,6 +27,43 @@ export class AppFooterComponent {
     });
   }
 
+  private STEP_LABELS: Record<string, string> = {
+    'uso-vehiculo': 'Uso del vehículo',
+    'intervinientes': 'Intervinientes',
+    'direccion-tomador': 'Dirección del tomador',
+  };
+
+  get previousStepLabel(): string | null {
+    const currentRoute = this.menuRoutes[this.activeMenuIndex];
+    if (!currentRoute) return null;
+
+    const hasSteps = (currentRoute.data as any)?.['hasSteps'];
+    const steps: string[] = (currentRoute.data as any)?.['steps'] ?? [];
+    const defaultStep = (currentRoute.data as any)?.['defaultStep'] ?? (steps[0] ?? 'uso-vehiculo');
+    if (hasSteps) {
+      const step = this.currentStep ?? defaultStep;
+      const idx = steps.indexOf(step);
+      if (idx <= 0) {
+        // previous is previous menu route
+        const prevIndex = this.activeMenuIndex - 1;
+        const prevRoute = this.menuRoutes[prevIndex];
+        return (prevRoute && (prevRoute.data as any)?.['label']) ? (prevRoute.data as any).label : null;
+      }
+      const prevStepId = steps[idx - 1];
+      return this.STEP_LABELS[prevStepId] ?? this.humanize(prevStepId);
+    }
+
+    // no steps: previous menu route label
+    const prevIndex = this.activeMenuIndex - 1;
+    const prevRoute = this.menuRoutes[prevIndex];
+    return (prevRoute && (prevRoute.data as any)?.['label']) ? (prevRoute.data as any).label : null;
+  }
+
+  private humanize(id: string): string {
+    if (!id) return '';
+    return id.replace(/-/g, ' ').replace(/\b\w/g, c => c.toUpperCase());
+  }
+
   private getMenuRoutesFromConfig(): Route[] {
     return (this.router.config || [])
       .filter(r => !!r.data && (r.data as any)['showInMenu'])

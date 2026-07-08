@@ -48,6 +48,30 @@
   display: block !important;
 }
 
+.app-header-left {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: flex-start !important;
+  padding-left: 12px !important;
+}
+
+/* Very high specificity rules to override any centering from parent/global styles */
+header.app-header-shell bal-navbar.app-header-navbar,
+header.app-header-shell bal-navbar.app-header-navbar > .bal-navbar__container,
+header.app-header-shell bal-navbar.app-header-navbar .bal-navbar__container {
+  justify-content: flex-start !important;
+  align-items: center !important;
+  width: 100% !important;
+  margin: 0 !important;
+  padding-left: 12px !important;
+}
+
+/* Ensure brand block stays left-aligned */
+.app-header-brand, header.app-header-shell .app-header-brand {
+  justify-content: flex-start !important;
+  margin-left: 0 !important;
+}
+
 /* Fallback texto */
 .app-header-logo-text {
   display: flex;

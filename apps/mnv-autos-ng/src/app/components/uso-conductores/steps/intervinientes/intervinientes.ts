@@ -1,4 +1,5 @@
 import { Component, EventEmitter, inject, OnInit, Output, Signal, signal } from '@angular/core';
+import { Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Observable, of } from 'rxjs';
@@ -21,6 +22,7 @@ import { SisnetService } from '../../services/sisnet.service';
 import { Persona } from '../../models/persona.model';
 import { DireccionModel } from '../../models/direccion.model';
 import { UsoConductoresStateService } from '../../uso-conductores-state.service';
+import { USO_CONDUCTORES_STEPS } from '../../uso-conductores.steps';
 
 @Component({
   selector: 'app-intervinientes',
@@ -83,6 +85,7 @@ export class IntervinientesComponent implements OnInit {
   propietarioDireccion: DireccionModel | null = null;
 
   public usoState = inject(UsoConductoresStateService);
+  private readonly router = inject(Router);
 
   private readonly NIE_MAP = { X: '0', Y: '1', Z: '2' } as const;
 
@@ -193,6 +196,17 @@ export class IntervinientesComponent implements OnInit {
     if (checked) {
       this.usoState.resetDireccionTomador();
       this.propietarioDireccion = null;
+      // también limpiar cualquier step 'direccion-tomador' ya cargado y
+      // forzar navegación a intervinientes si el usuario está en esa ruta
+      const originalIndex = USO_CONDUCTORES_STEPS.findIndex(s => s.id === 'direccion-tomador');
+      if (originalIndex >= 0) {
+        this.usoState.clearStepLoaded(originalIndex);
+      }
+      const segments = this.router.parseUrl(this.router.url)
+        .root.children['primary']?.segments.map(s => s.path) ?? [];
+      if (segments[1] === 'direccion-tomador') {
+        void this.router.navigate(['/uso-conductores', 'intervinientes'], { replaceUrl: true });
+      }
     }
 
     this.persistIntervinientesState();

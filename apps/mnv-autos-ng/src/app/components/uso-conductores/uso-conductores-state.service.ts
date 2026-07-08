@@ -119,6 +119,15 @@ export class UsoConductoresStateService {
     }));
   }
 
+  clearStepLoaded(index: number) {
+    this._state.update(current => ({
+      ...current,
+      stepsLoaded: current.stepsLoaded.map((value, currentIndex) =>
+        currentIndex === index ? false : value
+      ),
+    }));
+  }
+
   readonly canContinueFromUso = computed(() => {
     const uso = this.usoSelected();
     if (!uso) return false;

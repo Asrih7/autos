@@ -2,7 +2,7 @@
   @if (showWizardButtons) {
     <div class="uso-actions">
       @if (showBackButton) {
-        <bal-button color="grey" (click)="onVolver()">Volver</bal-button>
+        <bal-button color="grey" (click)="onVolver()">Volver a {{ previousStepLabel }}</bal-button>
       }
       <bal-button color="green" (click)="onContinuar()">Continuar</bal-button>
     </div>

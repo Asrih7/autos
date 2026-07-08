@@ -2,8 +2,8 @@
   
 
 
-  <h2 class="page-title">{{ 'usoConductores.intervinientes.address.title' | translate }}</h2>
-    <h3 class="step-sub-title">{{ 'usoConductores.intervinientes.address.subtitle' | translate }}</h3>
+  <h2 class="page-title">Dirección de residencia del tomador</h2>
+    <h3 class="step-sub-title">La dirección completa influye en el cálculo de la prima</h3>
 
     <bal-select
       id="domicilio"
@@ -11,10 +11,10 @@
       data-testid="select-domicilio"
       [value]="model().domicilio"
       typeahead
-      [placeholder]="'usoConductores.intervinientes.address.placeholder' | translate"
+      placeholder="Buscar dirección"
       (balInput)="searchQueryChanged($any($event).detail ?? $any($event))"
       (balChange)="onSelectChange($any($event))"
-      [attr.aria-label]="'usoConductores.intervinientes.address.ariaLabel' | translate">
+      aria-label="Buscar dirección del propietario">
 
      @if (suggestions()?.length) {
   @for (opt of suggestions(); track opt) {
@@ -24,13 +24,13 @@
   <bal-select-option
     value="Calle Mayor 1, 28013 Madrid"
     label="Calle Mayor 1, 28013 Madrid">
-    {{ 'usoConductores.intervinientes.address.example1' | translate }}
+    Calle Mayor 1, 28013 Madrid
   </bal-select-option>
 
   <bal-select-option
     value="Plaza España 5, 28008 Madrid"
     label="Plaza España 5, 28008 Madrid">
-    {{ 'usoConductores.intervinientes.address.example2' | translate }}
+    Plaza España 5, 28008 Madrid
   </bal-select-option>
 }
 

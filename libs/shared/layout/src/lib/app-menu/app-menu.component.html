@@ -7,12 +7,14 @@
 
   <ul class="sidebar-nav" role="list">
     @for (item of items(); track item.id) {
-      <li
-        class="sidebar-nav-item"
-        [class.sidebar-nav-item--active]="item.state === 'active'"
-        [class.sidebar-nav-item--completed]="item.state === 'completed'"
-        (click)="navigate(item)"
-      >
+     <li
+  class="sidebar-nav-item"
+  [class.sidebar-nav-item--active]="item.state === 'active'"
+  [class.sidebar-nav-item--completed]="item.state === 'completed'"
+  [class.sidebar-nav-item--disabled]="item.disabled"   
+  (click)="navigate(item)"
+>
+
         <div class="step-indicator">
 <span class="step-circle">
   @switch (item.state) {
