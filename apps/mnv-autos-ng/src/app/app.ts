@@ -1,12 +1,14 @@
 import { Component, inject } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
-import { TranslateModule, TranslateService } from '@ngx-translate/core';
+import { HttpClient } from '@angular/common/http';
+import { TranslateModule, TranslateService, TranslateLoader } from '@ngx-translate/core';
+import { TranslateHttpLoader } from '@ngx-translate/http-loader';
 
-// Helvetia
-import { EstructuralFormularioModule, InputsModule } from '@helvetia-lib/helvetia-ng-core-lib';
-// import { AppHeaderComponent } from './layout/app-header/app-header.component';
-// import { AppMenuComponent } from './layout/app-menu/app-menu.component';
 import { AppHeaderComponent, AppMenuComponent, AppFooterComponent } from '@mnv-autos-ng/layout'
+
+export function HttpLoaderFactory(http: HttpClient): TranslateHttpLoader {
+  return new TranslateHttpLoader(http, './assets/i18n/', '.json');
+}
 
 @Component({
   selector: 'app-root',
@@ -14,8 +16,6 @@ import { AppHeaderComponent, AppMenuComponent, AppFooterComponent } from '@mnv-a
   imports: [
     RouterOutlet,
     TranslateModule,
-    InputsModule,
-    EstructuralFormularioModule,
     AppHeaderComponent,
     AppMenuComponent,
     AppFooterComponent,

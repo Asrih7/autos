@@ -1,8 +1,4 @@
-export interface StepDefinition {
-  id: string;
-  label: string;
-  component: () => Promise<any>;
-}
+import { StepDefinition } from './uso-conductores';
 
 export const USO_CONDUCTORES_STEPS: StepDefinition[] = [
   {
@@ -20,10 +16,10 @@ export const USO_CONDUCTORES_STEPS: StepDefinition[] = [
         .then(m => m.IntervinientesComponent),
   },
   {
-    id: 'direccion-propietario',
-    label: 'Dirección del propietario',
+    id: 'direccion-tomador',
+    label: 'Dirección del tomador',
     component: () =>
-      import('./steps/direccion-propietario/direccion-propietario')
-        .then(m => m.DireccionPropietarioComponent),
+      import('./steps/direccion-tomador/direccion-tomador.component')
+        .then(m => m.DireccionTomadorComponent),
   },
 ];

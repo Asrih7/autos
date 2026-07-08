@@ -17,6 +17,10 @@ export function HttpLoaderFactory(http: HttpClient): TranslateHttpLoader {
   return new TranslateHttpLoader(http, './assets/i18n/', '.json');
 }
 
+import * as brandIcons from '@baloise/ds-brand-icons';
+
+
+const { balBrandIconCarCrashWithAnimalGreen, balBrandIconSomeOther } = brandIcons as any;
 export const appConfig: ApplicationConfig = {
   providers: [
     provideBrowserGlobalErrorListeners(),
@@ -36,7 +40,11 @@ export const appConfig: ApplicationConfig = {
     provideStoreConfigOnEnvironment(environment as any),
     provideBaloiseDesignSystem({
       defaults: {
-        region: 'CH',
+        icons: {
+         balBrandIconCarCrashWithAnimalGreen,
+          balBrandIconSomeOther,
+        },
+         language: 'es', // or 'en', 'de', 'fr', 'it'
       },
     }),
   ],

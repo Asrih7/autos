@@ -24,6 +24,7 @@ export interface UsoConductoresGlobalState {
   usoSelected: string | null;
   usoOtrosSelected: string | null;
   intervinientesCompleted: boolean;
+  direccionTomadorCompleted: boolean;
   intervinientes: IntervinientesState;
   lastStepId: string | null;
   stepsLoaded: boolean[];
@@ -36,11 +37,16 @@ export class UsoConductoresStateService {
   private readonly STORAGE_KEY = 'mnv_autos_uso_conductores_state';
   private readonly _state = signal<UsoConductoresGlobalState>(this.loadInitialState());
 
-  readonly intervinientesCompleted = computed(() => this._state().intervinientesCompleted);
   readonly state = this._state.asReadonly();
+
   readonly usoSelected = computed(() => this._state().usoSelected);
   readonly usoOtrosSelected = computed(() => this._state().usoOtrosSelected);
+
   readonly intervinientes = computed(() => this._state().intervinientes);
+  readonly intervinientesCompleted = computed(() => this._state().intervinientesCompleted);
+
+  readonly direccionTomadorCompleted = computed(() => this._state().direccionTomadorCompleted);
+
   readonly lastStepId = computed(() => this._state().lastStepId);
   readonly stepsLoaded = computed(() => this._state().stepsLoaded);
 
@@ -73,6 +79,20 @@ export class UsoConductoresStateService {
     }));
   }
 
+  completeDireccionTomador() {
+    this._state.update(current => ({
+      ...current,
+      direccionTomadorCompleted: true,
+    }));
+  }
+
+  resetDireccionTomador() {
+    this._state.update(current => ({
+      ...current,
+      direccionTomadorCompleted: false,
+    }));
+  }
+
   updateIntervinientesState(partial: Partial<IntervinientesState>) {
     this._state.update(current => ({
       ...current,
@@ -93,15 +113,15 @@ export class UsoConductoresStateService {
   setStepLoaded(index: number) {
     this._state.update(current => ({
       ...current,
-      stepsLoaded: current.stepsLoaded.map((value, currentIndex) => (currentIndex === index ? true : value)),
+      stepsLoaded: current.stepsLoaded.map((value, currentIndex) =>
+        currentIndex === index ? true : value
+      ),
     }));
   }
 
   readonly canContinueFromUso = computed(() => {
     const uso = this.usoSelected();
-    if (!uso) {
-      return false;
-    }
+    if (!uso) return false;
 
     if (uso === 'otros') {
       return !!this.usoOtrosSelected();
@@ -111,13 +131,14 @@ export class UsoConductoresStateService {
   });
 
   readonly canContinueFromIntervinientes = computed(() => this.intervinientesCompleted());
+  readonly canContinueFromDireccionTomador = computed(() => this.direccionTomadorCompleted());
 
   constructor() {
     effect(() => {
       try {
         sessionStorage.setItem(this.STORAGE_KEY, JSON.stringify(this._state()));
       } catch {
-        // Keep the state resilient even when storage is unavailable.
+        // ignore storage errors
       }
     });
   }
@@ -135,13 +156,14 @@ export class UsoConductoresStateService {
         return parsed;
       }
     } catch {
-      // Fall back to the default state when storage cannot be read.
+      // ignore
     }
 
     return {
       usoSelected: null,
       usoOtrosSelected: null,
       intervinientesCompleted: false,
+      direccionTomadorCompleted: false,
       lastStepId: null,
       stepsLoaded: new Array(STEPS_COUNT).fill(false),
       intervinientes: {

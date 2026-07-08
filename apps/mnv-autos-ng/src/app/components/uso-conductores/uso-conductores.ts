@@ -33,24 +33,29 @@ export class UsoConductoresComponent implements AfterViewInit {
 
   readonly steps = USO_CONDUCTORES_STEPS;
   readonly activeIndex = signal(0);
-  readonly boundSteps = computed(() => this.state.stepsLoaded());
 
-  readonly stepValid = computed(() =>
-    this.steps.map(step => {
-      switch (step.id) {
-        case 'uso-vehiculo':
-          return this.state.canContinueFromUso();
-        case 'intervinientes':
-          return this.state.intervinientesCompleted();
-        default:
-          return true;
-      }
-    })
-  );
+  readonly nextEnabled = computed(() => {
+  const index = this.activeIndex();
 
-  readonly showNext = computed(() => this.activeIndex() < this.steps.length - 1);
-  readonly currentStepValid = computed(() => this.stepValid()[this.activeIndex()] ?? false);
-  readonly nextEnabled = computed(() => this.currentStepValid() && this.showNext());
+  // Paso 0: uso-vehiculo
+  if (index === 0) {
+    return this.state.canContinueFromUso();
+  }
+
+  // Paso 1: intervinientes
+  if (index === 1) {
+    const inter = this.state.intervinientes();
+    // ⭐ Si NO es propietario → siempre permitir Siguiente
+    if (!inter.tomadorEsPropietario) {
+      return true;
+    }
+    // ⭐ Caso normal: usar la validación de intervinientes
+    return this.state.intervinientesCompleted();
+  }
+
+  return false;
+});
+
 
   ngAfterViewInit(): void {
     this.router.events
@@ -87,11 +92,6 @@ export class UsoConductoresComponent implements AfterViewInit {
 
     if (stepId === 'intervinientes' && !this.state.canContinueFromUso()) {
       this.navigateTo('uso-vehiculo', true);
-      return;
-    }
-
-    if (stepId === 'direccion-propietario' && !this.state.intervinientesCompleted()) {
-      this.navigateTo('intervinientes', true);
       return;
     }
 
@@ -133,28 +133,62 @@ export class UsoConductoresComponent implements AfterViewInit {
     }
   }
 
-  goNext(): void {
-    if (!this.nextEnabled()) {
-      return;
-    }
+goNext(): void {
+  if (!this.nextEnabled()) return;
+  if (this.navigating) return;
 
-    if (this.navigating) {
-      return;
-    }
+  const index = this.activeIndex();
+  const inter = this.state.intervinientes();
 
-    const nextIndex = Math.min(this.activeIndex() + 1, this.steps.length - 1);
-    const nextStepId = this.steps[nextIndex].id;
+  // ⭐ Paso 1: intervinientes
+ if (index === 1) {
+  const inter = this.state.intervinientes();
 
-    this.state.setStepLoaded(nextIndex);
-    this.state.setLastStep(nextStepId);
-
+  // ⭐ Caso especial: tomador NO es propietario → ir a direccion-tomador
+  if (!inter.tomadorEsPropietario) {
     this.navigating = true;
-    this.router.navigate(['/uso-conductores', nextStepId]).finally(() => {
+    this.router.navigate(['/uso-conductores', 'direccion-tomador']).finally(() => {
       this.navigating = false;
     });
+    return;
   }
+
+  // ⭐ Caso normal: tomador ES propietario → NO ir a direccion-tomador
+  const nextIndex = Math.min(index + 1, this.steps.length - 1);
+  const nextStepId = this.steps[nextIndex].id;
+
+  this.state.setStepLoaded(nextIndex);
+  this.state.setLastStep(nextStepId);
+
+  this.navigating = true;
+  this.router.navigate(['/uso-conductores', nextStepId]).finally(() => {
+    this.navigating = false;
+  });
+  return;
+}
+
+  // ⭐ Resto de pasos tal como los tienes
+  const nextIndex = Math.min(index + 1, this.steps.length - 1);
+  const nextStepId = this.steps[nextIndex].id;
+
+  this.state.setStepLoaded(nextIndex);
+  this.state.setLastStep(nextStepId);
+
+  this.navigating = true;
+  this.router.navigate(['/uso-conductores', nextStepId]).finally(() => {
+    this.navigating = false;
+  });
+}
+
+
 
   private navigateTo(stepId: string, replaceUrl = false): void {
     this.router.navigate(['/uso-conductores', stepId], { replaceUrl });
   }
+}
+
+export interface StepDefinition {
+  id: string;
+  label: string;
+  component: () => Promise<any>;
 }

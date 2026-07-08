@@ -1,13 +1,68 @@
-.custom-header {
-  height: 60px;
-  background: white;
-  display: flex;
-  align-items: center;
-  padding: 0 24px;
-  border-bottom: 1px solid #e0e0e0;
+.app-header-shell {
+  display: block;
+  width: 100%;
+  background: #ffffff;
+  border-bottom: 1px solid #e5e7eb;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+  margin: 0;
+  padding: 0;
 }
 
-.custom-logo {
-  height: 36px;
-  object-fit: contain;
+/* Forzar bal-navbar a izquierda */
+.app-header-navbar {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: flex-start !important;
+  width: 100% !important;
+  height: 60px !important;
+  padding: 0 16px !important;
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
+  margin: 0 !important;
+}
+
+/* Baloise inyecta un wrapper interno centrado — anularlo */
+.app-header-navbar::part(container),
+.app-header-navbar .bal-navbar__container,
+.app-header-navbar > * {
+  justify-content: flex-start !important;
+  max-width: 100% !important;
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+.app-header-brand {
+  display: flex !important;
+  align-items: center !important;
+  justify-content: flex-start !important;
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+.app-header-logo {
+  height: 36px !important;
+  width: auto !important;
+  display: block !important;
+}
+
+/* Fallback texto */
+.app-header-logo-text {
+  display: flex;
+  flex-direction: column;
+  line-height: 1.1;
+}
+.app-header-logo-caser {
+  font-size: 1.25rem;
+  font-weight: 700;
+  color: #e8401c;
+  letter-spacing: -0.5px;
+}
+.app-header-logo-grupo {
+  font-size: 0.65rem;
+  color: #555555;
+  letter-spacing: 0.03em;
+  text-transform: uppercase;
 }

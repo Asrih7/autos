@@ -36,7 +36,6 @@
 
   </div>
 
-  <!-- SWITCH PRINCIPAL -->
   @switch (true) {
 
     @case (tomadorEsPropietario() && tomadorEsConductorHabitual()) {
@@ -161,7 +160,6 @@
 
   }
 
-  <!-- CONDUCTORES OCASIONALES -->
   @for (oc of conductoresOcasionales(); track oc) {
     <div class="bloque">
       <div class="bloque-header bloque-header--action">
@@ -190,18 +188,8 @@
     </bal-button>
   </div>
 
-  <!-- DIRECCIÓN DEL PROPIETARIO -->
-  @if (!tomadorEsPropietario()) {
-    <app-direccion-tomador
-      [initial]="propietarioDireccion"
-      (save)="onPropietarioDireccionSave($event)"
-      (direccionCompleted)="onPropietarioDireccionCompleted()">
-    </app-direccion-tomador>
-  }
-
 </div>
 
-<!-- TEMPLATE PERSONA -->
 <ng-template #personaForm let-model let-showDocumento="showDocumento" let-showCarnet="showCarnet" let-useEdad="useEdad">
 
   <div class="fields-labels">
@@ -235,24 +223,21 @@
       </div>
     }
 
-
     <div class="fi">
       <bal-input
-  type="text"
-  inputmode="text"
-  maxlength="12"
-  [placeholder]="'usoConductores.intervinientes.form.nifPlaceholder' | translate"
-  [value]="model.numeroDocumento"
-  (balInput)="onInputChange($event, model, 'numeroDocumento')"
-  (balChange)="onInputChange($event, model, 'numeroDocumento')"
-  (balBlur)="onNumeroDocumentoBlur(model)"
-  
-  [attr.aria-label]="'usoConductores.intervinientes.form.nifAriaLabel' | translate">
-</bal-input>
-
+        type="text"
+        inputmode="text"
+        maxlength="12"
+        [placeholder]="'usoConductores.intervinientes.form.nifPlaceholder' | translate"
+        [value]="model.numeroDocumento"
+        (balInput)="onInputChange($event, model, 'numeroDocumento')"
+        (balChange)="onInputChange($event, model, 'numeroDocumento')"
+        (balBlur)="onNumeroDocumentoBlur(model)"
+        [attr.aria-label]="'usoConductores.intervinientes.form.nifAriaLabel' | translate">
+      </bal-input>
     </div>
 
-       <div class="fi">
+    <div class="fi">
       <bal-select
         [value]="model.pais"
         (balChange)="onSelectChange($any($event), model, 'pais')">
@@ -261,7 +246,6 @@
         }
       </bal-select>
     </div>
-
 
     @if (!esCIF(model)) {
 
@@ -277,7 +261,7 @@
         <div class="fi">
           <bal-select
             [value]="model.tipoCarnet"
-            (balChange)="onSelectChange($event, model, 'tipoCarnet')">
+            (balChange)="onSelectChange($any($event), model, 'tipoCarnet')">
             @for (opt of tiposCarnet$ | async; track opt.value) {
               <bal-select-option [value]="opt.value" [label]="opt.label"></bal-select-option>
             }

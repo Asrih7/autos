@@ -1,5 +1,10 @@
-<bal-sheet class="app-footer-shell">
-  <bal-footer>
-    <span>© 2026 Caser Grupo Helvetia</span>
-  </bal-footer>
-</bal-sheet>
+<footer>
+  @if (showWizardButtons) {
+    <div class="uso-actions">
+      @if (showBackButton) {
+        <bal-button color="grey" (click)="onVolver()">Volver</bal-button>
+      }
+      <bal-button color="green" (click)="onContinuar()">Continuar</bal-button>
+    </div>
+  }
+</footer>

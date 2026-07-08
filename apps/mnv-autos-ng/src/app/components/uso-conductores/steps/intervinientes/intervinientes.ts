@@ -1,4 +1,4 @@
-import { Component, EventEmitter, OnInit, Output, Signal, signal } from '@angular/core';
+import { Component, EventEmitter, inject, OnInit, Output, Signal, signal } from '@angular/core';
 import { CommonModule } from '@angular/common';
 import { FormsModule } from '@angular/forms';
 import { Observable, of } from 'rxjs';
@@ -11,7 +11,7 @@ import {
   BalSelectOption,
   BalDate,
   BalInput,
-  BalButton
+  BalButton,
 } from '@baloise/ds-angular';
 import { TranslateModule } from '@ngx-translate/core';
 
@@ -19,7 +19,6 @@ import { BdiService } from '../../services/bdi.service';
 import { SisnetService } from '../../services/sisnet.service';
 
 import { Persona } from '../../models/persona.model';
-import { DireccionTomadorComponent } from './components/direccion-tomador/direccion-tomador.component';
 import { DireccionModel } from '../../models/direccion.model';
 import { UsoConductoresStateService } from '../../uso-conductores-state.service';
 
@@ -35,8 +34,7 @@ import { UsoConductoresStateService } from '../../uso-conductores-state.service'
     BalDate,
     BalInput,
     BalButton,
-    DireccionTomadorComponent,
-    TranslateModule
+    TranslateModule,
   ],
   templateUrl: './intervinientes.html',
   styleUrls: ['./intervinientes.scss'],
@@ -84,23 +82,21 @@ export class IntervinientesComponent implements OnInit {
 
   propietarioDireccion: DireccionModel | null = null;
 
-  // NIE map typed as const to avoid TS7053
+  public usoState = inject(UsoConductoresStateService);
+
   private readonly NIE_MAP = { X: '0', Y: '1', Z: '2' } as const;
 
   constructor(
     private bdi: BdiService,
     private sisnet: SisnetService,
-    private usoState: UsoConductoresStateService
   ) {
     this.documentos$ = this.bdi.getDocumentTypes().pipe(catchError(() => of([])));
     this.paises$ = this.bdi.getCountries().pipe(catchError(() => of([])));
     this.tiposCarnet$ = this.sisnet.getDrivingLicenseTypes().pipe(catchError(() => of([])));
 
     this.maxConductoresOcasionales = toSignal(
-      this.sisnet.getNumberOfOccasionalDrivers().pipe(
-        catchError(() => of(0))
-      ),
-      { initialValue: 0 }
+      this.sisnet.getNumberOfOccasionalDrivers().pipe(catchError(() => of(0))),
+      { initialValue: 0 },
     );
   }
 
@@ -113,7 +109,7 @@ export class IntervinientesComponent implements OnInit {
       this.propietario = this.restorePersona(saved.propietario);
       this.conductorHabitual = this.restorePersona(saved.conductorHabitual);
       this.conductoresOcasionales.set(
-        (saved.conductoresOcasionales ?? []).map(item => this.restorePersona(item))
+        (saved.conductoresOcasionales ?? []).map(item => this.restorePersona(item)),
       );
       this.propietarioDireccion = saved.propietarioDireccion;
     }
@@ -190,9 +186,15 @@ export class IntervinientesComponent implements OnInit {
     });
   }
 
-  // ---------------- TOGGLES ----------------
   onTomadorEsPropietarioChange(checked: boolean): void {
     this.tomadorEsPropietario.set(checked);
+
+    // Si vuelve a true, Dirección Tomador deja de ser relevante
+    if (checked) {
+      this.usoState.resetDireccionTomador();
+      this.propietarioDireccion = null;
+    }
+
     this.persistIntervinientesState();
     this.checkCompletion();
   }
@@ -203,10 +205,9 @@ export class IntervinientesComponent implements OnInit {
     this.checkCompletion();
   }
 
-  // ---------------- OCASIONALES ----------------
   addConductorOcasional(): void {
     if (this.maxConductoresOcasionales() &&
-        this.conductoresOcasionales().length >= this.maxConductoresOcasionales()) {
+      this.conductoresOcasionales().length >= this.maxConductoresOcasionales()) {
       return;
     }
 
@@ -220,7 +221,7 @@ export class IntervinientesComponent implements OnInit {
         tipoCarnet: 'B',
         fechaObtencionCarnet: null,
         edadObtencionCarnet: undefined,
-      }
+      },
     ]);
     this.persistIntervinientesState();
     this.checkCompletion();
@@ -238,9 +239,7 @@ export class IntervinientesComponent implements OnInit {
     this.checkCompletion();
   }
 
-  // ---------------- INPUTS ----------------
   onDocumentoChange(model: Persona, newDocumento: string): void {
-    // Si cambia el tipo de documento, limpiar el número para evitar validaciones cruzadas
     model.documento = newDocumento;
     model.numeroDocumento = '';
 
@@ -269,7 +268,6 @@ export class IntervinientesComponent implements OnInit {
     this.checkCompletion();
   }
 
-  // Robust date handler
   onDateChange(event: any, model: any, field: string): void {
     const iso = event?.detail ?? event?.detail?.value ?? event?.target?.value ?? null;
     model[field] = iso ? this.isoToDate(String(iso)) : null;
@@ -301,7 +299,6 @@ export class IntervinientesComponent implements OnInit {
     return model?.documento === 'CIF';
   }
 
-  // ---------------- DIRECCIÓN PROPIETARIO ----------------
   onPropietarioDireccionSave(model: DireccionModel): void {
     this.propietarioDireccion = model;
     this.persistIntervinientesState();
@@ -313,32 +310,24 @@ export class IntervinientesComponent implements OnInit {
     this.checkCompletion();
   }
 
-  // ---------------- VALIDACIÓN ----------------
   private isPersonaComplete(model: Persona, opts: { showCarnet: boolean; useEdad: boolean }): boolean {
-    // Número de documento siempre obligatorio
     if (!model.documento) return false;
     if (!model.numeroDocumento || model.numeroDocumento.trim().length === 0) return false;
     if (!model.pais) return false;
 
-    // Si el documento es NIF o NIE, validar formato
     if (model.documento === 'NIF' || model.documento === 'NIE') {
       if (!this.isDocumentoValid(model.numeroDocumento)) return false;
     }
 
-    // Para pasaporte u otros tipos, exigir al menos 3 caracteres alfanuméricos
     if (model.documento === 'PASAPORTE') {
       if (!/^[A-Z0-9]{3,}$/.test(String(model.numeroDocumento).toUpperCase())) return false;
     }
 
-    // Para CIF, número obligatorio but dates/carnet may be skipped
     if (model.documento === 'CIF') {
-      // CIF format basic check
       if (!/^[A-HJ-NP-SUVW][0-9]{7}[0-9A-J]$/i.test(String(model.numeroDocumento))) return false;
-      // no need to check fechaNacimiento or carnet for CIF
       return true;
     }
 
-    // For non-CIF persons, fechaNacimiento required
     if (!model.fechaNacimiento) return false;
 
     if (opts.showCarnet) {
@@ -355,47 +344,45 @@ export class IntervinientesComponent implements OnInit {
   }
 
   private checkCompletion(): void {
-    const tomadorUseEdad = this.tomadorEsPropietario() && !this.tomadorEsConductorHabitual();
-    const tomadorOk = this.isPersonaComplete(this.tomador, { showCarnet: true, useEdad: tomadorUseEdad });
+    const tomadorUseEdad =
+      this.tomadorEsPropietario() && !this.tomadorEsConductorHabitual();
+    const tomadorOk = this.isPersonaComplete(this.tomador, {
+      showCarnet: true,
+      useEdad: tomadorUseEdad,
+    });
 
     let propietarioOk = true;
     if (!this.tomadorEsPropietario()) {
-      propietarioOk = this.isPersonaComplete(this.propietario, { showCarnet: false, useEdad: false });
+      propietarioOk = this.isPersonaComplete(this.propietario, {
+        showCarnet: false,
+        useEdad: false,
+      });
     }
 
     let conductorOk = true;
     if (!this.tomadorEsConductorHabitual()) {
       const conductorUseEdad = this.tomadorEsPropietario();
-      conductorOk = this.isPersonaComplete(this.conductorHabitual, { showCarnet: true, useEdad: conductorUseEdad });
+      conductorOk = this.isPersonaComplete(this.conductorHabitual, {
+        showCarnet: true,
+        useEdad: conductorUseEdad,
+      });
     }
 
-    // validar conductores ocasionales
     const ocasionales = this.conductoresOcasionales();
     let ocasionalesOk = true;
     for (const oc of ocasionales) {
-      // si aparece un conductor ocasional, su numeroDocumento debe ser válido
       if (!this.isPersonaComplete(oc, { showCarnet: true, useEdad: false })) {
         ocasionalesOk = false;
         break;
       }
     }
 
-    let propietarioDireccionOk = true;
-    if (!this.tomadorEsPropietario()) {
-      propietarioDireccionOk =
-        !!this.propietarioDireccion &&
-        !!this.propietarioDireccion.domicilio &&
-        this.propietarioDireccion.domicilio.trim().length > 0;
-    }
-
-    // persistir estado antes de marcar completitud
     this.persistIntervinientesState();
 
-    const allComplete = tomadorOk && propietarioOk && conductorOk && propietarioDireccionOk && ocasionalesOk;
+    const allComplete =
+      tomadorOk && propietarioOk && conductorOk && ocasionalesOk;
 
-    // al final de checkCompletion()
     if (allComplete) {
-      this.persistIntervinientesState();
       this.usoState.setStepLoaded(1);
       this.usoState.completeIntervinientes();
     } else {
@@ -421,7 +408,9 @@ export class IntervinientesComponent implements OnInit {
       return;
     }
 
-    let value = String(model.numeroDocumento ?? '').toUpperCase().replace(/[^A-Z0-9ÑXYZ]/g, '');
+    let value = String(model.numeroDocumento ?? '')
+      .toUpperCase()
+      .replace(/[^A-Z0-9ÑXYZ]/g, '');
     value = value.replace(/^X/, 'X').replace(/^Y/, 'Y').replace(/^Z/, 'Z');
 
     model.numeroDocumento = value;
@@ -433,13 +422,9 @@ export class IntervinientesComponent implements OnInit {
     if (!value) return false;
     const v = String(value).toUpperCase().trim();
 
-    // NIF: 8 dígitos + letra
     const nifRegex = /^[0-9]{8}[A-Z]$/;
-    // NIE: X/Y/Z + 7 dígitos + letra
     const nieRegex = /^[XYZ][0-9]{7}[A-Z]$/;
-    // CIF: letra + 7 dígitos + control (simplificado)
     const cifRegex = /^[A-HJ-NP-SUVW][0-9]{7}[0-9A-J]$/i;
-    // Pasaporte: alfanumérico 3+ chars
     const passportRegex = /^[A-Z0-9]{3,}$/;
 
     if (nifRegex.test(v)) return this.validateNifControl(v);
@@ -450,7 +435,6 @@ export class IntervinientesComponent implements OnInit {
     return false;
   }
 
-  // Validación control letra NIF (implementación estándar)
   validateNifControl(nif: string): boolean {
     if (!nif || nif.length !== 9) return false;
     const letters = 'TRWAGMYFPDXBNJZSQVHLCKE';
@@ -460,21 +444,18 @@ export class IntervinientesComponent implements OnInit {
     return nif[8] === expected;
   }
 
-  // Validación NIE: convertir X/Y/Z a 0/1/2 y validar como NIF
   validateNieControl(nie: string): boolean {
     if (!nie || nie.length !== 9) return false;
 
     const first = String(nie[0]).toUpperCase();
-    const rest = nie.slice(1); // 8 chars: 7 digits + letter
+    const rest = nie.slice(1);
 
-    // guard: solo aceptar X/Y/Z
     if (!(first in this.NIE_MAP)) {
       return false;
     }
 
-    // mapped value (typed)
     const mapped = this.NIE_MAP[first as keyof typeof this.NIE_MAP];
-    const numericPart = mapped + rest.slice(0, 7); // 8 digits
+    const numericPart = mapped + rest.slice(0, 7);
     const checkLetter = rest[7];
     const nifLike = numericPart + checkLetter;
 
@@ -482,9 +463,18 @@ export class IntervinientesComponent implements OnInit {
   }
 
   numeroDocumentoError(model: Persona): string | null {
-    if (!model.numeroDocumento || model.numeroDocumento.trim().length === 0) return 'Campo obligatorio';
-    if ((model.documento === 'NIF' || model.documento === 'NIE') && !this.isDocumentoValid(model.numeroDocumento)) return 'Formato inválido';
-    if (model.documento === 'CIF' && !/^[A-HJ-NP-SUVW][0-9]{7}[0-9A-J]$/i.test(String(model.numeroDocumento))) return 'Formato CIF inválido';
+    if (!model.numeroDocumento || model.numeroDocumento.trim().length === 0)
+      return 'Campo obligatorio';
+    if (
+      (model.documento === 'NIF' || model.documento === 'NIE') &&
+      !this.isDocumentoValid(model.numeroDocumento)
+    )
+      return 'Formato inválido';
+    if (
+      model.documento === 'CIF' &&
+      !/^[A-HJ-NP-SUVW][0-9]{7}[0-9A-J]$/i.test(String(model.numeroDocumento))
+    )
+      return 'Formato CIF inválido';
     return null;
   }
 }

@@ -1,322 +1,225 @@
-/* ─── Host & CSS variables ──────────────────────────────────────────────────── */
 :host {
-  display: block;
-
-  --color-brand:       #2a9d8f;
-  --color-brand-dark:  #1f8b76;
-  --color-line:        #d1e8e6;
-  --color-text-muted:  #9aa3b0;
-  --color-text-sub:    #6b7a89;
-  --color-text-done:   #3a3a3a;
-  --color-text-active: #1a2e44;
-  --color-text-title:  #1b3a6b;
-  --bullet-size:       24px;
-
-  /*
-    Geometry (all relative to .sidebar-nav left edge = 0):
-    ┌─────────────────────────────────────────┐
-    │  [●24px]  gap:14px  [Label text...]     │  ← main step
-    │     │                                   │
-    │  ───┼─── line at x=11px (center of ●)   │
-    │     │                                   │
-    │  [•8px]  gap:8px  [sub label...]        │  ← sub-step
-    │     │  center of • = 11px too           │
-    └─────────────────────────────────────────┘
-
-    sub-bullet left = 11 - (8/2) = 7px
-    line x          = 11px  (same column as main bullet center)
-  */
-  --line-x:       11px;
-  --sub-bull-sz:   8px;
-  --sub-bull-left: 7px;   /* 11px - 8px/2 = centres • on the same line */
-  --sub-gap:       8px;   /* gap between • and sub-label */
+  --step-color: #000d6e;
+  --step-color-light: #e3f2ef;
+  --step-pending-bg: #eceef1;
+  --step-pending-dot: #b8bfc7;
+  --step-line-width: 2px;
+  --step-circle-size: 28px;
+  --step-check-white: #ffffff;
 }
 
-/* ─── Sidebar wrapper ───────────────────────────────────────────────────────── */
-.sidebar-wrapper {
-  display: flex;
-  flex-direction: row;
-  align-items: stretch;
-  position: relative;
-  background: #ffffff;
-  border-right: 1px solid var(--color-line);
-  width: 260px;
-  flex-shrink: 0;
-  min-height: 100%;
-}
-.sidebar-wrapper.sidebar-collapsed { width: 40px; }
-
-/* ─── Toggle button ─────────────────────────────────────────────────────────── */
-.sidebar-toggle {
-  position: absolute;
-  top: 20px;
-  right: -14px;
-  z-index: 10;
-  width: 28px;
-  height: 28px;
-  border-radius: 50%;
-  border: 1px solid #b0d4d1;
-  background: #ffffff;
-  cursor: pointer;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  box-shadow: 0 1px 4px rgba(0,0,0,.12);
-  padding: 0;
-  color: var(--color-brand);
-  transition: background .2s;
-}
-.sidebar-toggle:hover { background: #e8f5f4; }
-
-/* ─── Sidebar content ───────────────────────────────────────────────────────── */
-.sidebar-content {
-  width: 260px;
-  overflow: hidden;
-  max-width: 0;
-  opacity: 0;
-  transition: max-width .3s ease, opacity .3s ease;
-  display: flex;
-  flex-direction: column;
-}
-.sidebar-content.open {
-  max-width: 260px;
-  opacity: 1;
-  padding: 28px 0;
+/* ── sidebar wrapper ── */
+.sidebar-shell {
+  display: flex !important;
+  flex-direction: column !important;
+  width: 220px !important;
+  min-width: 20rem !important;
+  max-width: 220px !important;
+  min-height: 100% !important;
+  background: #ffffff !important;
+  border-right: 1px solid #e5e7eb !important;
+  box-shadow: none !important;
+  padding: 20px 16px !important;
+  box-sizing: border-box !important;
+  margin: 0 !important;
 }
 
-/* ─── Back link ─────────────────────────────────────────────────────────────── */
+/* ── "← Tu cotización" header ── */
 .sidebar-back {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-  padding: 0 20px 20px;
-  font-size: .85rem;
-  color: #4a4a4a;
+  display: flex !important;
+  align-items: center !important;
+  gap: 8px !important;
+  margin-bottom: 24px !important;
+  padding: 0 !important;
+  background: transparent !important;
+  border: none !important;
+  box-shadow: none !important;
   cursor: pointer;
-  border: none;
-  background: none;
-  text-align: left;
 }
-.sidebar-back:hover { color: var(--color-brand); }
 
-/* ─── Title ─────────────────────────────────────────────────────────────────── */
-.sidebar-title { padding: 0 20px 4px; }
-
-.sidebar-title__label {
-  font-family: 'Futura LT W05 Bold', Arial, sans-serif;
-  font-size: .78rem;
+.sidebar-back-label {
+  font-size: 1rem;
   font-weight: 700;
-  color: var(--color-text-title);
-  text-transform: uppercase;
-  letter-spacing: .06em;
+  color: #1e3a5f;
 }
 
-/* ─── Nav container ─────────────────────────────────────────────────────────── */
+/* ── nav list ── */
 .sidebar-nav {
+  display: flex !important;
+  flex-direction: column !important;
+  gap: 0 !important;
+  list-style: none !important;
+  margin: 0 !important;
+  padding: 0 !important;
+}
+
+.sidebar-nav-item {
+  display: flex !important;
+  align-items: flex-start !important;
+  padding: 0 8px !important;
+  margin: 0 !important;
+  border-radius: 8px !important;
+  cursor: pointer !important;
+  transition: background 0.15s ease !important;
+}
+
+/* ── step indicator column ── */
+.step-indicator {
   display: flex;
   flex-direction: column;
-  padding: 0 20px;
-}
-
-/* ─── Step row ──────────────────────────────────────────────────────────────── */
-.sidebar-step {
-  display: flex;
-  align-items: flex-start;
-  gap: 14px;
-  position: relative;
-  padding-bottom: 28px;
-  cursor: pointer;
-  transition: transform .12s ease;
-}
-.sidebar-step:last-child { padding-bottom: 0; }
-.sidebar-step:hover {/* transform: translateX(2px); */}
-
-/* ─── Vertical connector line ───────────────────────────────────────────────── */
-/*
-  left = var(--line-x) = 11px → centres 2px line on the 24px bullet.
-  top  = 26px                  → starts just below bullet bottom.
-  bottom = 0                   → reaches end of padding-bottom gap.
-  The substeps ::before pseudo continues the line at the same x.
-*/
-.sidebar-step__line {
-  position: absolute;
-  left: var(--line-x);
-  top: 26px;
-  width: 2px;
-  bottom: 0;
-  background: var(--color-line);
-  z-index: 0;
-}
-
-/* ─── Bullet ────────────────────────────────────────────────────────────────── */
-.sidebar-step__bullet {
-  width: var(--bullet-size);
-  height: var(--bullet-size);
-  border-radius: 50%;
+  align-items: center;
+  width: var(--step-circle-size);
   flex-shrink: 0;
+}
+
+/* connecting line */
+.step-line {
+  width: var(--step-line-width);
+  flex: 1;
+  min-height: 32px;
+  background: var(--step-pending-bg);
+}
+
+.step-line--completed {
+  background: var(--step-color);
+}
+
+/* circle base */
+.step-circle {
   display: flex;
   align-items: center;
   justify-content: center;
-  border: 2px solid #c8d8d6;
-  background: #ffffff;
-  color: var(--color-text-muted);
-  position: relative;
-  z-index: 2;
-  transition: background .2s ease, border-color .2s ease, box-shadow .2s ease;
-}
-.sidebar-step__bullet i {
-  font-size: .75rem;
-  color: #ffffff;
-  position: relative;
-  z-index: 3;
+  width: var(--step-circle-size);
+  height: var(--step-circle-size);
+  border-radius: 50%;
+  flex-shrink: 0;
+  box-sizing: border-box;
+  overflow: hidden;
 }
 
-/* Hover */
-.sidebar-step:hover .sidebar-step__bullet {
-  border-color: var(--color-brand);
-  box-shadow: 0 0 0 6px rgba(42,157,143,.04);
-}
-/* Active */
-.sidebar-step--active .sidebar-step__bullet {
-  background: var(--color-brand);
-  border-color: var(--color-brand);
-  color: #fff;
-  box-shadow: 0 2px 6px rgba(42,157,143,.12);
-}
-.sidebar-step--active:hover .sidebar-step__bullet {
-  border-color: var(--color-brand-dark);
-  box-shadow: 0 0 0 8px rgba(42,157,143,.06);
-}
-/* Done */
-.sidebar-step--done .sidebar-step__bullet {
-  background: var(--color-brand);
-  border-color: var(--color-brand);
-  color: #fff;
+/* completed and active circle background */
+.sidebar-nav-item--completed .step-circle,
+.sidebar-nav-item--active .step-circle {
+  background: var(--step-color);
 }
 
-/* White dot inside active bullet */
-.sidebar-step__dot {
+/* pending circle background */
+.sidebar-nav-item:not(.sidebar-nav-item--active):not(.sidebar-nav-item--completed) .step-circle {
+  background: var(--step-pending-bg);
+}
+
+/* dot for active and pending states */
+.step-circle-dot {
   width: 8px;
   height: 8px;
   border-radius: 50%;
-  background: #ffffff;
-  display: inline-block;
+  background: var(--step-check-white);
 }
 
-/* ─── Step text ─────────────────────────────────────────────────────────────── */
-.sidebar-step__text { position: relative; z-index: 3; }
-
-.sidebar-step__label {
-  font-family: 'Futura LT W05 Book', Arial, sans-serif;
-  font-size: .875rem;
-  color: var(--color-text-muted);
-  line-height: 24px;
-}
-.sidebar-step__sublabel {
-  display: block;
-  font-size: .75rem;
-  color: #b0b8c4;
-  margin-top: 1px;
-}
-.sidebar-step--active .sidebar-step__label {
-  font-family: 'Futura LT W05 Bold', Arial, sans-serif;
-  font-weight: 700;
-  color: var(--color-text-active);
-  line-height: 28px;
-}
-.sidebar-step--done .sidebar-step__label { color: var(--color-text-done); }
-
-/* ─── Substeps list ─────────────────────────────────────────────────────────── */
-/*
-  FIGMA geometry:
-  - Sub-bullets sit ON the same vertical line as the main bullets (x=11px).
-  - sub-bullet (8px) centre = 11px  →  left = 11 - 4 = 7px from nav edge.
-  - The list has NO left margin so its coordinate origin = nav left edge.
-  - ::before at left:11px continues the vertical line through the sub-list.
-  - padding-left: 23px (7px + 8px bullet + 8px gap) pushes the <li> flex
-    content so the label aligns after the absolutely-positioned bullet.
-
-  Why NOT margin-left:38px (old value):
-    38px aligned sub-bullets with the main step TEXT, not with the LINE.
-    Figma clearly shows sub-bullets on the LINE, labels indented from there.
-*/
-.sidebar-substeps {
-  list-style: none;
-  margin: -4px 0 4px 0;   /* flush with nav left edge */
-  padding: 0;
-  position: relative;
-  z-index: 1;
+.step-circle-dot--pending {
+  width: 10px;
+  height: 10px;
+  background: var(--step-pending-dot);
 }
 
-/* Continuous vertical line through sub-list */
-.sidebar-substeps::before {
-  content: "";
-  position: absolute;
-  left: var(--line-x);    /* same x as main line = 11px */
-  top: 0;
-  bottom: 0;
-  width: 2px;
-  background: var(--color-line);
-  z-index: 0;
-}
-
-/* ─── Substep item ──────────────────────────────────────────────────────────── */
-.sidebar-substep {
+/* ── text column ── */
+.nav-item-content {
   display: flex;
-  align-items: center;
-  /* Push content right of the absolutely-positioned bullet:
-     var(--sub-bull-left) + var(--sub-bull-sz) + var(--sub-gap) = 7+8+8 = 23px */
-  padding: 5px 0 5px 23px;
-  position: relative;
-  cursor: pointer;
-  color: var(--color-text-sub);
-  transition: color .16s ease, transform .12s ease;
-}
-.sidebar-substep:hover {
-  color: var(--color-brand);
-  /*transform: translateX(2px);*/
+  flex-direction: column;
+  padding: 2px 0 24px 12px;
 }
 
-/* Sub-bullet — absolutely positioned on the line */
-.sidebar-substep__bullet {
-  position: absolute;
-  left: var(--sub-bull-left);   /* 7px: centres 8px dot on x=11px line */
-  top: 50%;
-  transform: translateY(-50%);
-  width: var(--sub-bull-sz);
-  height: var(--sub-bull-sz);
-  border-radius: 50%;
-  background: #c8d8d6;
+.nav-item-label {
+  font-size: 0.95rem;
+  font-weight: 600;
+  color: #94a3b8;
+  line-height: 1.3;
+}
+
+.nav-item-description {
+  font-size: 0.8rem;
+  color: #94a3b8;
+  margin-top: 2px;
+}
+
+.sidebar-nav-item--active .nav-item-label {
+  color: #1e3a5f;
+  font-weight: 700;
+}
+.sidebar-nav-item--active .nav-item-description {
+  color: #475569;
+}
+
+.sidebar-nav-item--completed .nav-item-label,
+.sidebar-nav-item--completed .nav-item-description {
+  color: #1e3a5f;
+}
+
+/* ── bal-icon / check styling: ensure white check inside completed circle ──
+   Place these rules in a global stylesheet (styles.scss) or keep them in the component
+   stylesheet but with ::ng-deep if ViewEncapsulation is enabled. */
+
+/* class applied to the bal-icon used as check */
+.step-check {
+  width: 18px;
+  height: 18px;
   display: inline-flex;
   align-items: center;
   justify-content: center;
-  z-index: 2;
-  transition: background .16s ease;
-  margin-left: 1px;
-}
-.sidebar-substep:hover .sidebar-substep__bullet         { background: var(--color-brand); }
-.sidebar-substep--active .sidebar-substep__bullet,
-.sidebar-substep--done   .sidebar-substep__bullet       { background: var(--color-brand); }
-.sidebar-substep--done .sidebar-substep__bullet .pi-check {
-  font-size: .5rem;
-  color: #fff;
+  color: var(--step-check-white);            /* for currentColor-based svgs */
+  --bal-icon-color: var(--step-check-white); /* for DS variants that use this var */
 }
 
-/* Sub label */
-.sidebar-substep__label {
-  font-family: 'Futura LT W05 Book', Arial, sans-serif;
-  font-size: .8rem;
-  line-height: 2.3;
-}
-.sidebar-substep--active .sidebar-substep__label {
-  color: var(--color-brand);
-  font-weight: 600;
+/* Primary selector: target svg and all children inside the bal-icon */
+.sidebar-nav-item--completed .step-check svg,
+.sidebar-nav-item--completed .step-check svg * {
+  fill: var(--step-check-white) !important;
+  stroke: var(--step-check-white) !important;
+  color: var(--step-check-white) !important;
 }
 
-/* ─── Collapsed state ───────────────────────────────────────────────────────── */
-.sidebar-wrapper.sidebar-collapsed .sidebar-step__text,
-.sidebar-wrapper.sidebar-collapsed .sidebar-substeps { display: none; }
-.sidebar-wrapper.sidebar-collapsed .sidebar-step__bullet { margin: 0 auto; }
+/* Ensure stroke visibility for stroke-only icons (polyline/path) */
+.sidebar-nav-item--completed .step-check svg polyline,
+.sidebar-nav-item--completed .step-check svg path,
+.sidebar-nav-item--completed .step-check svg line {
+  stroke-width: 2 !important;
+  stroke-linecap: round !important;
+  stroke-linejoin: round !important;
+}
 
-/* ─── Helvetia lib (hidden) ─────────────────────────────────────────────────── */
-.sidebar-helv-hidden { display: none; }
+/* Fallbacks for different renderings (use/g/g children) */
+.sidebar-nav-item--completed .step-check svg use,
+.sidebar-nav-item--completed .step-check svg g {
+  fill: var(--step-check-white) !important;
+  stroke: var(--step-check-white) !important;
+}
+
+/* Fallback if bal-icon renders an <img> */
+.sidebar-nav-item--completed .step-check img {
+  filter: brightness(0) invert(1) !important;
+}
+
+/* If your component uses ViewEncapsulation, include ::ng-deep variants */
+::ng-deep .sidebar-nav-item--completed .step-check svg,
+::ng-deep .sidebar-nav-item--completed .step-check svg * {
+  fill: var(--step-check-white) !important;
+  stroke: var(--step-check-white) !important;
+  color: var(--step-check-white) !important;
+}
+
+/* small polish */
+.sidebar-nav-item--completed .step-circle {
+  box-shadow: 0 1px 0 rgba(0,0,0,0.04) inset;
+}
+
+/* focus and keyboard accessibility */
+.sidebar-nav-item:focus-within,
+.sidebar-nav-item:focus {
+  outline: 2px solid rgba(37,99,235,0.12);
+  outline-offset: 2px;
+}
+
+/* responsive tweak */
+@media (max-width: 900px) {
+  .sidebar-shell { display: none; }
+}
