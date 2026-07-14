@@ -1,12 +1,11 @@
 <div>
-  <div class="steps-container">
+  <div>
     <ng-container #stepOutlet></ng-container>
   </div>
 
-  <div class="navigation-actions">
+  <div class="flex justify-between mt-large">
     <bal-button [disabled]="!nextEnabled()" (click)="goNext()">
       {{ 'usoConductores.navigation.next' | translate }}
     </bal-button>
   </div>
 </div>
-

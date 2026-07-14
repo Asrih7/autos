@@ -1,48 +1,48 @@
-<div class="intervinientes">
+<section class="w-12 flex flex-direction-column gap-normal bg-white mb-large">
 
-  <h2 class="page-title">{{ 'usoConductores.intervinientes.pageTitle' | translate }}</h2>
+  <bal-heading level="h3" visual-level="h4" class="mb-none text-blue">
+    {{ 'usoConductores.intervinientes.pageTitle' | translate }}
+  </bal-heading>
 
-  <div class="toggles-section" role="group" aria-label="Intervinientes toggles">
+  <div class="flex flex-direction-column gap-none" role="group" aria-label="Intervinientes toggles">
 
-    <div class="toggle-row toggle-row--vertical">
-      <div class="switch switch--small" role="switch" [attr.aria-checked]="tomadorEsPropietario()">
-        <input
-          id="toggle-propietario"
-          type="checkbox"
-          class="switch-input"
-          [checked]="tomadorEsPropietario()"
-          (change)="onTomadorEsPropietarioChange($event.target.checked)">
-        <label for="toggle-propietario" class="switch-track">
-          <span class="switch-thumb"></span>
-        </label>
-      </div>
-      <div class="toggle-label">{{ 'usoConductores.intervinientes.toggles.owner' | translate }}</div>
+    <div class="flex align-items-center gap-small">
+      <bal-checkbox
+        interface="switch"
+        [checked]="tomadorEsPropietario()"
+        (balChange)="onTomadorEsPropietarioChange($event.detail)">
+      </bal-checkbox>
+      <span class="text-body-small text-light text-blue">
+        {{ 'usoConductores.intervinientes.toggles.owner' | translate }}
+      </span>
     </div>
 
-    <div class="toggle-row toggle-row--vertical">
-      <div class="switch switch--small" role="switch" [attr.aria-checked]="tomadorEsConductorHabitual()">
-        <input
-          id="toggle-conductor"
-          type="checkbox"
-          class="switch-input"
-          [checked]="tomadorEsConductorHabitual()"
-          (change)="onTomadorEsConductorHabitualChange($event.target.checked)">
-        <label for="toggle-conductor" class="switch-track">
-          <span class="switch-thumb"></span>
-        </label>
-      </div>
-      <div class="toggle-label">{{ 'usoConductores.intervinientes.toggles.driver' | translate }}</div>
+    <div class="flex align-items-center gap-small">
+      <bal-checkbox
+        interface="switch"
+        [checked]="tomadorEsConductorHabitual()"
+        (balChange)="onTomadorEsConductorHabitualChange($event.detail)">
+      </bal-checkbox>
+      <span class="text-body-small text-light text-blue">
+        {{ 'usoConductores.intervinientes.toggles.driver' | translate }}
+      </span>
     </div>
 
   </div>
 
-  @switch (true) {
+</section>
 
-    @case (tomadorEsPropietario() && tomadorEsConductorHabitual()) {
-      <div class="bloque">
-        <div class="bloque-header">{{ 'usoConductores.intervinientes.sections.tomadorPropietarioConductor' | translate }}</div>
-        <div class="bloque-body">
-          <ng-container [ngTemplateOutlet]="personaForm"
+@switch (true) {
+
+  @case (tomadorEsPropietario() && tomadorEsConductorHabitual()) {
+    <section class="w-8 mb-large">
+      <bal-card class="overflow-visible">
+        <div class="bg-grey-light p-normal text-body-small text-blue text-uppercase">
+          {{ 'usoConductores.intervinientes.sections.tomadorPropietarioConductor' | translate }}
+        </div>
+        <div class="p-normal">
+          <ng-container
+            [ngTemplateOutlet]="personaForm"
             [ngTemplateOutletContext]="{
               $implicit: tomador,
               showDocumento: true,
@@ -51,14 +51,19 @@
             }">
           </ng-container>
         </div>
-      </div>
-    }
+      </bal-card>
+    </section>
+  }
 
-    @case (!tomadorEsPropietario() && tomadorEsConductorHabitual()) {
-      <div class="bloque">
-        <div class="bloque-header">{{ 'usoConductores.intervinientes.sections.tomadorConductor' | translate }}</div>
-        <div class="bloque-body">
-          <ng-container [ngTemplateOutlet]="personaForm"
+  @case (!tomadorEsPropietario() && tomadorEsConductorHabitual()) {
+    <section class="w-8 mb-large">
+      <bal-card class="overflow-visible">
+        <div class="bg-grey-light p-normal text-body-small text-blue text-uppercase">
+          {{ 'usoConductores.intervinientes.sections.tomadorConductor' | translate }}
+        </div>
+        <div class="p-normal">
+          <ng-container
+            [ngTemplateOutlet]="personaForm"
             [ngTemplateOutletContext]="{
               $implicit: tomador,
               showDocumento: true,
@@ -67,12 +72,17 @@
             }">
           </ng-container>
         </div>
-      </div>
+      </bal-card>
+    </section>
 
-      <div class="bloque">
-        <div class="bloque-header">{{ 'usoConductores.intervinientes.sections.propietarioVehicle' | translate }}</div>
-        <div class="bloque-body">
-          <ng-container [ngTemplateOutlet]="personaForm"
+    <section class="w-8 mb-large">
+      <bal-card class="overflow-visible">
+        <div class="bg-grey-light p-normal text-body-small text-blue text-uppercase">
+          {{ 'usoConductores.intervinientes.sections.propietarioVehicle' | translate }}
+        </div>
+        <div class="p-normal">
+          <ng-container
+            [ngTemplateOutlet]="personaForm"
             [ngTemplateOutletContext]="{
               $implicit: propietario,
               showDocumento: true,
@@ -81,14 +91,19 @@
             }">
           </ng-container>
         </div>
-      </div>
-    }
+      </bal-card>
+    </section>
+  }
 
-    @case (tomadorEsPropietario() && !tomadorEsConductorHabitual()) {
-      <div class="bloque">
-        <div class="bloque-header">{{ 'usoConductores.intervinientes.sections.tomadorPropietario' | translate }}</div>
-        <div class="bloque-body">
-          <ng-container [ngTemplateOutlet]="personaForm"
+  @case (tomadorEsPropietario() && !tomadorEsConductorHabitual()) {
+    <section class="w-8 mb-large">
+      <bal-card class="overflow-visible">
+        <div class="bg-grey-light p-normal text-body-small text-blue text-uppercase">
+          {{ 'usoConductores.intervinientes.sections.tomadorPropietario' | translate }}
+        </div>
+        <div class="p-normal">
+          <ng-container
+            [ngTemplateOutlet]="personaForm"
             [ngTemplateOutletContext]="{
               $implicit: tomador,
               showDocumento: true,
@@ -97,12 +112,17 @@
             }">
           </ng-container>
         </div>
-      </div>
+      </bal-card>
+    </section>
 
-      <div class="bloque">
-        <div class="bloque-header">{{ 'usoConductores.intervinientes.sections.conductorHabitual' | translate }}</div>
-        <div class="bloque-body">
-          <ng-container [ngTemplateOutlet]="personaForm"
+    <section class="w-8 mb-large">
+      <bal-card class="overflow-visible">
+        <div class="bg-grey-light p-normal text-body-small text-blue text-uppercase">
+          {{ 'usoConductores.intervinientes.sections.conductorHabitual' | translate }}
+        </div>
+        <div class="p-normal">
+          <ng-container
+            [ngTemplateOutlet]="personaForm"
             [ngTemplateOutletContext]="{
               $implicit: conductorHabitual,
               showDocumento: true,
@@ -111,14 +131,19 @@
             }">
           </ng-container>
         </div>
-      </div>
-    }
+      </bal-card>
+    </section>
+  }
 
-    @case (!tomadorEsPropietario() && !tomadorEsConductorHabitual()) {
-      <div class="bloque">
-        <div class="bloque-header">{{ 'usoConductores.intervinientes.sections.tomador' | translate }}</div>
-        <div class="bloque-body">
-          <ng-container [ngTemplateOutlet]="personaForm"
+  @case (!tomadorEsPropietario() && !tomadorEsConductorHabitual()) {
+    <section class="w-8 mb-large">
+      <bal-card class="overflow-visible">
+        <div class="bg-grey-light p-normal text-body-small text-blue text-uppercase">
+          {{ 'usoConductores.intervinientes.sections.tomador' | translate }}
+        </div>
+        <div class="p-normal">
+          <ng-container
+            [ngTemplateOutlet]="personaForm"
             [ngTemplateOutletContext]="{
               $implicit: tomador,
               showDocumento: true,
@@ -127,12 +152,17 @@
             }">
           </ng-container>
         </div>
-      </div>
+      </bal-card>
+    </section>
 
-      <div class="bloque">
-        <div class="bloque-header">{{ 'usoConductores.intervinientes.sections.propietario' | translate }}</div>
-        <div class="bloque-body">
-          <ng-container [ngTemplateOutlet]="personaForm"
+    <section class="w-8 mb-large">
+      <bal-card class="overflow-visible">
+        <div class="bg-grey-light p-normal text-body-small text-blue text-uppercase">
+          {{ 'usoConductores.intervinientes.sections.propietario' | translate }}
+        </div>
+        <div class="p-normal">
+          <ng-container
+            [ngTemplateOutlet]="personaForm"
             [ngTemplateOutletContext]="{
               $implicit: propietario,
               showDocumento: true,
@@ -141,12 +171,17 @@
             }">
           </ng-container>
         </div>
-      </div>
+      </bal-card>
+    </section>
 
-      <div class="bloque">
-        <div class="bloque-header">{{ 'usoConductores.intervinientes.sections.conductorHabitual' | translate }}</div>
-        <div class="bloque-body">
-          <ng-container [ngTemplateOutlet]="personaForm"
+    <section class="w-8 mb-large">
+      <bal-card class="overflow-visible">
+        <div class="bg-grey-light p-normal text-body-small text-blue text-uppercase">
+          {{ 'usoConductores.intervinientes.sections.conductorHabitual' | translate }}
+        </div>
+        <div class="p-normal">
+          <ng-container
+            [ngTemplateOutlet]="personaForm"
             [ngTemplateOutletContext]="{
               $implicit: conductorHabitual,
               showDocumento: true,
@@ -155,21 +190,24 @@
             }">
           </ng-container>
         </div>
-      </div>
-    }
-
+      </bal-card>
+    </section>
   }
 
-  @for (oc of conductoresOcasionales(); track oc) {
-    <div class="bloque">
-      <div class="bloque-header bloque-header--action">
+}
+
+@for (oc of conductoresOcasionales(); track oc; let idx = $index) {
+  <section class="w-8 mb-large">
+    <bal-card class="overflow-visible">
+      <div class="bg-grey-light p-normal flex align-items-center justify-content-space-between text-body-small text-blue text-uppercase">
         <span>{{ 'usoConductores.intervinientes.sections.conductorOcasional' | translate }}</span>
-        <button class="btn-remove" type="button" (click)="removeConductorOcasional($index)">
+        <bal-button color="danger" variant="link" size="small" (click)="removeConductorOcasional(idx)">
           <bal-icon name="close" size="small"></bal-icon>
-        </button>
+        </bal-button>
       </div>
-      <div class="bloque-body">
-        <ng-container [ngTemplateOutlet]="personaForm"
+      <div class="p-normal">
+        <ng-container
+          [ngTemplateOutlet]="personaForm"
           [ngTemplateOutletContext]="{
             $implicit: oc,
             showDocumento: true,
@@ -178,118 +216,134 @@
           }">
         </ng-container>
       </div>
-    </div>
-  }
+    </bal-card>
+  </section>
+}
 
-  <div class="add-conductor-box">
-    <bal-button (click)="addConductorOcasional()" variant="ghost" class="btn-add-conductor">
+<section class="w-8 flex justify-content-end mb-large">
+  <bal-button variant="ghost" color="grey" (click)="addConductorOcasional()">
+    <span class="flex align-items-center gap-small">
       {{ 'usoConductores.intervinientes.sections.addConductor' | translate }}
-      <span class="add-icon"><bal-icon name="plus" size="small"></bal-icon></span>
-    </bal-button>
-  </div>
+      <bal-icon name="plus" size="small"></bal-icon>
+    </span>
+  </bal-button>
+</section>
 
-</div>
-
+<!-- persona form: single horizontal row, all fields same height -->
 <ng-template #personaForm let-model let-showDocumento="showDocumento" let-showCarnet="showCarnet" let-useEdad="useEdad">
-
-  <div class="fields-labels">
-    @if (showDocumento) { <span class="fl">{{ 'usoConductores.intervinientes.form.document' | translate }}</span> }
-    <span class="fl">{{ 'usoConductores.intervinientes.form.nifNumber' | translate }}</span>
-    <span class="fl">{{ 'usoConductores.intervinientes.form.country' | translate }}</span>
-    @if (!esCIF(model)) {
-      <span class="fl">{{ 'usoConductores.intervinientes.form.birthDate' | translate }}</span>
-      @if (showCarnet) {
-        <span class="fl">{{ 'usoConductores.intervinientes.form.drivingLicenseType' | translate }}</span>
-        @if (useEdad) {
-          <span class="fl">{{ 'usoConductores.intervinientes.form.licenseAge' | translate }}</span>
-        } @else {
-          <span class="fl">{{ 'usoConductores.intervinientes.form.licenseDate' | translate }}</span>
-        }
-      }
-    }
-  </div>
-
-  <div class="fields-inputs">
+  <div class="flex flex-wrap gap-normal align-items-end">
 
     @if (showDocumento) {
-      <div class="fi">
-        <bal-select
-          [value]="model.documento"
-          (balChange)="onSelectChange($any($event), model, 'documento')">
-          @for (opt of documentos$ | async; track opt.value) {
-            <bal-select-option [value]="opt.value" [label]="opt.label">{{ opt.label }}</bal-select-option>
-          }
-        </bal-select>
+      <div class="flex-1 min-w-0">
+        <bal-field>
+          <bal-field-label class="text-body-small text-light mt-none text-blue">{{ 'usoConductores.intervinientes.form.documento' | translate }}</bal-field-label>
+          <bal-field-control>
+            <bal-select
+              [value]="model.documento"
+              (balChange)="onSelectChange($event, model, 'documento')"
+              placeholder="{{ 'usoConductores.intervinientes.form.documento' | translate }}"
+            >
+              @for (opt of documentos$ | async; track opt.value) {
+                <bal-select-option [value]="opt.value" [label]="opt.label">{{ opt.label }}</bal-select-option>
+              }
+            </bal-select>
+          </bal-field-control>
+        </bal-field>
       </div>
     }
 
-    <div class="fi">
-      <bal-input
-        type="text"
-        inputmode="text"
-        maxlength="12"
-        [placeholder]="'usoConductores.intervinientes.form.nifPlaceholder' | translate"
-        [value]="model.numeroDocumento"
-        (balInput)="onInputChange($event, model, 'numeroDocumento')"
-        (balChange)="onInputChange($event, model, 'numeroDocumento')"
-        (balBlur)="onNumeroDocumentoBlur(model)"
-        [attr.aria-label]="'usoConductores.intervinientes.form.nifAriaLabel' | translate">
-      </bal-input>
+    <div class="flex-1 min-w-0">
+      <bal-field>
+        <bal-field-label class="text-body-small text-light mt-none text-blue">{{ 'usoConductores.intervinientes.form.numeroNif' | translate }}</bal-field-label>
+        <bal-field-control>
+          <bal-input
+            [value]="model.numeroDocumento"
+            (balInput)="onInputChange($event, model, 'numeroDocumento')"
+            (balChange)="onInputChange($event, model, 'numeroDocumento')"
+            (balBlur)="onNumeroDocumentoBlur(model)"
+            [placeholder]="'usoConductores.intervinientes.form.nifPlaceholder' | translate"
+            [invalid]="!!numeroDocumentoError(model) && !!model.numeroDocumento"
+          ></bal-input>
+        </bal-field-control>
+      </bal-field>
     </div>
 
-    <div class="fi">
-      <bal-select
-        [value]="model.pais"
-        (balChange)="onSelectChange($any($event), model, 'pais')">
-        @for (opt of paises$ | async; track opt.value) {
-          <bal-select-option [value]="opt.value" [label]="opt.label">{{ opt.label }}</bal-select-option>
-        }
-      </bal-select>
+    <div class="flex-1 min-w-0">
+      <bal-field>
+        <bal-field-label class="text-body-small text-light mt-none text-blue">{{ 'usoConductores.intervinientes.form.pais' | translate }}</bal-field-label>
+        <bal-field-control>
+          <bal-select
+            [value]="model.pais"
+            (balChange)="onSelectChange($event, model, 'pais')"
+            placeholder="{{ 'usoConductores.intervinientes.form.pais' | translate }}"
+          >
+            @for (opt of paises$ | async; track opt.value) {
+              <bal-select-option [value]="opt.value" [label]="opt.label">{{ opt.label }}</bal-select-option>
+            }
+          </bal-select>
+        </bal-field-control>
+      </bal-field>
     </div>
 
     @if (!esCIF(model)) {
+      <div class="flex-1 min-w-0">
+        <bal-field>
+          <bal-field-label class="text-body-small text-light mt-none text-blue">{{ 'usoConductores.intervinientes.form.fechaNacimiento' | translate }}</bal-field-label>
+          <bal-field-control>
+            <bal-date
+              [value]="dateToIso(model.fechaNacimiento)"
+              (balChange)="onDateChange($event, model, 'fechaNacimiento')"
+            ></bal-date>
+          </bal-field-control>
+        </bal-field>
+      </div>
+    }
 
-      <div class="fi">
-        <bal-date
-          [value]="dateToIso(model.fechaNacimiento)"
-          (balChange)="onDateChange($event, model, 'fechaNacimiento')">
-        </bal-date>
+    @if (showCarnet) {
+      <div class="flex-1 min-w-0">
+        <bal-field>
+          <bal-field-label class="text-body-small text-light mt-none text-blue">{{ 'usoConductores.intervinientes.form.tipoCarnet' | translate }}</bal-field-label>
+          <bal-field-control>
+            <bal-select
+              [value]="model.tipoCarnet"
+              (balChange)="onSelectChange($event, model, 'tipoCarnet')"
+              placeholder="{{ 'usoConductores.intervinientes.form.tipoCarnet' | translate }}"
+            >
+              @for (opt of tiposCarnet$ | async; track opt.value) {
+                <bal-select-option [value]="opt.value" [label]="opt.label">{{ opt.label }}</bal-select-option>
+              }
+            </bal-select>
+          </bal-field-control>
+        </bal-field>
       </div>
 
-      @if (showCarnet) {
-
-        <div class="fi">
-          <bal-select
-            [value]="model.tipoCarnet"
-            (balChange)="onSelectChange($any($event), model, 'tipoCarnet')">
-            @for (opt of tiposCarnet$ | async; track opt.value) {
-              <bal-select-option [value]="opt.value" [label]="opt.label"></bal-select-option>
-            }
-          </bal-select>
+      @if (useEdad) {
+        <div class="flex-1 min-w-0">
+          <bal-field>
+            <bal-field-label class="text-body-small text-light mt-none text-blue">{{ 'usoConductores.intervinientes.form.edadObtuvoCarnet' | translate }}</bal-field-label>
+            <bal-field-control>
+              <bal-input
+                type="number"
+                [value]="model.edadObtencionCarnet"
+                (balInput)="onInputChange($event, model, 'edadObtencionCarnet')"
+              ></bal-input>
+            </bal-field-control>
+          </bal-field>
         </div>
-
-        @if (useEdad) {
-          <div class="fi">
-            <bal-input
-              type="text"
-              maxlength="2"
-              [value]="model.edadObtencionCarnet"
-              (balInput)="onInputChange($event, model, 'edadObtencionCarnet')">
-            </bal-input>
-          </div>
-        } @else {
-          <div class="fi">
-            <bal-date
-              [value]="dateToIso(model.fechaObtencionCarnet)"
-              (balChange)="onDateChange($event, model, 'fechaObtencionCarnet')">
-            </bal-date>
-          </div>
-        }
-
+      } @else {
+        <div class="flex-1 min-w-0">
+          <bal-field>
+            <bal-field-label class="text-body-small text-light mt-none text-blue">{{ 'usoConductores.intervinientes.form.fechaObtuvoCarnet' | translate }}</bal-field-label>
+            <bal-field-control>
+              <bal-date
+                [value]="dateToIso(model.fechaObtencionCarnet)"
+                (balChange)="onDateChange($event, model, 'fechaObtencionCarnet')"
+              ></bal-date>
+            </bal-field-control>
+          </bal-field>
+        </div>      
       }
-
     }
 
   </div>
-
 </ng-template>

@@ -1,10 +1,12 @@
-<section class="direccion-tomador">
-  <h2 class="page-title">{{ 'usoConductores.intervinientes.address.title' | translate }}</h2>
-  <h3 class="step-sub-title">{{ 'usoConductores.intervinientes.address.subtitle' | translate }}</h3>
+<section class="flex flex-direction-column gap-normal bg-white mb-large">
+  <bal-heading level="h3"
+      visual-level="h4"
+      class="mb-none text-blue">{{ 'usoConductores.intervinientes.address.title' | translate }}</bal-heading>
+  <p class="text-body-small text-light mt-none text-blue">{{ 'usoConductores.intervinientes.address.subtitle' | translate }}</p>
 
   <bal-select
+    class="w-5"
     id="domicilio"
-    class="direccion-select"
     data-testid="select-domicilio"
     [value]="model().domicilio"
     typeahead

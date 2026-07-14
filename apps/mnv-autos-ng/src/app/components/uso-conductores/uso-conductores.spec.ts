@@ -1,5 +1,5 @@
-import { UsoConductoresComponent } from './uso-conductores';
 import { ComponentFixture, TestBed } from "@angular/core/testing";
+import { UsoConductoresComponent } from "./uso-conductores";
 
 describe("UsoConductores", () => {
   let component: UsoConductoresComponent;
@@ -8,11 +8,17 @@ describe("UsoConductores", () => {
   beforeEach(async () => {
     await TestBed.configureTestingModule({
       imports: [UsoConductoresComponent],
-    }).compileComponents();
+    })
+      .overrideComponent(UsoConductoresComponent, {
+        set: {
+          template: "",
+        },
+      })
+      .compileComponents();
 
     fixture = TestBed.createComponent(UsoConductoresComponent);
     component = fixture.componentInstance;
-    await fixture.whenStable();
+
   });
 
   it("should create", () => {

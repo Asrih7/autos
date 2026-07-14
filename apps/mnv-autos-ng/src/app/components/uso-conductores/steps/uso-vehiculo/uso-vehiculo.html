@@ -1,46 +1,84 @@
-<div class="uso-vehiculo">
-  <h2 class="step-title">{{ 'usoConductores.usoVehiculo.title' | translate }}</h2>
-  <h3 class="step-sub-title">{{ 'usoConductores.usoVehiculo.subtitle' | translate }}</h3>
+<section class="w-6 flex flex-direction-column gap-normal bg-white mb-large">
+
+  <bal-heading level="h3" visual-level="h4" class="mb-none text-blue">
+    {{ 'usoConductores.usoVehiculo.title' | translate }}
+  </bal-heading>
+
+  <p class="text-body-small text-light mt-none text-blue">
+    {{ 'usoConductores.usoVehiculo.subtitle' | translate }}
+  </p>
 
   <bal-radio-group
-    class="uso-options"
     name="usoVehiculo"
+    class="flex flex-direction-column gap-small w-full"
     [value]="usoSeleccionado()"
-    (balChange)="onUsoChange($event.detail)">
-    @for (opcion of opciones(); track opcion.value) {
-      <div
-        class="uso-option"
-        [class.selected]="usoSeleccionado() === opcion.value"
-        (click)="selectUso(opcion.value)">
-        <div class="uso-option-header">
-          <bal-radio [value]="opcion.value"></bal-radio>
-          <span class="uso-label">{{ getOtroUsoLabel(opcion) }}</span>
+    (balChange)="onUsoChange($event.detail)"
+  >
 
-          @if (opcion.value === 'otros') {
-            <button
-              class="chevron-btn"
-              type="button"
-              (click)="$event.stopPropagation(); toggleExpand('otros')"
-              [attr.aria-label]="'usoConductores.usoVehiculo.toggleOtherUses' | translate">
-              <bal-icon class="uso-chevron" name="caret-down" size="small" [class.expanded]="isExpanded('otros')"></bal-icon>
-            </button>
-          }
+    @for (opcion of opciones(); track opcion.value) {
+
+      @if (opcion.value === 'otros') {
+
+        <!-- Card con dropdown inline, solo para "Otro uso" -->
+        <div
+          class="flex flex-direction-column bg-white w-full cursor-pointer border-grey p-normal"
+          [class.selected]="usoSeleccionado() === opcion.value"
+          (click)="onRowClick(opcion, otrosDropdown)"
+        >
+          <div class="flex align-items-center justify-content-space-between gap-normal w-full">
+
+            <div class="flex align-items-center gap-normal">
+              <bal-radio [value]="opcion.value"></bal-radio>
+              <span class="text-body-small text-light">
+                {{ otherLabel() || ('Otros usos' | translate) }}
+              </span>
+            </div>
+
+            <!-- Dropdown inline: control visual reducido (sin borde), popover mantiene estilo -->
+            <bal-dropdown
+              #otrosDropdown
+              class="dropdown-inline"
+              name="usoVehiculoOtros"
+              icon="caret-down"
+              placeholder=""
+              [clearable]="false"
+              [value]="otroUsoSeleccionado()"
+              (click)="$event.stopPropagation()"
+            >
+              @for (opt of otrosUsos(); track opt.value) {
+                <bal-option
+                  [value]="opt.value"
+                  [label]="opt.label"
+                  (balOptionChange)="onOtroUsoOptionChange($event)"
+                >
+                  {{ opt.label }}
+                </bal-option>
+              }
+            </bal-dropdown>
+
+          </div>
         </div>
 
-        @if (opcion.value === 'otros' && isExpanded('otros')) {
-          <div class="otros-usos-list" (click)="$event.stopPropagation()">
-            @for (opt of otrosUsos(); track opt.value) {
-              <button
-                type="button"
-                class="otros-usos-item"
-                [class.selected]="otroUsoSeleccionado() === opt.value"
-                (click)="$event.stopPropagation(); selectOtroUso(opt.value)">
-                {{ opt.label }}
-              </button>
-            }
+      } @else {
+
+        <!-- Card simple, sin dropdown -->
+        <div
+          class="flex flex-direction-column bg-white w-full cursor-pointer border-grey p-normal"
+          [class.selected]="usoSeleccionado() === opcion.value"
+          (click)="selectUso(opcion.value)"
+        >
+          <div class="flex align-items-center gap-normal w-full">
+            <bal-radio [value]="opcion.value"></bal-radio>
+            <span class="text-body-small text-light">
+              {{ getOtroUsoLabel(opcion) }}
+            </span>
           </div>
-        }
-      </div>
+        </div>
+
+      }
+
     }
+
   </bal-radio-group>
-</div>
+
+</section>

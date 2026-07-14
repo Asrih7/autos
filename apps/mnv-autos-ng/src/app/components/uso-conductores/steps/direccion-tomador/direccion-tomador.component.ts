@@ -2,7 +2,7 @@ import { CommonModule } from '@angular/common';
 import { Component, EventEmitter, Input, OnInit, Output, signal, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { toSignal } from '@angular/core/rxjs-interop';
-import { BalSelect, BalSelectOption } from '@baloise/ds-angular';
+import { BalHeading, BalSelect, BalSelectOption } from '@baloise/ds-angular';
 import { TranslateModule } from '@ngx-translate/core';
 import { Subject, of, startWith } from 'rxjs';
 import { catchError, debounceTime, distinctUntilChanged, switchMap } from 'rxjs/operators';
@@ -14,7 +14,7 @@ import { UsoConductoresStateService } from '../../uso-conductores-state.service'
 @Component({
   selector: 'app-direccion-tomador',
   standalone: true,
-  imports: [CommonModule, FormsModule, BalSelect, BalSelectOption, TranslateModule],
+  imports: [CommonModule, FormsModule, BalSelect, BalSelectOption, TranslateModule,BalHeading],
   templateUrl: './direccion-tomador.component.html',
   styleUrls: ['./direccion-tomador.component.scss'],
 })

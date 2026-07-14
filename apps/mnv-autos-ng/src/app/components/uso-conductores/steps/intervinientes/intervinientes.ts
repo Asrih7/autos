@@ -1,6 +1,16 @@
-import { Component, EventEmitter, inject, OnInit, Output, Signal, signal } from '@angular/core';
-import { Router } from '@angular/router';
 import { CommonModule } from '@angular/common';
+import {
+  ChangeDetectorRef,
+  Component,
+  CUSTOM_ELEMENTS_SCHEMA,
+  EventEmitter,
+  inject,
+  OnInit,
+  Output,
+  Signal,
+  signal,
+} from '@angular/core';
+import { Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { Observable, of } from 'rxjs';
 import { catchError } from 'rxjs/operators';
@@ -13,6 +23,12 @@ import {
   BalDate,
   BalInput,
   BalButton,
+  BalHeading,
+  BalField,
+  BalFieldLabel,
+  BalFieldControl,
+  BalCheckbox,
+  BalCard,
 } from '@baloise/ds-angular';
 import { TranslateModule } from '@ngx-translate/core';
 
@@ -27,6 +43,7 @@ import { USO_CONDUCTORES_STEPS } from '../../uso-conductores.steps';
 @Component({
   selector: 'app-intervinientes',
   standalone: true,
+  schemas: [CUSTOM_ELEMENTS_SCHEMA],
   imports: [
     CommonModule,
     FormsModule,
@@ -37,9 +54,14 @@ import { USO_CONDUCTORES_STEPS } from '../../uso-conductores.steps';
     BalInput,
     BalButton,
     TranslateModule,
+    BalHeading,
+    BalField,
+    BalFieldLabel,
+    BalFieldControl,
+    BalCheckbox,
+    BalCard,
   ],
   templateUrl: './intervinientes.html',
-  styleUrls: ['./intervinientes.scss'],
   host: { class: 'intervinientes-host' },
 })
 export class IntervinientesComponent implements OnInit {
@@ -86,20 +108,18 @@ export class IntervinientesComponent implements OnInit {
 
   public usoState = inject(UsoConductoresStateService);
   private readonly router = inject(Router);
+  private readonly cdr = inject(ChangeDetectorRef);
 
   private readonly NIE_MAP = { X: '0', Y: '1', Z: '2' } as const;
 
-  constructor(
-    private bdi: BdiService,
-    private sisnet: SisnetService,
-  ) {
+  constructor(private bdi: BdiService, private sisnet: SisnetService) {
     this.documentos$ = this.bdi.getDocumentTypes().pipe(catchError(() => of([])));
     this.paises$ = this.bdi.getCountries().pipe(catchError(() => of([])));
     this.tiposCarnet$ = this.sisnet.getDrivingLicenseTypes().pipe(catchError(() => of([])));
 
     this.maxConductoresOcasionales = toSignal(
       this.sisnet.getNumberOfOccasionalDrivers().pipe(catchError(() => of(0))),
-      { initialValue: 0 },
+      { initialValue: 0 }
     );
   }
 
@@ -111,9 +131,7 @@ export class IntervinientesComponent implements OnInit {
       this.tomador = this.restorePersona(saved.tomador);
       this.propietario = this.restorePersona(saved.propietario);
       this.conductorHabitual = this.restorePersona(saved.conductorHabitual);
-      this.conductoresOcasionales.set(
-        (saved.conductoresOcasionales ?? []).map(item => this.restorePersona(item)),
-      );
+      this.conductoresOcasionales.set((saved.conductoresOcasionales ?? []).map(item => this.restorePersona(item)));
       this.propietarioDireccion = saved.propietarioDireccion;
     }
 
@@ -189,39 +207,78 @@ export class IntervinientesComponent implements OnInit {
     });
   }
 
-  onTomadorEsPropietarioChange(checked: boolean): void {
-    this.tomadorEsPropietario.set(checked);
-
-    // Si vuelve a true, Dirección Tomador deja de ser relevante
-    if (checked) {
-      this.usoState.resetDireccionTomador();
-      this.propietarioDireccion = null;
-      // también limpiar cualquier step 'direccion-tomador' ya cargado y
-      // forzar navegación a intervinientes si el usuario está en esa ruta
-      const originalIndex = USO_CONDUCTORES_STEPS.findIndex(s => s.id === 'direccion-tomador');
-      if (originalIndex >= 0) {
-        this.usoState.clearStepLoaded(originalIndex);
-      }
-      const segments = this.router.parseUrl(this.router.url)
-        .root.children['primary']?.segments.map(s => s.path) ?? [];
-      if (segments[1] === 'direccion-tomador') {
-        void this.router.navigate(['/uso-conductores', 'intervinientes'], { replaceUrl: true });
-      }
+  private getCheckedFromEvent(event: any): boolean {
+    if (event === null || event === undefined) {
+      return false;
     }
 
-    this.persistIntervinientesState();
-    this.checkCompletion();
+    if (typeof event === 'boolean') {
+      return event;
+    }
+
+    if (event?.detail !== undefined) {
+      const detail = event.detail;
+      if (typeof detail === 'boolean') {
+        return detail;
+      }
+      if (detail && typeof detail === 'object' && 'value' in detail) {
+        return !!detail.value;
+      }
+      return !!detail;
+    }
+
+    if (event.target && typeof event.target.checked === 'boolean') {
+      return event.target.checked;
+    }
+
+    return !!event;
   }
 
-  onTomadorEsConductorHabitualChange(checked: boolean): void {
-    this.tomadorEsConductorHabitual.set(checked);
-    this.persistIntervinientesState();
-    this.checkCompletion();
+  /**
+   * Toggle handlers
+   * Accept either:
+   *  - boolean (native input change -> $event.target.checked)
+   *  - CustomEvent (bal-switch) where detail is boolean
+   *  - Angular Event where target.checked exists
+   */
+  onTomadorEsPropietarioChange(event: any): void {
+    const checked = this.getCheckedFromEvent(event);
+    this.tomadorEsPropietario.set(checked);
+
+    if (checked) {
+    this.usoState.resetDireccionTomador();
+    this.propietarioDireccion = null;
+
+    const originalIndex = USO_CONDUCTORES_STEPS.findIndex(s => s.id === 'direccion-tomador');
+    if (originalIndex >= 0) {
+      this.usoState.clearStepLoaded(originalIndex);
+    }
+
+    const segments = this.router.parseUrl(this.router.url)
+      .root.children['primary']?.segments.map(s => s.path) ?? [];
+
+    if (segments[1] === 'direccion-tomador') {
+      void this.router.navigate(['/uso-conductores', 'intervinientes'], { replaceUrl: true });
+    }
   }
+
+  this.persistIntervinientesState();
+  this.checkCompletion();
+  this.cdr.detectChanges();
+}
+
+onTomadorEsConductorHabitualChange(event: any): void {
+  const checked = this.getCheckedFromEvent(event);
+  this.tomadorEsConductorHabitual.set(checked);
+
+  this.persistIntervinientesState();
+  this.checkCompletion();
+  this.cdr.detectChanges();
+}
+
 
   addConductorOcasional(): void {
-    if (this.maxConductoresOcasionales() &&
-      this.conductoresOcasionales().length >= this.maxConductoresOcasionales()) {
+    if (this.maxConductoresOcasionales() && this.conductoresOcasionales().length >= this.maxConductoresOcasionales()) {
       return;
     }
 
@@ -269,8 +326,17 @@ export class IntervinientesComponent implements OnInit {
     this.checkCompletion();
   }
 
-  onSelectChange(event: any, model: any, field: string): void {
-    const v = event?.detail ?? event?.detail?.value ?? event?.target?.value ?? event;
+  /**
+   * Generic select handler: supports bal-select (CustomEvent.detail),
+   * Angular event, or direct value.
+   */
+  onSelectChange(eventOrValue: any, model: any, field: string): void {
+    const v =
+      eventOrValue?.detail?.value ??
+      eventOrValue?.detail ??
+      eventOrValue?.target?.value ??
+      eventOrValue;
+
     model[field] = typeof v === 'object' && 'value' in v ? v.value : v;
 
     if (field === 'documento') {
@@ -282,8 +348,9 @@ export class IntervinientesComponent implements OnInit {
     this.checkCompletion();
   }
 
-  onDateChange(event: any, model: any, field: string): void {
-    const iso = event?.detail ?? event?.detail?.value ?? event?.target?.value ?? null;
+  onDateChange(eventOrValue: any, model: any, field: string): void {
+    const iso =
+      eventOrValue?.detail?.value ?? eventOrValue?.detail ?? eventOrValue?.target?.value ?? eventOrValue;
     model[field] = iso ? this.isoToDate(String(iso)) : null;
     this.persistIntervinientesState();
     this.checkCompletion();
@@ -358,28 +425,18 @@ export class IntervinientesComponent implements OnInit {
   }
 
   private checkCompletion(): void {
-    const tomadorUseEdad =
-      this.tomadorEsPropietario() && !this.tomadorEsConductorHabitual();
-    const tomadorOk = this.isPersonaComplete(this.tomador, {
-      showCarnet: true,
-      useEdad: tomadorUseEdad,
-    });
+    const tomadorUseEdad = this.tomadorEsPropietario() && !this.tomadorEsConductorHabitual();
+    const tomadorOk = this.isPersonaComplete(this.tomador, { showCarnet: true, useEdad: tomadorUseEdad });
 
     let propietarioOk = true;
     if (!this.tomadorEsPropietario()) {
-      propietarioOk = this.isPersonaComplete(this.propietario, {
-        showCarnet: false,
-        useEdad: false,
-      });
+      propietarioOk = this.isPersonaComplete(this.propietario, { showCarnet: false, useEdad: false });
     }
 
     let conductorOk = true;
     if (!this.tomadorEsConductorHabitual()) {
       const conductorUseEdad = this.tomadorEsPropietario();
-      conductorOk = this.isPersonaComplete(this.conductorHabitual, {
-        showCarnet: true,
-        useEdad: conductorUseEdad,
-      });
+      conductorOk = this.isPersonaComplete(this.conductorHabitual, { showCarnet: true, useEdad: conductorUseEdad });
     }
 
     const ocasionales = this.conductoresOcasionales();
@@ -393,8 +450,7 @@ export class IntervinientesComponent implements OnInit {
 
     this.persistIntervinientesState();
 
-    const allComplete =
-      tomadorOk && propietarioOk && conductorOk && ocasionalesOk;
+    const allComplete = tomadorOk && propietarioOk && conductorOk && ocasionalesOk;
 
     if (allComplete) {
       this.usoState.setStepLoaded(1);
@@ -411,16 +467,13 @@ export class IntervinientesComponent implements OnInit {
 
   onInputChange(event: any, model: any, field: string): void {
     const value = this.readInputValue(event);
-
     model[field] = value;
     this.persistIntervinientesState();
     this.checkCompletion();
   }
 
   onNumeroDocumentoBlur(model: any): void {
-    if (!model) {
-      return;
-    }
+    if (!model) return;
 
     let value = String(model.numeroDocumento ?? '')
       .toUpperCase()
@@ -477,17 +530,10 @@ export class IntervinientesComponent implements OnInit {
   }
 
   numeroDocumentoError(model: Persona): string | null {
-    if (!model.numeroDocumento || model.numeroDocumento.trim().length === 0)
-      return 'Campo obligatorio';
-    if (
-      (model.documento === 'NIF' || model.documento === 'NIE') &&
-      !this.isDocumentoValid(model.numeroDocumento)
-    )
+    if (!model.numeroDocumento || model.numeroDocumento.trim().length === 0) return 'Campo obligatorio';
+    if ((model.documento === 'NIF' || model.documento === 'NIE') && !this.isDocumentoValid(model.numeroDocumento))
       return 'Formato inválido';
-    if (
-      model.documento === 'CIF' &&
-      !/^[A-HJ-NP-SUVW][0-9]{7}[0-9A-J]$/i.test(String(model.numeroDocumento))
-    )
+    if (model.documento === 'CIF' && !/^[A-HJ-NP-SUVW][0-9]{7}[0-9A-J]$/i.test(String(model.numeroDocumento)))
       return 'Formato CIF inválido';
     return null;
   }

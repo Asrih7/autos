@@ -9,40 +9,162 @@
       "toggleOtherUses": "Abrir lista de otros usos"
     },
     "intervinientes": {
-      "pageTitle": "Incluye los datos de los intervinientes",
-      "toggles": {
-        "owner": "Tomador es propietario",
-        "driver": "Tomador es conductor habitual"
-      },
-      "sections": {
-        "tomadorPropietarioConductor": "TOMADOR, PROPIETARIO Y CONDUCTOR HABITUAL",
-        "tomadorConductor": "TOMADOR Y CONDUCTOR HABITUAL",
-        "propietarioVehicle": "PROPIETARIO DEL VEHÍCULO",
-        "tomadorPropietario": "TOMADOR Y PROPIETARIO",
-        "conductorHabitual": "CONDUCTOR HABITUAL",
-        "tomador": "TOMADOR",
-        "propietario": "PROPIETARIO",
-        "conductorOcasional": "CONDUCTOR OCASIONAL",
-        "addConductor": "Añadir conductor ocasional"
-      },
-      "form": {
-        "document": "Documento",
-        "nifNumber": "Número NIF",
-        "country": "País",
-        "birthDate": "Fecha nacimiento",
-        "drivingLicenseType": "Tipo de Carnet",
-        "licenseAge": "Edad obtuvo el carnet",
-        "licenseDate": "Fecha obtuvo carnet",
-        "nifPlaceholder": "Número NIF / NIE / CIF / Pasaporte",
-        "nifAriaLabel": "Número NIF"
-      },
-      "address": {
+    "pageTitle": "Incluye los datos de los intervinientes",
+    "toggles": {
+      "owner": "Tomador es propietario",
+      "driver": "Tomador es conductor habitual"
+    },
+    "form": {
+      "documento": "Documento",
+      "numeroNif": "Número NIF",
+      "nifPlaceholder": "Número NIF / NIE",
+      "pais": "País",
+      "fechaNacimiento": "Fecha nacimiento",
+      "tipoCarnet": "Tipo de Carnet",
+      "fechaObtuvoCarnet": "Fecha obtuvo carnet",
+      "edadObtuvoCarnet": "Edad obtuvo el carnet"
+    },
+     "address": {
         "title": "Dirección de residencia del tomador",
         "subtitle": "La dirección completa influye en el cálculo de la prima",
         "placeholder": "Buscar dirección",
         "ariaLabel": "Buscar dirección del propietario",
         "example1": "Calle Mayor 1, 28013 Madrid",
         "example2": "Plaza España 5, 28008 Madrid"
+      },
+    "sections": {
+      "tomadorPropietarioConductor": "Tomador, propietario y conductor habitual",
+      "tomadorConductor": "Tomador y conductor habitual",
+      "propietarioVehicle": "Propietario del vehículo",
+      "tomadorPropietario": "Tomador y propietario",
+      "conductorHabitual": "Conductor habitual",
+      "tomador": "Tomador",
+      "propietario": "Propietario",
+      "conductorOcasional": "Conductor ocasional",
+      "addConductor": "Añadir conductor ocasional"
+    }
+  },
+    "fechaEfectoSeguro": {
+      "title": "Fecha inicio seguro",
+      "subtitle": "Selecciona la fecha de inicio de la póliza",
+      "placeholders": {
+        "day": "DD",
+        "month": "MM",
+        "year": "AAAA"
+      },
+      "ariaLabels": {
+        "day": "Día de inicio del seguro",
+        "month": "Mes de inicio del seguro",
+        "year": "Año de inicio del seguro"
+      }
+    },
+    "seguroAnterior": {
+      "title": "¿Ha tenido seguro en los últimos 5 años?",
+      "subtitle": "Permite aplicar el historial de bonus y ajustar la prima",
+      "options": {
+        "otraCompania": "Sí, actualmente con otra compañía",
+        "helvetiaCaser": "Sí, con Helvetia Caser",
+        "sinSeguro": "No, no tengo seguro"
+      },
+      "intermedia": {
+        "title": "¿Con qué compañía está asegurado actualmente?",
+        "subtitle": "Selecciona su compañia de seguros",
+        "searchPlaceholder": "Buscar aseguradora",
+        "noResults": "No se encontraron aseguradoras en el sistema"
+      },
+      "polizaActual": {
+        "title": "Últimos 5 dígitos de la póliza actual",
+        "subtitle": "Si no dispone de estos datos ahora, el precio se calculará sin bonificación y no podrá grabar el proyecto",
+        "continueWithout": "Continuar sin número de póliza"
+      },
+      "aniosAsegurado": {
+        "title": "Años asegurado con su actual compañía",
+        "subtitle": "Cuenta los años consecutivos que lleva asegurado con su actual aseguradora",
+        "placeholder": "Seleccionar",
+        "options": {
+          "menos1": "Menos de 1 año",
+          "2": "2 años",
+          "3": "3 años",
+          "4": "4 años",
+          "mas5": "Más de 5 años"
+        }
+      },
+      "siniestro": {
+        "title": "¿Ha tenido algún siniestro en los últimos 5 años?",
+        "subtitle": "Indique si el cliente ha tenido algún siniestro del que haya sido responsable en los últimos cinco años",
+        "placeholder": "Seleccionar",
+        "options": {
+          "si": "Sí",
+          "no": "No"
+        }
+      }
+    }
+  },
+  "vehiculo": {
+    "busquedaMatricula": {
+      "title": "Matrícula del vehículo",
+      "subtitle": "Con la matrícula recuperamos los datos técnicos",
+      "segments": {
+        "matricula": "Matrícula",
+        "bastidor": "Bastidor (VIN)"
+      },
+      "placeholders": {
+        "matricula": "Ej: 1234BBB",
+        "bastidor": "Introduce los 17 caracteres"
+      },
+      "errors": {
+        "matricula": "El formato debe ser de 4 números y 3 consonantes (sin vocales ni Q).",
+        "bastidor": "El bastidor debe tener exactamente 17 caracteres alfanuméricos."
+      },
+      "buttons": {
+        "manual": "Buscar manualmente",
+        "search": "Buscar"
+      }
+    },
+    "busquedaManual": {
+      "brands": {
+        "title": "Marca del vehículo y modelo",
+        "subtitle": "Seleccione la marca. Puede escribir directamente para filtrar los resultados.",
+        "searchPlaceholder": "Buscar marca",
+        "noResults": "No se encontraron marcas en el sistema",
+        "confirmBtn": "Confirmar marca"
+      },
+      "models": {
+        "title": "Modelo del vehículo",
+        "subtitle": "Seleccione el modelo. Puede escribir directamente para filtrar los resultados.",
+        "selectPlaceholder": "Modelo",
+        "confirmBtn": "Confirmar modelo"
+      }
+    },
+    "confirmacionVersion": {
+      "title": "Confirma la versión del vehículo",
+      "subtitle": "Selecciona la que corresponde a tu cliente. Solo cambia la variante de equipamiento.",
+      "filters": {
+        "doors": {
+          "placeholder": "Puertas",
+          "all": "Todas las puertas"
+        },
+        "engine": {
+          "placeholder": "Cilindradas",
+          "all": "Todas las cilindradas"
+        },
+        "power": {
+          "placeholder": "Potencia (CV)",
+          "all": "Todas las potencias"
+        },
+        "fuel": {
+          "placeholder": "Combustible",
+          "all": "Todos los combustibles"
+        },
+        "searchPlaceholder": "Buscar versión..."
+      },
+      "list": {
+        "noResults": "No se encontraron versiones que coincidan con los filtros aplicados.",
+        "cc": "cc",
+        "noneOfThese": "Ninguna de estas versiones"
+      },
+      "buttons": {
+        "confirm": "Confirmar versión"
       }
     }
   }

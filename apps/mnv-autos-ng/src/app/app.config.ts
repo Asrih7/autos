@@ -3,7 +3,7 @@ import {
   importProvidersFrom,
   provideBrowserGlobalErrorListeners,
 } from '@angular/core';
-import { provideRouter } from '@angular/router';
+import { provideRouter, withComponentInputBinding } from '@angular/router';
 import { HttpClient, provideHttpClient } from '@angular/common/http';
 import { appRoutes } from './app.routes';
 import { environment } from '../environments/environment';
@@ -24,7 +24,7 @@ const { balBrandIconCarCrashWithAnimalGreen, balBrandIconSomeOther } = brandIcon
 export const appConfig: ApplicationConfig = {
   providers: [
     provideBrowserGlobalErrorListeners(),
-    provideRouter(appRoutes),
+    provideRouter(appRoutes, withComponentInputBinding()),
     provideHttpClient(),
     importProvidersFrom(
       TranslateModule.forRoot({

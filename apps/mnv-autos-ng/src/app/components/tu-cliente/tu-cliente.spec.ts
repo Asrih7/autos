@@ -1,16 +1,16 @@
 import { ComponentFixture, TestBed } from "@angular/core/testing";
-import { TuCliente } from "./tu-cliente";
+import { TuClienteComponent } from "./tu-cliente";
 
 describe("TuCliente", () => {
-  let component: TuCliente;
-  let fixture: ComponentFixture<TuCliente>;
+  let component: TuClienteComponent;
+  let fixture: ComponentFixture<TuClienteComponent>;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [TuCliente],
+      imports: [TuClienteComponent],
     }).compileComponents();
 
-    fixture = TestBed.createComponent(TuCliente);
+    fixture = TestBed.createComponent(TuClienteComponent);
     component = fixture.componentInstance;
     await fixture.whenStable();
   });

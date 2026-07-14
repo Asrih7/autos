@@ -12,6 +12,11 @@ export const appRoutes: Route[] = [
 
   {
     path: 'vehiculos',
+    redirectTo: 'vehiculos/busqueda-matricula',
+    pathMatch: 'full'
+  },
+  {
+    path: 'vehiculos/:step',
     loadComponent: () =>
       import('../components/vehiculo/vehiculo')
         .then(m => m.VehiculoComponent),

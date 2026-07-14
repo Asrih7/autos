@@ -2,10 +2,10 @@
 
   <button type="button" class="sidebar-back" (click)="goBack()">
       <bal-icon name="caret-left"></bal-icon>
-    <span class="sidebar-back-label">Tu cotización</span>
+      <span>Tu cotización</span>
   </button>
 
-  <ul class="sidebar-nav" role="list">
+  <ul role="list">
     @for (item of items(); track item.id) {
      <li
   class="sidebar-nav-item"

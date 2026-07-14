@@ -1,0 +1,27 @@
+.contenedor-principal-vehiculos.stacked-layout {
+  display: flex;
+  flex-direction: column;
+  gap: var(--bal-space-large, 2.5rem); 
+  width: 100%;
+  margin: 0 auto;
+}
+
+.seccion-wizard-dinamica {
+  width: 100%;
+  display: block;
+}
+
+.entry-animation {
+  animation: viewFadeSlideIn 0.38s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+@keyframes viewFadeSlideIn {
+  from {
+    opacity: 0;
+    transform: translateY(16px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}

@@ -1,10 +1,15 @@
 <footer>
-  @if (showWizardButtons) {
-    <div class="uso-actions">
-      @if (showBackButton) {
-        <bal-button color="grey" (click)="onVolver()">Volver a {{ previousStepLabel }}</bal-button>
-      }
-      <bal-button color="green" (click)="onContinuar()">Continuar</bal-button>
-    </div>
-  }
+  <div class="uso-actions">
+    
+    @if (navService.showBackButton()) {
+      <bal-button color="grey" (click)="navService.navigateBack()">
+        {{ navService.backButtonLabel() }}
+      </bal-button>
+    }
+    
+    <bal-button color="green" (click)="navService.navigateNext()">
+      Continuar
+    </bal-button>
+
+  </div>
 </footer>

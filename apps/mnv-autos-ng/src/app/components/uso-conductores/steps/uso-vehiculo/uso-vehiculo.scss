@@ -1,114 +1,23 @@
-p { margin: 0; padding: 16px; }
-
-.uso-vehiculo {
-  display: flex;
-  flex-direction: column;
-  gap: 16px;
-  max-width: 860px;
-  background: #fff;
-  margin-bottom: 2rem;
+/* La card necesita ser el contenedor de referencia para el dropdown absoluto */
+.flex.align-items-center.justify-content-space-between.gap-normal.w-full {
+  position: relative;
 }
 
-.step-title {
-  font-size: 1.2rem;
-  font-weight: 600;
-  color: #1A1A1A;
-}
-.step-sub-title {
-  font-size: 1.2rem;
-  font-weight: 300;
-  color: #1A1A1A;
-}
+.dropdown-inline {
+  --bal-dropdown-control-background: transparent;
+  --bal-dropdown-control-background-hover: transparent;
+  --bal-dropdown-control-border-color: transparent;
+  --bal-dropdown-control-border-color-hover: transparent;
+  --bal-dropdown-control-border-color-focused: transparent;
+  --bal-dropdown-control-text-color: transparent;
+  --bal-dropdown-control-icon-color: transparent;
 
-// el propio bal-radio-group es el contenedor de los cards
-.uso-options {
-  display: flex;
-  flex-direction: column;
-  gap: .75rem;
+  /* Estira el control invisible para cubrir toda la card,
+     así el popover (que se posiciona respecto al ancho del trigger)
+     se abre con el ancho completo de la card, no sólo bajo la flecha */
+  position: absolute;
+  inset: 0;
   width: 100%;
-}
-
-// ===== CARD BASE: mismo width y height siempre =====
-.uso-option {
-  cursor: pointer;
-  box-sizing: border-box;
-  width: 100%;
-  min-height: 76px;
-  border: 1px solid #E6E6E6;
-  border-radius: 0.75rem;
-  background: #ffffff;
-  display: flex;
-  flex-direction: column;
-  transition: background .2s ease, border-color .2s ease;
-}
-
-.uso-option.selected {
-  border-color: #ffffff;
-  background: #ffffff;   // 👈 antes tenías #F5F9F6, ahora blanco
-}
-
-.uso-option-header {
-  display: flex;
-  align-items: center;
-  gap: 1rem;
-  padding: 1rem;
-  height: 76px;          // fijo, no min → todos los headers idénticos
-  box-sizing: border-box;
-}
-
-.uso-label {
-  flex: 1;
-  font-size: .95rem;
-  pointer-events: none;  // el click siempre lo maneja el card, no el texto
-}
-
-.chevron-btn {
-  background: transparent;
-  border: none;
-  cursor: pointer;
-  padding: 0.25rem 0.5rem;
-  display: flex;
-  align-items: center;
-  z-index: 2;
-}
-
-.uso-chevron {
-  transition: transform .18s ease;
-  color: #6C6C6C;
-}
-
-.uso-chevron.expanded {
-  transform: rotate(180deg);
-  color: #00A651;
-}
-
-// ===== Lista desplegable de "otros usos" =====
-// va DEBAJO del header, no cambia su altura fija
-.otros-usos-list {
-  display: flex;
-  flex-direction: column;
-  padding: 0 1rem 0.75rem 1rem;
-}
-
-.otros-usos-item {
-  width: 100%;
-  text-align: left;
-  background: #ffffff;
-  border: 1px solid #E6E6E6;
-  border-radius: 0.5rem;
-  padding: 0.75rem 1rem;
-  font-size: 0.95rem;
-  cursor: pointer;
-  margin-bottom: 0.4rem;
-  box-sizing: border-box;
-}
-
-.otros-usos-item:last-child {
-  margin-bottom: 0;
-}
-
-// bal-radio nativo dentro del header — solo tamaño/alineación, el estado lo maneja el grupo
-::ng-deep .uso-option-header bal-radio {
-  pointer-events: none; // el click del propio radio NO decide nada; el card sí
-  margin: 0;
+  height: 100%;
+  z-index: 1;
 }

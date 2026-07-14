@@ -131,3 +131,13 @@ app-header header.app-header-shell img.app-header-logo {
   right: unset !important;
   transform: none !important;
 }
+
+
+/* Force hide the bal-checkbox switch icon globally */
+bal-checkbox[interface="switch"] .bal-icon--is-small,
+bal-checkbox[interface="switch"] .bal-icon--is-small * {
+  display: none !important;
+  visibility: hidden !important;
+  width: 0 !important;
+  height: 0 !important;
+}

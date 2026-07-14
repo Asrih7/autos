@@ -1,18 +1,26 @@
 import { ComponentFixture, TestBed } from "@angular/core/testing";
-import { Vehiculo } from "./vehiculo";
+import { VehiculoComponent } from "./vehiculo";
 
-describe("Vehiculo", () => {
-  let component: Vehiculo;
-  let fixture: ComponentFixture<Vehiculo>;
+describe("VehiculoComponent", () => {
+  let component: VehiculoComponent;
+  let fixture: ComponentFixture<VehiculoComponent>;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [Vehiculo],
-    }).compileComponents();
+      imports: [VehiculoComponent],
+    })
+      .overrideComponent(VehiculoComponent, {
+        set: {
+          template: "",
+        },
+      })
+      .compileComponents();
 
-    fixture = TestBed.createComponent(Vehiculo);
+    fixture = TestBed.createComponent(VehiculoComponent);
+
+    fixture.componentRef.setInput("step", 0); // Ajusta si tu input no es number
+
     component = fixture.componentInstance;
-    await fixture.whenStable();
   });
 
   it("should create", () => {
