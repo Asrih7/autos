@@ -2,15 +2,17 @@ import {
   AfterViewInit,
   Component,
   Type,
+  ComponentRef,
   effect,
   computed,
   inject,
   signal,
   ViewChild,
   ViewContainerRef,
-  OnInit, // 🟢 ADDED
-  OnDestroy, // 🟢 ADDED
-  DestroyRef, // 🟢 ADDED
+  OnInit,
+  OnDestroy,
+  DestroyRef,
+  Injector, // 🔥 FIX NG0203
 } from "@angular/core";
 import { NavigationEnd, Router } from "@angular/router";
 import { filter } from "rxjs";
@@ -19,8 +21,8 @@ import { TranslateModule } from "@ngx-translate/core";
 
 import { USO_CONDUCTORES_STEPS } from "./uso-conductores.steps";
 import { UsoConductoresStateService } from "./uso-conductores-state.service";
-import { PageNavigationService } from "@mnv-autos-ng/navigation"; // 🟢 ADDED
-import { takeUntilDestroyed } from "@angular/core/rxjs-interop"; // 🟢 ADDED
+import { PageNavigationService } from "@mnv-autos-ng/navigation";
+import { takeUntilDestroyed } from "@angular/core/rxjs-interop";
 
 @Component({
   selector: "app-uso-conductores",
@@ -32,13 +34,14 @@ import { takeUntilDestroyed } from "@angular/core/rxjs-interop"; // 🟢 ADDED
 export class UsoConductoresComponent
   implements AfterViewInit, OnInit, OnDestroy
 {
-  // 🟢 ADDED
   private readonly router = inject(Router);
   private readonly state = inject(UsoConductoresStateService);
-  private readonly navService = inject(PageNavigationService); // 🟢 ADDED
-  private readonly destroyRef = inject(DestroyRef); // 🟢 ADDED
+  private readonly navService = inject(PageNavigationService);
+  private readonly destroyRef = inject(DestroyRef);
+  private readonly injector = inject(Injector); // 🔥 FIX NG0203
   private navigating = false;
   private activeStepInstance: ParentNextStep | null = null;
+  private readonly stepComponentRefs = new Map<string, ComponentRef<any>>();
 
   @ViewChild("stepOutlet", { read: ViewContainerRef, static: true })
   private stepOutlet!: ViewContainerRef;
@@ -78,7 +81,6 @@ export class UsoConductoresComponent
   });
 
   ngOnInit(): void {
-    // 🟢 ADDED
     this.navService.activePageConfig.set({
       pageId: "uso-conductores",
       previousPageUrl: "/vehiculos/accesorios",
@@ -93,66 +95,56 @@ export class UsoConductoresComponent
         filter(
           (event): event is NavigationEnd => event instanceof NavigationEnd,
         ),
-        takeUntilDestroyed(this.destroyRef), // 🟢 ADDED FIX LEAKING PROBLEM
+        takeUntilDestroyed(this.destroyRef),
       )
       .subscribe(() => this.syncStepFromUrl());
-
     this.syncStepFromUrl();
 
-    // Si se marca 'tomador es propietario' mientras el usuario está en la
-    // página de dirección del tomador, volvemos automáticamente a intervinientes.
-    effect(() => {
-      const inter = this.state.intervinientes();
-      const tomadorEsPropietario = !!inter?.tomadorEsPropietario;
-      const current = this.currentRouteStep;
-      const direccionOriginalIndex = USO_CONDUCTORES_STEPS.findIndex(
-        (s) => s.id === "direccion-tomador",
-      );
-      if (tomadorEsPropietario && direccionOriginalIndex >= 0) {
-        // Si marcamos tomador como propietario debemos eliminar cualquier carga
-        // previa de la step 'direccion-tomador' y recargar el step actual sin ella.
-        this.state.clearStepLoaded(direccionOriginalIndex);
-        this.state.setLastStep("intervinientes");
-        // limpiar y recargar el paso actual para remover el componente si estaba creado
-        try {
-          this.stepOutlet.clear();
-        } catch {}
-        void this.loadStep(this.currentRouteStep);
-        // si el usuario estaba en la pantalla de direccion, forzamos navegación atrás
-        if (current === "direccion-tomador") {
-          this.navigateTo("intervinientes", true);
+    effect(
+      () => {
+        const inter = this.state.intervinientes();
+        const tomadorEsPropietario = !!inter?.tomadorEsPropietario;
+        const current = this.currentRouteStep;
+        const direccionOriginalIndex = USO_CONDUCTORES_STEPS.findIndex(
+          (s) => s.id === "direccion-tomador",
+        );
+
+        if (tomadorEsPropietario && direccionOriginalIndex >= 0) {
+
+          if (this.state.stepsLoaded()[direccionOriginalIndex]) {
+            this.state.clearStepLoaded(direccionOriginalIndex);
+            this.destroyStepComponent("direccion-tomador");
+          }
+
+          // si el usuario estaba en la pantalla de direccion, forzamos navegación atrás
+          if (current === "direccion-tomador") {
+            this.state.setLastStep("intervinientes");
+            this.navigateTo("intervinientes", true);
+          }
         }
-      }
-    });
+      },
+      { injector: this.injector, allowSignalWrites: true },
+    );
   }
 
-  private get currentRouteStep(): string {
+  /** Devuelve el id del step presente en la URL actual, o null si no hay segundo segmento. */
+  private stepIdFromUrl(): string | null {
     const segments =
       this.router
         .parseUrl(this.router.url)
         .root.children["primary"]?.segments.map((segment) => segment.path) ??
       [];
 
-    if (segments.length >= 2) {
-      return segments[1];
-    }
+    return segments.length >= 2 ? segments[1] : null;
+  }
 
-    const last = this.state.lastStepId();
-    if (last && this.steps().some((step) => step.id === last)) {
-      return last;
-    }
-
-    return this.steps()[0].id;
+  private get currentRouteStep(): string {
+    return this.stepIdFromUrl() ?? this.steps()[0].id;
   }
 
   private async syncStepFromUrl(): Promise<void> {
     const stepId = this.currentRouteStep;
-
-    try {
-      this.stepOutlet.clear();
-    } catch (error) {
-      console.warn("stepOutlet.clear() falló", error);
-    }
+    console.log("[syncStepFromUrl] router.url:", this.router.url, "-> stepId:", stepId);
 
     if (stepId === "intervinientes" && !this.state.canContinueFromUso()) {
       this.navigateTo("uso-vehiculo", true);
@@ -160,13 +152,24 @@ export class UsoConductoresComponent
     }
 
     const index = this.steps().findIndex((step) => step.id === stepId);
-    if (index < 0) {
-      this.navigateTo(this.steps()[0].id, true);
-      return;
+
+    if (index >= 0) {
+      const originalIndex = USO_CONDUCTORES_STEPS.findIndex(
+        (s) => s.id === stepId,
+      );
+
+      // Marca este step como loaded
+      if (originalIndex >= 0) {
+        this.state.setStepLoaded(originalIndex);
+      }
+
+      // Marca todos los steps anteriores como loaded
+      for (let i = 0; i < originalIndex; i++) {
+        this.state.setStepLoaded(i);
+      }
     }
 
     this.activeIndex.set(index);
-    this.activeStepInstance = null;
     this.state.setLastStep(stepId);
 
     await this.loadStep(stepId);
@@ -180,9 +183,8 @@ export class UsoConductoresComponent
     }
 
     this.activeIndex.set(index);
-    this.activeStepInstance = null;
 
-    // stepsLoaded is stored by the original static step ordering (USO_CONDUCTORES_STEPS)
+    // stepsLoaded se guarda según el orden original USO_CONDUCTORES_STEPS
     const loaded =
       this.state.stepsLoaded() ??
       new Array(USO_CONDUCTORES_STEPS.length).fill(false);
@@ -192,28 +194,61 @@ export class UsoConductoresComponent
       const originalIndex = USO_CONDUCTORES_STEPS.findIndex(
         (s) => s.id === step.id,
       );
-      if (originalIndex >= 0 && loaded[originalIndex]) {
-        const componentType = await step.component();
-        const componentRef = this.stepOutlet.createComponent(
-          componentType as Type<any>,
-        );
-        if (step.id === stepId) {
-          this.activeStepInstance = componentRef.instance as ParentNextStep;
-        }
-      }
-    }
+      const shouldBeLoaded =
+        (originalIndex >= 0 && loaded[originalIndex]) || step.id === stepId;
 
-    const currentStep = currentSteps[index];
-    const currentOriginalIndex = USO_CONDUCTORES_STEPS.findIndex(
-      (s) => s.id === currentStep.id,
-    );
-    if (currentOriginalIndex >= 0 && !loaded[currentOriginalIndex]) {
-      const componentType = await currentStep.component();
+      if (!shouldBeLoaded) {
+        continue;
+      }
+
+      const existingRef = this.stepComponentRefs.get(step.id);
+      if (existingRef) {
+        // Ya existe: lo dejamos tal cual, no lo tocamos.
+        if (step.id === stepId) {
+          this.activeStepInstance = existingRef.instance as ParentNextStep;
+        }
+        continue;
+      }
+
+      const componentType = await step.component();
+      const refCreatedWhileAwaiting = this.stepComponentRefs.get(step.id);
+      if (refCreatedWhileAwaiting) {
+        if (step.id === stepId) {
+          this.activeStepInstance =
+            refCreatedWhileAwaiting.instance as ParentNextStep;
+        }
+        continue;
+      }
+
       const componentRef = this.stepOutlet.createComponent(
         componentType as Type<any>,
       );
-      this.activeStepInstance = componentRef.instance as ParentNextStep;
-      this.state.setStepLoaded(currentOriginalIndex);
+      this.stepComponentRefs.set(step.id, componentRef);
+
+      if (originalIndex >= 0) {
+        this.state.setStepLoaded(originalIndex);
+      }
+
+      if (step.id === stepId) {
+        this.activeStepInstance = componentRef.instance as ParentNextStep;
+      }
+    }
+
+    if (this.activeStepInstance?.validate) {
+      try {
+        this.activeStepInstance.validate();
+      } catch (e) {
+        console.warn("Error forcing validation:", e);
+      }
+    }
+  }
+
+  /** Destruye el componente de un step específico y lo saca del tracking. */
+  private destroyStepComponent(stepId: string): void {
+    const ref = this.stepComponentRefs.get(stepId);
+    if (ref) {
+      ref.destroy();
+      this.stepComponentRefs.delete(stepId);
     }
   }
 
@@ -251,9 +286,36 @@ export class UsoConductoresComponent
     this.router.navigate(["/uso-conductores", stepId], { replaceUrl });
   }
 
-  // 🟢 ADDED
+  onStepAreaInteraction(event: Event): void {
+    const target = event.target as HTMLElement | null;
+    if (!target) return;
+
+    for (const [stepId, ref] of this.stepComponentRefs.entries()) {
+      const root = ref.location.nativeElement as HTMLElement;
+      if (root.contains(target)) {
+        if (stepId !== this.activeStepId()) {
+          this.setActiveStepWithoutReload(stepId);
+        }
+        return;
+      }
+    }
+  }
+
+  private setActiveStepWithoutReload(stepId: string): void {
+    const index = this.steps().findIndex((step) => step.id === stepId);
+    if (index < 0) return;
+
+    this.activeIndex.set(index);
+    this.activeStepInstance =
+      (this.stepComponentRefs.get(stepId)?.instance as ParentNextStep) ??
+      null;
+    this.state.setLastStep(stepId);
+    this.navigateTo(stepId, true);
+  }
+
   ngOnDestroy(): void {
     this.navService.activePageConfig.set(null);
+    this.stepComponentRefs.clear();
   }
 }
 
@@ -264,6 +326,6 @@ export interface StepDefinition {
 }
 
 interface ParentNextStep {
-  // Devuelve true cuando el step consume el clic y debe permanecer visible.
   onParentNext?(): boolean;
+  validate?(): void;
 }

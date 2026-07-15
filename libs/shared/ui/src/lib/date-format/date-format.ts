@@ -32,7 +32,7 @@ export interface FechaEfectoSeguroPayload extends FechaEfectoSeguroValor {
 }
 
 @Component({
-  selector: 'lib-fecha-efecto-seguro',
+  selector: 'date-format',
   standalone: true,
   imports: [
     BalField,

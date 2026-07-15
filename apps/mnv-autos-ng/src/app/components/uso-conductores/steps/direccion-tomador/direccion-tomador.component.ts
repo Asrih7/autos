@@ -22,6 +22,7 @@ export class DireccionTomadorComponent implements OnInit {
   @Input() initial: Partial<DireccionModel> | null = null;
   @Output() save = new EventEmitter<DireccionModel>();
   @Output() direccionCompleted = new EventEmitter<void>();
+@Output() stepSelected = new EventEmitter<string>();
 
   model = signal<DireccionModel>({ domicilio: '' });
 
@@ -44,6 +45,7 @@ export class DireccionTomadorComponent implements OnInit {
   );
 
   ngOnInit(): void {
+      this.stepSelected.emit('fecha-efecto-seguro');
     if (this.initial?.domicilio) {
       this.model.set({ domicilio: this.initial.domicilio });
       this.query$.next(this.initial.domicilio);

@@ -38,32 +38,25 @@ import { UsoConductoresStateService } from '../../uso-conductores-state.service'
 })
 export class UsoVehiculoComponent implements OnInit {
   private readonly state = inject(UsoConductoresStateService);
+  private readonly cdr = inject(ChangeDetectorRef);
 
-  /** Radio seleccionado (valor principal) */
   usoSeleccionado = signal<string | null>(null);
-
-  /** Valor seleccionado dentro de "otros" */
   otroUsoSeleccionado = signal<string | null>(null);
-
-  /** Label real de la opción de "otros" seleccionada, capturado en el momento del click */
   otroUsoLabelSeleccionado = signal<string | null>(null);
 
   opciones!: Signal<{ label: string; value: string }[]>;
   otrosUsos!: Signal<{ label: string; value: string }[]>;
 
+  @Output() stepSelected = new EventEmitter<string>();
   @Output() selected = new EventEmitter<string>();
   @Output() ready = new EventEmitter<boolean>();
 
-  /** Label mostrado en la card de "otros" */
   otherLabel = computed(() => {
     if (this.usoSeleccionado() !== 'otros') return null;
     return this.otroUsoLabelSeleccionado();
   });
 
-  constructor(
-    private readonly usoVehiculoService: UsoVehiculoService,
-    private cdr: ChangeDetectorRef
-  ) {
+  constructor(private readonly usoVehiculoService: UsoVehiculoService) {
     this.opciones = toSignal(
       this.usoVehiculoService.getUsos().pipe(catchError(() => of([]))),
       { initialValue: [] }
@@ -76,15 +69,17 @@ export class UsoVehiculoComponent implements OnInit {
   }
 
   ngOnInit(): void {
+    this.stepSelected.emit('uso-vehiculo');
+
     const saved = this.state.state();
     if (saved) {
       this.usoSeleccionado.set(saved.usoSelected);
       this.otroUsoSeleccionado.set(saved.usoOtrosSelected);
 
-      // Resolver el label para estado restaurado (no viene de un click real)
       const found = this.otrosUsos().find(opt => opt.value === saved.usoOtrosSelected);
       this.otroUsoLabelSeleccionado.set(found ? found.label : null);
     }
+
     this.ready.emit(!this.isNextDisabled());
   }
 
@@ -114,23 +109,14 @@ export class UsoVehiculoComponent implements OnInit {
   onRowClick(opcion: { label: string; value: string }, dropdownRef?: any): void {
     this.selectUso(opcion.value);
 
-    if (opcion.value === 'otros' && dropdownRef && typeof dropdownRef.open === 'function') {
+    if (opcion.value === 'otros' && dropdownRef?.open) {
       setTimeout(() => dropdownRef.open(), 0);
     }
   }
 
-  /**
-   * Escucha balOptionChange en cada <bal-option>, evento que sólo se dispara
-   * cuando esa opción concreta se selecciona/deselecciona. A diferencia de
-   * balChange (que en este proyecto llega mezclado con eventos de bal-radio-group),
-   * este evento es inequívoco: siempre viene de un <bal-option> real.
-   */
   onOtroUsoOptionChange(event: any): void {
     const option = event?.detail;
-    if (!option) return;
-
-    // Sólo nos interesa cuando la opción pasa a estar seleccionada
-    if (!option.selected) return;
+    if (!option || !option.selected) return;
 
     const finalValue = String(option.value);
     const finalLabel = option.label ?? finalValue;

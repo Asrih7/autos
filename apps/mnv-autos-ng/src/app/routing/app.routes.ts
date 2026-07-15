@@ -1,5 +1,7 @@
 import { Route } from '@angular/router';
 
+import { usoConductoresEntryGuard } from './uso-conductores-entry.guard';
+
 export const appRoutes: Route[] = [
 
   {
@@ -23,11 +25,17 @@ export const appRoutes: Route[] = [
     data: { pageId: 'vehiculos', label: 'Vehículos', showInMenu: true },
   },
 
-  // Ruta base → redirige automáticamente
+  // 🔥 FIX: ya no es un redirectTo estático al primer step. Este guard
+  // decide dinámicamente a qué step redirigir según state.lastStepId(),
+  // así que volver a la sección te devuelve a donde te quedaste, en vez de
+  // forzarte siempre a 'uso-vehiculo'.
   {
     path: 'uso-conductores',
-    redirectTo: 'uso-conductores/uso-vehiculo',
-    pathMatch: 'full'
+    pathMatch: 'full',
+    canActivate: [usoConductoresEntryGuard],
+    // No hace falta component/loadComponent: el guard siempre devuelve un
+    // UrlTree de redirect, nunca deja pasar la activación de esta ruta.
+    children: [],
   },
 
   //  Ruta con step

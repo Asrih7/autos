@@ -10,7 +10,7 @@ import { UsoConductoresStateService } from '../../uso-conductores-state.service'
   styleUrls: ['./fecha-efecto-seguro.scss'],
 })
 export class FechaEfectoSeguroComponent {
-
+@Output() stepSelected = new EventEmitter<string>();
   private readonly usoState = inject(UsoConductoresStateService);
 
   @Input() valorInicial: Partial<FechaEfectoSeguroValor> | null = null;
@@ -19,6 +19,7 @@ export class FechaEfectoSeguroComponent {
   @Output() fechaSubmit = new EventEmitter<FechaEfectoSeguroPayload>();
 
   ngOnInit(): void {
+      this.stepSelected.emit('fecha-efecto-seguro');
     const saved = this.usoState.fechaEfectoSeguro();
 
     if (saved.completed) {

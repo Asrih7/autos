@@ -86,7 +86,7 @@
             [ngTemplateOutletContext]="{
               $implicit: propietario,
               showDocumento: true,
-              showCarnet: false,
+              showCarnet: true,
               useEdad: false
             }">
           </ng-container>
@@ -106,7 +106,7 @@
             [ngTemplateOutlet]="personaForm"
             [ngTemplateOutletContext]="{
               $implicit: tomador,
-              showDocumento: true,
+              showDocumento: false,
               showCarnet: true,
               useEdad: useEdadTomador()
             }">
@@ -125,7 +125,7 @@
             [ngTemplateOutlet]="personaForm"
             [ngTemplateOutletContext]="{
               $implicit: conductorHabitual,
-              showDocumento: true,
+              showDocumento: false,
               showCarnet: true,
               useEdad: useEdadConductorHabitual()
             }">
@@ -165,9 +165,9 @@
             [ngTemplateOutlet]="personaForm"
             [ngTemplateOutletContext]="{
               $implicit: propietario,
-              showDocumento: true,
-              showCarnet: false,
-              useEdad: false
+                showDocumento: true,
+                showCarnet: true,
+                useEdad: false
             }">
           </ng-container>
         </div>
@@ -261,7 +261,6 @@
             (balInput)="onInputChange($event, model, 'numeroDocumento')"
             (balChange)="onInputChange($event, model, 'numeroDocumento')"
             (balBlur)="onNumeroDocumentoBlur(model)"
-            [placeholder]="'usoConductores.intervinientes.form.nifPlaceholder' | translate"
             [invalid]="!!numeroDocumentoError(model) && !!model.numeroDocumento"
           ></bal-input>
         </bal-field-control>
@@ -299,7 +298,7 @@
       </div>
     }
 
-    @if (showCarnet) {
+    @if (showCarnet && !esCIF(model)) {
       <div class="flex-1 min-w-0">
         <bal-field>
           <bal-field-label class="text-body-small text-light mt-none text-blue">{{ 'usoConductores.intervinientes.form.tipoCarnet' | translate }}</bal-field-label>

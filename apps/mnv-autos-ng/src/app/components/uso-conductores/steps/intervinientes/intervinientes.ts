@@ -66,7 +66,7 @@ import { USO_CONDUCTORES_STEPS } from '../../uso-conductores.steps';
 })
 export class IntervinientesComponent implements OnInit {
   @Output() intervinientesCompleted = new EventEmitter<void>();
-
+@Output() stepSelected = new EventEmitter<string>();
   tomadorEsPropietario = signal(true);
   tomadorEsConductorHabitual = signal(true);
 
@@ -124,7 +124,8 @@ export class IntervinientesComponent implements OnInit {
   }
 
   ngOnInit(): void {
-    const saved = this.usoState.intervinientes();
+      this.stepSelected.emit('intervinientes');
+      const saved = this.usoState.intervinientes();
     if (saved) {
       this.tomadorEsPropietario.set(saved.tomadorEsPropietario);
       this.tomadorEsConductorHabitual.set(saved.tomadorEsConductorHabitual);
@@ -136,7 +137,38 @@ export class IntervinientesComponent implements OnInit {
     }
 
     this.enforceAllCIFRules();
+    this.autofillRelatedPersons();
     this.checkCompletion();
+  }
+
+  private isEmptyPersonaModel(model: Persona | null | undefined): boolean {
+    if (!model) return true;
+    return !model.numeroDocumento || String(model.numeroDocumento).trim().length === 0;
+  }
+
+  private copyFromTomador(target: Persona): void {
+    target.numeroDocumento = this.tomador.numeroDocumento ?? '';
+    target.pais = this.tomador.pais ?? 'ES';
+    target.fechaNacimiento = this.tomador.fechaNacimiento ? new Date(this.tomador.fechaNacimiento) : null;
+    if (!target.tipoCarnet) target.tipoCarnet = 'B';
+    if (!target.fechaObtencionCarnet) target.fechaObtencionCarnet = this.tomador.fechaObtencionCarnet ? new Date(this.tomador.fechaObtencionCarnet) : null;
+  }
+
+  private autofillRelatedPersons(): void {
+    // If propietario is a separate section and empty, prefill with tomador values
+    if (!this.tomadorEsPropietario() && this.isEmptyPersonaModel(this.propietario)) {
+      this.copyFromTomador(this.propietario as Persona);
+    }
+
+    // If conductor habitual is a separate section and empty, prefill with tomador values
+    if (!this.tomadorEsConductorHabitual() && this.isEmptyPersonaModel(this.conductorHabitual)) {
+      this.copyFromTomador(this.conductorHabitual as Persona);
+    }
+
+    // Prefill occasional drivers if none exist (do not overwrite existing ones)
+    if (this.conductoresOcasionales().length === 0 && this.isEmptyPersonaModel(undefined)) {
+      // no-op: only prefill on add
+    }
   }
 
   useEdadTomador(): boolean {
@@ -254,6 +286,11 @@ export class IntervinientesComponent implements OnInit {
       this.usoState.clearStepLoaded(originalIndex);
     }
 
+    // If the tomador is NOT propietario and propietario section is empty, prefill it from tomador
+    if (!checked && this.isEmptyPersonaModel(this.propietario)) {
+      this.copyFromTomador(this.propietario as Persona);
+    }
+
     const segments = this.router.parseUrl(this.router.url)
       .root.children['primary']?.segments.map(s => s.path) ?? [];
 
@@ -271,6 +308,11 @@ onTomadorEsConductorHabitualChange(event: any): void {
   const checked = this.getCheckedFromEvent(event);
   this.tomadorEsConductorHabitual.set(checked);
 
+  // If the conductor habitual section is shown (toggle turned off), autofill with tomador values when empty
+  if (!checked && this.isEmptyPersonaModel(this.conductorHabitual)) {
+    this.copyFromTomador(this.conductorHabitual as Persona);
+  }
+
   this.persistIntervinientesState();
   this.checkCompletion();
   this.cdr.detectChanges();
@@ -282,18 +324,17 @@ onTomadorEsConductorHabitualChange(event: any): void {
       return;
     }
 
-    this.conductoresOcasionales.update(list => [
-      ...list,
-      {
-        documento: 'NIF',
-        numeroDocumento: '',
-        pais: 'ES',
-        fechaNacimiento: null,
-        tipoCarnet: 'B',
-        fechaObtencionCarnet: null,
-        edadObtencionCarnet: undefined,
-      },
-    ]);
+    const newOc: Persona = {
+      documento: 'NIF',
+      numeroDocumento: this.tomador.numeroDocumento ?? '',
+      pais: this.tomador.pais ?? 'ES',
+      fechaNacimiento: this.tomador.fechaNacimiento ? new Date(this.tomador.fechaNacimiento) : null,
+      tipoCarnet: this.tomador.tipoCarnet ?? 'B',
+      fechaObtencionCarnet: this.tomador.fechaObtencionCarnet ? new Date(this.tomador.fechaObtencionCarnet) : null,
+      edadObtencionCarnet: this.tomador.edadObtencionCarnet,
+    };
+
+    this.conductoresOcasionales.update(list => [...list, newOc]);
     this.persistIntervinientesState();
     this.checkCompletion();
   }
@@ -391,7 +432,7 @@ onTomadorEsConductorHabitualChange(event: any): void {
     this.checkCompletion();
   }
 
-  private isPersonaComplete(model: Persona, opts: { showCarnet: boolean; useEdad: boolean }): boolean {
+  private isPersonaComplete(model: Persona, opts: { showCarnet: boolean; useEdad: boolean; requireCarnet?: boolean }): boolean {
     if (!model.documento) return false;
     if (!model.numeroDocumento || model.numeroDocumento.trim().length === 0) return false;
     if (!model.pais) return false;
@@ -411,7 +452,8 @@ onTomadorEsConductorHabitualChange(event: any): void {
 
     if (!model.fechaNacimiento) return false;
 
-    if (opts.showCarnet) {
+    const requireCarnet = opts.requireCarnet === undefined ? true : !!opts.requireCarnet;
+    if (opts.showCarnet && requireCarnet) {
       if (!model.tipoCarnet) return false;
 
       if (opts.useEdad) {
@@ -430,13 +472,15 @@ onTomadorEsConductorHabitualChange(event: any): void {
 
     let propietarioOk = true;
     if (!this.tomadorEsPropietario()) {
-      propietarioOk = this.isPersonaComplete(this.propietario, { showCarnet: false, useEdad: false });
+      // propietario shown separately: show carnet fields but they are not mandatory per spec
+      propietarioOk = this.isPersonaComplete(this.propietario, { showCarnet: true, useEdad: false, requireCarnet: false });
     }
 
     let conductorOk = true;
     if (!this.tomadorEsConductorHabitual()) {
       const conductorUseEdad = this.tomadorEsPropietario();
-      conductorOk = this.isPersonaComplete(this.conductorHabitual, { showCarnet: true, useEdad: conductorUseEdad });
+      // conductor habitual shown separately: carnet fields shown and required (useEdad controls fecha/edad requirement)
+      conductorOk = this.isPersonaComplete(this.conductorHabitual, { showCarnet: true, useEdad: conductorUseEdad, requireCarnet: true });
     }
 
     const ocasionales = this.conductoresOcasionales();

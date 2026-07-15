@@ -25,18 +25,10 @@ import {
 import { TranslateModule, TranslateService } from "@ngx-translate/core";
 
 import { UsoConductoresStateService } from "../../uso-conductores-state.service";
+import { SeguroAnteriorService } from "./../../services/seguro-anterior.service";
 import { DataGridSelector } from "@mnv-autos-ng/ui";
 import { GridItemSelector } from "@mnv-autos-ng/models";
-
-export interface SeguroAnteriorOpcion {
-  key: string;
-  label: string;
-}
-
-interface SelectOpcion {
-  label: string;
-  value: string;
-}
+import { SeguroAnteriorOpcion, SelectOpcion } from "./../../models/seguro-anterior.model";
 
 @Component({
   selector: "app-seguro-anterior",
@@ -58,7 +50,8 @@ interface SelectOpcion {
 export class SeguroAnteriorComponent implements OnChanges, OnInit {
   private readonly usoState = inject(UsoConductoresStateService);
   private readonly translate = inject(TranslateService);
-
+  private readonly seguroAnteriorService = inject(SeguroAnteriorService);
+@Output() stepSelected = new EventEmitter<string>();
   @ViewChildren("digitoPolizaInput")
   private digitoPolizaInputs!: QueryList<BalInput>;
 
@@ -66,46 +59,13 @@ export class SeguroAnteriorComponent implements OnChanges, OnInit {
 
   @Output() seguroAnteriorChange = new EventEmitter<SeguroAnteriorOpcion>();
 
-  protected readonly opciones: SeguroAnteriorOpcion[] = [
-    {
-      key: "otra-compania",
-      label: "",
-    },
-    {
-      key: "helvetia-caser",
-      label: "",
-    },
-    {
-      key: "sin-seguro",
-      label: "",
-    },
-  ];
+  protected readonly opciones: SeguroAnteriorOpcion[] = this.seguroAnteriorService.getOpciones();
 
   readonly aseguradoraSeleccionadaId = signal<string | null>(null);
   protected readonly aseguradoraConfirmada = signal(false);
-  readonly catalogoSeguros = signal<GridItemSelector[]>([
-    { id: "ALZ", nombre: "Allianz", logo: "assets/logos/Allianz.png" },
-    { id: "AXA", nombre: "Axa", logo: "assets/logos/Axa.png" },
-    {
-      id: "CTO",
-      nombre: "CatalanaOccidente",
-      logo: "assets/logos/CatalanaOccidente.png",
-    },
-    { id: "GEN", nombre: "Generalli", logo: "assets/logos/Generalli.png" },
-    { id: "GNS", nombre: "Genesis", logo: "assets/logos/Genesis.png" },
-    {
-      id: "LIB",
-      nombre: "LibertySeguros",
-      logo: "assets/logos/LibertySeguros.png",
-    },
-    { id: "MAP", nombre: "Mapfre", logo: "assets/logos/Mapfre.png" },
-    {
-      id: "MMN",
-      nombre: "MutuaMadrileña",
-      logo: "assets/logos/MutuaMadrileña.png",
-    },
-    { id: "PLY", nombre: "Pelayo", logo: "assets/logos/Pelayo.png" },
-  ]);
+  readonly catalogoSeguros = signal<GridItemSelector[]>(
+    this.seguroAnteriorService.getCatalogoSeguros(),
+  );
 
   protected readonly seguroSeleccionadoKey = signal("");
   protected readonly digitosPoliza = [0, 1, 2, 3, 4];
@@ -115,28 +75,8 @@ export class SeguroAnteriorComponent implements OnChanges, OnInit {
   protected readonly aniosAseguradoSeleccionado = signal("");
   protected readonly siniestroSeleccionado = signal("");
 
-  protected readonly aniosAseguradoOpciones: SelectOpcion[] = [
-    {
-      label: "",
-      value: "menos-1",
-    },
-    {
-      label: "",
-      value: "2",
-    },
-    {
-      label: "",
-      value: "3",
-    },
-    {
-      label: "",
-      value: "4",
-    },
-    {
-      label: "",
-      value: "mas-5",
-    },
-  ];
+  protected readonly aniosAseguradoOpciones: SelectOpcion[] =
+    this.seguroAnteriorService.getAniosAseguradoOpciones();
   protected readonly siniestroOpciones: SelectOpcion[] = [
     {
       label: "",
@@ -253,11 +193,9 @@ export class SeguroAnteriorComponent implements OnChanges, OnInit {
   protected onSeguroAnteriorChange(value: unknown): void {
     const siguienteValor = this.readInputValue(value);
 
-    if (siguienteValor === this.seguroSeleccionadoKey()) {
-      return;
-    }
-
+    // Always reset the flow when changing selection, even if same option clicked again
     this.seguroSeleccionadoKey.set(siguienteValor);
+    this.resetSeguroAnteriorFlow();
 
     const opcion = this.opciones.find(
       (item) => item.key === this.seguroSeleccionadoKey(),
@@ -271,13 +209,18 @@ export class SeguroAnteriorComponent implements OnChanges, OnInit {
   }
 
   protected seleccionarSeguro(key: string): void {
+      this.stepSelected.emit('seguro-anterior');
     this.onSeguroAnteriorChange(key);
   }
 
   protected onAseguradoraChange(id: string | null): void {
     if (id !== this.aseguradoraSeleccionadaId()) {
       this.aseguradoraConfirmada.set(false);
+      this.polizaConfirmada.set(false);
+      this.aniosAseguradoSeleccionado.set("");
+      this.siniestroSeleccionado.set("");
     }
+
     this.aseguradoraSeleccionadaId.set(id);
     this.persistSeguroAnteriorState();
   }
@@ -382,6 +325,30 @@ export class SeguroAnteriorComponent implements OnChanges, OnInit {
 
     return String(value);
   }
+
+  private resetSeguroAnteriorFlow(): void {
+  this.aseguradoraSeleccionadaId.set(null);
+  this.aseguradoraConfirmada.set(false);
+  this.ultimosDigitosPoliza.set(Array(5).fill(""));
+  this.polizaConfirmada.set(false);
+  this.continuarSinPoliza.set(false);
+  this.aniosAseguradoSeleccionado.set("");
+  this.siniestroSeleccionado.set("");
+
+  this.usoState.updateSeguroAnteriorState({
+    aseguradoraSeleccionadaId: null,
+    aseguradoraConfirmada: false,
+    ultimosDigitosPoliza: Array(5).fill(""),
+    polizaConfirmada: false,
+    continuarSinPoliza: false,
+    aniosAseguradoSeleccionado: "",
+    siniestroSeleccionado: "",
+    completed: this.seguroAnteriorCompleto(), 
+  });
+
+  this.usoState.setStepLoaded(3); 
+}
+
 
   private applyTranslations(): void {
     const t = (key: string) => this.translate.instant(key);
