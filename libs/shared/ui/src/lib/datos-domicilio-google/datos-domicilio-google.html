@@ -1,0 +1,34 @@
+<section class="flex flex-direction-column gap-normal bg-white mb-large">
+  <bal-heading level="h4" visual-level="h5" class="mb-none text-blue">
+    Buscar dirección con Google
+  </bal-heading>
+
+  <bal-field class="is-fullwidth">
+    <bal-field-control>
+      <bal-input
+        [value]="searchValue()"
+        [placeholder]="placeholder"
+        icon="search"
+        (balInput)="onInput($event)">
+      </bal-input>
+    </bal-field-control>
+  </bal-field>
+
+  <div class="flex flex-direction-column gap-small">
+    @if (filteredSuggestions()?.length) {
+      @for (suggestion of filteredSuggestions(); track suggestion) {
+        <bal-button
+          color="ghost"
+          size="small"
+          class="text-left"
+          (click)="selectSuggestion(suggestion)">
+          {{ suggestion }}
+        </bal-button>
+      }
+    } @else {
+      <div class="text-body-small text-light">
+        Introduce una dirección para ver sugerencias.
+      </div>
+    }
+  </div>
+</section>

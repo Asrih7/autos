@@ -19,7 +19,8 @@
       "@mnv-autos-ng/models": ["libs/shared/models/src/index.ts"],
       "@mnv-autos-ng/navigation": ["libs/shared/navigation/src/index.ts"],
       "@mnv-autos-ng/layout-state": ["libs/shared/layout-state/src/index.ts"],
-      "@mnv-autos-ng/app-state": ["libs/shared/app-state/src/index.ts"]
+      "@mnv-autos-ng/app-state": ["libs/shared/app-state/src/index.ts"],
+      "@mnv-autos-ng/shared/ui": ["libs/shared/ui/src/index.ts"]
     }
   },
   "exclude": ["node_modules", "tmp"]
