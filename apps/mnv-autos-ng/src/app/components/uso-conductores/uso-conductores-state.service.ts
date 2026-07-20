@@ -1,4 +1,5 @@
 import { computed, effect, Injectable, signal } from "@angular/core";
+import { DatosDomicilioModel, EMPTY_DATOS_DOMICILIO } from "../../../../../../libs/shared/ui/src/lib/address.model";
 
 export interface PersonaState {
   documento: string;
@@ -48,6 +49,8 @@ export interface UsoConductoresGlobalState {
   intervinientes: IntervinientesState;
   seguroAnterior: SeguroAnteriorState;
   fechaEfectoSeguro: FechaEfectoSeguroState;
+  direccionTomador: DatosDomicilioModel;
+  direccionTomadorFromGoogle: boolean;
   lastStepId: string | null;
   stepsLoaded: boolean[];
 }
@@ -75,13 +78,16 @@ export class UsoConductoresStateService {
     () => this._state().direccionTomadorCompleted,
   );
 
+  readonly direccionTomador = computed(() => this._state().direccionTomador);
+
+  readonly direccionTomadorFromGoogle = computed(
+    () => this._state().direccionTomadorFromGoogle
+  );
+
   readonly lastStepId = computed(() => this._state().lastStepId);
   readonly stepsLoaded = computed(() => this._state().stepsLoaded);
 
-  // ✅ AÑADIDO PARA ARREGLAR EL ERROR
   readonly seguroAnterior = computed(() => this._state().seguroAnterior);
-
-  // Ya existía
   readonly fechaEfectoSeguro = computed(() => this._state().fechaEfectoSeguro);
 
   selectUso(value: string) {
@@ -157,6 +163,23 @@ export class UsoConductoresStateService {
     }));
   }
 
+  updateDireccionTomador(partial: Partial<DatosDomicilioModel>) {
+    this._state.update((current) => ({
+      ...current,
+      direccionTomador: {
+        ...current.direccionTomador,
+        ...partial,
+      },
+    }));
+  }
+
+  setDireccionTomadorFromGoogle(value: boolean) {
+    this._state.update(current => ({
+      ...current,
+      direccionTomadorFromGoogle: value
+    }));
+  }
+
   setLastStep(stepId: string) {
     this._state.update((current) => ({
       ...current,
@@ -196,9 +219,19 @@ export class UsoConductoresStateService {
   readonly canContinueFromIntervinientes = computed(() =>
     this.intervinientesCompleted(),
   );
-  readonly canContinueFromDireccionTomador = computed(() =>
-    this.direccionTomadorCompleted(),
-  );
+
+  readonly canContinueFromDireccionTomador = computed(() => {
+    const direccion = this.direccionTomador();
+    return (
+      direccion.tipoVia.trim().length > 0 &&
+      direccion.nombreVia.trim().length > 0 &&
+      direccion.numero.trim().length > 0 &&
+      direccion.codigoPostal.trim().length > 0 &&
+      direccion.provincia.trim().length > 0 &&
+      direccion.localidad.trim().length > 0
+    );
+  });
+
   readonly canContinueFromSeguroAnterior = computed(() => {
     const seguro = this.seguroAnterior();
 
@@ -227,6 +260,7 @@ export class UsoConductoresStateService {
 
     return seguro.completed;
   });
+
   readonly canContinueFromFechaEfectoSeguro = computed(
     () => this.fechaEfectoSeguro().completed,
   );
@@ -235,9 +269,7 @@ export class UsoConductoresStateService {
     effect(() => {
       try {
         sessionStorage.setItem(this.STORAGE_KEY, JSON.stringify(this._state()));
-      } catch {
-        // ignore storage errors
-      }
+      } catch {}
     });
   }
 
@@ -270,11 +302,14 @@ export class UsoConductoresStateService {
             ...defaultState.fechaEfectoSeguro,
             ...parsed.fechaEfectoSeguro,
           },
+          direccionTomador: {
+            ...defaultState.direccionTomador,
+            ...parsed.direccionTomador,
+          },
+          direccionTomadorFromGoogle: parsed.direccionTomadorFromGoogle ?? false,
         };
       }
-    } catch {
-      // ignore
-    }
+    } catch {}
 
     return defaultState;
   }
@@ -338,6 +373,8 @@ export class UsoConductoresStateService {
         fechaISO: null,
         completed: false,
       },
+      direccionTomador: EMPTY_DATOS_DOMICILIO,
+      direccionTomadorFromGoogle: false,
     };
   }
 }

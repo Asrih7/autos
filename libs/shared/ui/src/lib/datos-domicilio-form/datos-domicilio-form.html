@@ -1,0 +1,124 @@
+<section class="w-8 flex flex-direction-column gap-normal bg-white mb-large">
+  <bal-heading level="h4" visual-level="h5" class="mb-none text-blue">
+    Dirección domiciliaria
+  </bal-heading>
+
+  <div class="grid is-multiline">
+
+    <!-- Tipo de vía -->
+    <div class="col mobile:is-full tablet:is-one-half desktop:is-one-third">
+      <bal-field class="is-fullwidth">
+        <bal-field-label>Tipo de vía*</bal-field-label>
+        <bal-field-control>
+          <bal-select
+            [value]="internalModel().tipoVia"
+            [disabled]="disabled"
+            (balChange)="setField('tipoVia', $event)"
+          >
+            @for (item of tiposVia; track item.value) {
+              <bal-select-option
+                [value]="item.value"
+                [label]="item.label">
+              </bal-select-option>
+            }
+          </bal-select>
+        </bal-field-control>
+      </bal-field>
+    </div>
+
+    <!-- Nombre vía -->
+    <div class="col mobile:is-full tablet:is-one-half desktop:is-one-third">
+      <bal-field class="is-fullwidth">
+        <bal-field-label>Nombre vía*</bal-field-label>
+        <bal-field-control>
+          <bal-input
+            [value]="internalModel().nombreVia"
+            [disabled]="disabled"
+            (balInput)="setField('nombreVia', $event.detail ?? '')">
+          </bal-input>
+        </bal-field-control>
+      </bal-field>
+    </div>
+
+    <!-- Número -->
+    <div class="col mobile:is-full tablet:is-one-half desktop:is-one-third">
+      <bal-field class="is-fullwidth">
+        <bal-field-label>Número*</bal-field-label>
+        <bal-field-control>
+          <bal-input
+            [value]="internalModel().numero"
+            [disabled]="disabled"
+            (balInput)="setField('numero', $event.detail ?? '')">
+          </bal-input>
+        </bal-field-control>
+      </bal-field>
+    </div>
+
+    <!-- Código Postal -->
+    <div class="col mobile:is-full tablet:is-one-half desktop:is-one-third">
+      <bal-field class="is-fullwidth">
+        <bal-field-label>Código Postal*</bal-field-label>
+        <bal-field-control>
+          <bal-input
+            [value]="internalModel().codigoPostal"
+            [disabled]="disabled"
+            (balInput)="setCodigoPostal($event.detail ?? '')">
+          </bal-input>
+        </bal-field-control>
+      </bal-field>
+    </div>
+
+    <!-- Provincia -->
+    <div class="col mobile:is-full tablet:is-one-half desktop:is-one-third">
+      <bal-field class="is-fullwidth">
+        <bal-field-label>Provincia*</bal-field-label>
+        <bal-field-control>
+          <bal-select
+            [value]="internalModel().provincia"
+            [disabled]="disabled"
+            (balChange)="setField('provincia', $event)"
+          >
+            @for (item of provincias; track item.value) {
+              <bal-select-option
+                [value]="item.value"
+                [label]="item.label">
+              </bal-select-option>
+            }
+          </bal-select>
+        </bal-field-control>
+      </bal-field>
+    </div>
+
+    <!-- Localidad -->
+    <div class="col mobile:is-full tablet:is-one-half desktop:is-one-third">
+      <bal-field class="is-fullwidth">
+        <bal-field-label>Localidad*</bal-field-label>
+        <bal-field-control>
+
+          @if (localidades.length > 0) {
+            <bal-select
+              [value]="internalModel().localidad"
+              [disabled]="disabled"
+              (balChange)="setField('localidad', $event)"
+            >
+              @for (item of localidades; track item.value) {
+                <bal-select-option
+                  [value]="item.value"
+                  [label]="item.label">
+                </bal-select-option>
+              }
+            </bal-select>
+          } @else {
+            <bal-input
+              [value]="internalModel().localidad"
+              [disabled]="disabled"
+              (balInput)="setField('localidad', $event.detail ?? '')">
+            </bal-input>
+          }
+
+        </bal-field-control>
+      </bal-field>
+    </div>
+
+  </div>
+</section>
