@@ -3,32 +3,21 @@
     Buscar dirección con Google
   </bal-heading>
 
-  <bal-field class="is-fullwidth">
-    <bal-field-control>
-      <bal-input
-        [value]="searchValue()"
-        [placeholder]="placeholder"
-        icon="search"
-        (balInput)="onInput($event)">
-      </bal-input>
-    </bal-field-control>
-  </bal-field>
+  <bal-select
+    class="w-6"
+    id="domicilio-google"
+    [value]="searchValue()"
+    typeahead
+    [placeholder]="placeholder"
+    (balInput)="onInput($event)"
+    (balChange)="onSelectChange($event)"
+    [attr.aria-label]="placeholder">
 
-  <div class="flex flex-direction-column gap-small">
-    @if (filteredSuggestions()?.length) {
-      @for (suggestion of filteredSuggestions(); track suggestion) {
-        <bal-button
-          color="ghost"
-          size="small"
-          class="text-left"
-          (click)="selectSuggestion(suggestion)">
-          {{ suggestion }}
-        </bal-button>
-      }
-    } @else {
-      <div class="text-body-small text-light">
-        Introduce una dirección para ver sugerencias.
-      </div>
-    }
-  </div>
+    <bal-select-option
+      *ngFor="let suggestion of filteredSuggestions()"
+      [value]="suggestion"
+      [label]="suggestion">
+      {{ suggestion }}
+    </bal-select-option>
+  </bal-select>
 </section>

@@ -61,8 +61,9 @@ export class DatosDomicilioForm implements OnChanges {
     }
   }
 
-  setField(field: keyof DatosDomicilioModel, value: string): void {
-    const updated = { ...this.internalModel(), [field]: value ?? '' };
+  setField(field: keyof DatosDomicilioModel, value: unknown): void {
+    const normalizedValue = (value as any)?.value ?? value ?? '';
+    const updated = { ...this.internalModel(), [field]: String(normalizedValue) };
     this.internalModel.set(updated);
 
     if (field === 'codigoPostal') {

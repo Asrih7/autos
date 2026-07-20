@@ -1,7 +1,7 @@
 import { CommonModule } from '@angular/common';
 import { Component, EventEmitter, Input, OnChanges, Output, SimpleChanges, signal } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { BalButton, BalField, BalFieldControl, BalInput, BalHeading } from '@baloise/ds-angular';
+import { BalHeading, BalSelect, BalSelectOption, parseCustomEvent } from '@baloise/ds-angular';
 import { TranslateModule } from '@ngx-translate/core';
 import { DatosDomicilioModel } from '../address.model';
 
@@ -9,14 +9,14 @@ const GOOGLE_SUGGESTIONS = [
   'Calle Mayor 1, 28013 Madrid',
   'Avenida de la Constitución 12, 28014 Madrid',
   'Plaza España 5, 28008 Madrid',
-  'Calle del Laurel 14, 26004 Logroño',
+  'Calle del Laurel 14, 28006 Logroño',
   'Calle Sierpes 8, 41002 Sevilla',
 ];
 
 @Component({
   selector: 'app-datos-domicilio-google',
   standalone: true,
-  imports: [CommonModule, FormsModule, BalField, BalFieldControl, BalInput, BalButton, BalHeading, TranslateModule],
+  imports: [CommonModule, FormsModule, BalSelect, BalSelectOption, BalHeading, TranslateModule],
   templateUrl: './datos-domicilio-google.html',
 })
 export class DatosDomicilioGoogle {
@@ -24,7 +24,7 @@ export class DatosDomicilioGoogle {
   @Output() addressSelected = new EventEmitter<DatosDomicilioModel>();
 
   readonly searchValue = signal('');
-  readonly filteredSuggestions = signal<string[]>([]);
+  readonly filteredSuggestions = signal<string[]>([...GOOGLE_SUGGESTIONS]);
   readonly placeholder = 'Busca una dirección con Google';
 
   ngOnChanges(changes: SimpleChanges): void {
@@ -40,16 +40,36 @@ export class DatosDomicilioGoogle {
     this.refreshSuggestions();
   }
 
-  selectSuggestion(suggestion: string): void {
-    this.searchValue.set(suggestion);
-    this.filteredSuggestions.set([]);
-    this.addressSelected.emit(this.parseSuggestion(suggestion));
+  onSelectChange(event: any): void {
+    const parsed = parseCustomEvent(event);
+    const raw = this.readSelectValue(event).trim();
+    const value = String(parsed ?? raw ?? '').trim();
+    if (!value) {
+      return;
+    }
+    this.searchValue.set(value);
+    this.filteredSuggestions.set([value]);
+    this.addressSelected.emit(this.parseSuggestion(value));
+  }
+
+  private readSelectValue(event: unknown): string {
+    const source = event as any;
+    let raw = source?.detail?.value ?? source?.detail ?? source?.target?.value ?? source ?? '';
+
+    if (Array.isArray(raw) && raw.length > 0) {
+      raw = raw[0];
+    }
+    if (typeof raw === 'object' && raw !== null) {
+      raw = raw?.value ?? raw?.detail ?? raw?.label ?? '';
+    }
+
+    return String(raw ?? '');
   }
 
   private refreshSuggestions(): void {
     const query = this.searchValue().toLowerCase().trim();
     if (!query) {
-      this.filteredSuggestions.set([]);
+      this.filteredSuggestions.set([...GOOGLE_SUGGESTIONS]);
       return;
     }
 
