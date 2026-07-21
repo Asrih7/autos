@@ -10,7 +10,8 @@
 
   <app-datos-domicilio-google
     [value]="model().domicilio"
-    (addressSelected)="onAddressSelected($event)">
+    (addressSelected)="onAddressSelected($event)"
+    (clearSelection)="onGoogleCleared()">
   </app-datos-domicilio-google>
 
   <app-datos-domicilio-form
@@ -19,6 +20,15 @@
     (modelChange)="onFormChanged($event)"
     (codigoPostalChange)="onCodigoPostalChanged($event)">
   </app-datos-domicilio-form>
+
+    @if (processing()) {
+      <div class="overlay">
+        <div class="overlay-content">
+          <div class="spinner" aria-hidden="true"></div>
+          <div class="overlay-text">Normalizando dirección...</div>
+        </div>
+      </div>
+    }
 
   @if (toastOpen()) {
     <bal-toast
@@ -29,3 +39,31 @@
     </bal-toast>
   }
 </section>
+
+<style>
+.overlay {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(255,255,255,0.85);
+  z-index: 40;
+}
+.overlay-content {
+  display:flex;
+  flex-direction:column;
+  align-items:center;
+  gap:0.75rem;
+}
+.spinner {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  border: 4px solid #eee;
+  border-top-color: #2b87f0;
+  animation: spin 1s linear infinite;
+}
+@keyframes spin { to { transform: rotate(360deg); } }
+.overlay-text { font-size: 0.95rem; color: #1f2937; }
+</style>

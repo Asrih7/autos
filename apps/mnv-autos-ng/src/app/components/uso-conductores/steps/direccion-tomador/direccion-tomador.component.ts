@@ -7,6 +7,7 @@ import { DireccionModel } from '../../models/direccion.model';
 import { UsoConductoresStateService } from '../../uso-conductores-state.service';
 import { DatosDomicilioModel, formatDireccionToString, EMPTY_DATOS_DOMICILIO } from '../../../../../../../../libs/shared/ui/src/lib/address.model';
 import { DatosDomicilioService } from '../../../../../../../../libs/shared/ui/src/lib/datos-domicilio.service';
+import { PageNavigationService } from '@mnv-autos-ng/navigation';
 import { DatosDomicilioGoogle } from '../../../../../../../../libs/shared/ui/src/lib/datos-domicilio-google/datos-domicilio-google';
 import { DatosDomicilioForm } from '../../../../../../../../libs/shared/ui/src/lib/datos-domicilio-form/datos-domicilio-form';
 
@@ -33,47 +34,14 @@ export class DireccionTomadorComponent implements OnInit {
 
   readonly toastDurationMs = 3000;
 
-  private processing = false;
+    processing = signal(false);
   private fromGoogle = false;
-
   private readonly usoState = inject(UsoConductoresStateService);
   private readonly datosService = inject(DatosDomicilioService);
+  private readonly navService = inject(PageNavigationService);
 
   constructor() {
-    effect(() => {
-      const current = this.direccion();
-      const ready = this.isReady(current);
-
-      if (!ready || this.normalized() || this.processing) {
-        return;
-      }
-
-      this.processing = true;
-
-      untracked(() => {
-        this.datosService.normalizeAddress(current).subscribe({
-          next: (normalized: DatosDomicilioModel) => {
-            this.direccion.set(normalized);
-            this.normalized.set(true);
-            const domicilioString = formatDireccionToString(normalized);
-            this.model.set({ domicilio: domicilioString });
-            this.processing = false;
-
-            this.showToast('La dirección ha sido normalizada.', 'success');
-
-            setTimeout(() => {
-              this.save.emit({ domicilio: domicilioString });
-              this.usoState.completeDireccionTomador();
-              this.direccionCompleted.emit();
-            }, this.toastDurationMs);
-          },
-          error: () => {
-            this.processing = false;
-            this.showToast('No se ha podido normalizar la dirección. Inténtalo de nuevo.', 'danger');
-          },
-        });
-      });
-    });
+    // Normalización ahora se invoca al pulsar 'Continuar' (ver onParentNext)
   }
 
   ngOnInit(): void {
@@ -110,6 +78,12 @@ export class DireccionTomadorComponent implements OnInit {
 
     this.formDisabled.set(true);
     this.normalized.set(false);
+  }
+
+  onGoogleCleared(): void {
+    this.fromGoogle = false;
+    this.formDisabled.set(false);
+    this.usoState.setDireccionTomadorFromGoogle(false);
   }
 
   onFormChanged(updated: DatosDomicilioModel): void {
@@ -154,11 +128,48 @@ export class DireccionTomadorComponent implements OnInit {
       return true;
     }
 
-        if (!this.normalized()) {
+    if (this.normalized()) {
+      // Already normalized -> allow navigation
+      return false;
+    }
+
+      if (this.processing()) {
+      // Already processing normalization -> block navigation
       return true;
     }
 
-    return false;
+    // Start normalization and block navigation until it finishes
+      this.processing.set(true);
+      this.formDisabled.set(true);
+    this.datosService.normalizeAddress(current).subscribe({
+      next: (normalized: DatosDomicilioModel) => {
+        this.direccion.set(normalized);
+        this.normalized.set(true);
+        const domicilioString = formatDireccionToString(normalized);
+        this.model.set({ domicilio: domicilioString });
+          this.processing.set(false);
+
+        this.showToast('La dirección ha sido normalizada.', 'success');
+
+        setTimeout(() => {
+          this.save.emit({ domicilio: domicilioString });
+          this.usoState.completeDireccionTomador();
+          this.direccionCompleted.emit();
+          // Trigger navigation after successful normalization and toast
+          this.navService.navigateNext();
+        }, this.toastDurationMs);
+      },
+      error: () => {
+          this.processing.set(false);
+          // restore formEnabled only if not fromGoogle
+          if (!this.fromGoogle) {
+            this.formDisabled.set(false);
+          }
+        this.showToast('No se ha podido normalizar la dirección. Inténtalo de nuevo.', 'danger');
+      },
+    });
+
+    return true;
   }
 
   private isReady(current: DatosDomicilioModel): boolean {

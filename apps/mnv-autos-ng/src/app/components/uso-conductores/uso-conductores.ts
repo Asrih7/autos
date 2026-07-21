@@ -87,6 +87,18 @@ export class UsoConductoresComponent
       previousPageLabel: "Vehículos",
       nextPageUrl: "/precio-coberturas",
     });
+
+    // Register a before-navigate callback so the global footer triggers step validation/normalization
+    this.navService.setBeforeNavigateCallback((currentUrl: string) => {
+      // If we are on the uso-conductores page, delegate to goNext() which handles active step checks
+      if (this.navService.activePageConfig() && this.navService.activePageConfig()!.pageId === 'uso-conductores') {
+        // call goNext which will perform onParentNext on the active step and navigate
+        this.goNext();
+        // indicate that PageNavigationService should NOT proceed with its own navigation
+        return false;
+      }
+      return true;
+    });
   }
 
   ngAfterViewInit(): void {
@@ -316,6 +328,7 @@ export class UsoConductoresComponent
   ngOnDestroy(): void {
     this.navService.activePageConfig.set(null);
     this.stepComponentRefs.clear();
+    this.navService.clearBeforeNavigateCallback();
   }
 }
 

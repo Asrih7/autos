@@ -1,17 +1,11 @@
 import { CommonModule } from '@angular/common';
-import { Component, EventEmitter, Input, OnChanges, Output, SimpleChanges, signal } from '@angular/core';
+import { Component, EventEmitter, Input, OnChanges, Output, SimpleChanges, signal, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
 import { BalHeading, BalDropdown, BalOption } from '@baloise/ds-angular';
 import { TranslateModule } from '@ngx-translate/core';
 import { DatosDomicilioModel } from '../address.model';
-
-const GOOGLE_SUGGESTIONS = [
-  'Calle Mayor 1, 28013 Madrid',
-  'Avenida de la Constitución 12, 28014 Madrid',
-  'Plaza España 5, 28008 Madrid',
-  'Calle del Laurel 14, 28006 Logroño',
-  'Calle Sierpes 8, 41002 Sevilla',
-];
+import { DatosDomicilioService } from '../datos-domicilio.service';
+import { MOCK_GOOGLE_SUGGESTIONS } from '../mocks/datos-domicilio.mock';
 
 interface SuggestionOption {
   id: string;
@@ -27,16 +21,19 @@ interface SuggestionOption {
 export class DatosDomicilioGoogle implements OnChanges {
   @Input() value = '';
   @Output() addressSelected = new EventEmitter<DatosDomicilioModel>();
+  @Output() clearSelection = new EventEmitter<void>();
+
+  private readonly datosService = inject(DatosDomicilioService);
 
   readonly placeholder = 'Busca una dirección con Google';
 
    options = signal<SuggestionOption[]>(
-    GOOGLE_SUGGESTIONS.map((label, index) => ({ id: `opt-${index}`, label })),
+    MOCK_GOOGLE_SUGGESTIONS.map((label, index) => ({ id: `opt-${index}`, label })),
   );
 
   selectedValue = signal('');
 
-  private nextId = GOOGLE_SUGGESTIONS.length;
+  private nextId = MOCK_GOOGLE_SUGGESTIONS.length;
 
   ngOnChanges(changes: SimpleChanges): void {
     if ('value' in changes) {
@@ -44,6 +41,7 @@ export class DatosDomicilioGoogle implements OnChanges {
 
       if (!incoming) {
         this.selectedValue.set('');
+        this.clearSelection.emit();
         return;
       }
 
@@ -67,7 +65,12 @@ export class DatosDomicilioGoogle implements OnChanges {
     if (!option) return;
 
     this.selectedValue.set(selectedId);
-    this.addressSelected.emit(this.parseSuggestion(option.label));
+    const parsed = this.parseSuggestion(option.label);
+    // Use existing service normalization to keep format consistent
+    this.datosService.normalizeAddress(parsed).subscribe({
+      next: (normalized) => this.addressSelected.emit(normalized),
+      error: () => this.addressSelected.emit(parsed),
+    });
   }
 
   private parseSuggestion(suggestion: string): DatosDomicilioModel {
