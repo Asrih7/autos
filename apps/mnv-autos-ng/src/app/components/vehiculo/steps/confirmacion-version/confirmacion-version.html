@@ -126,14 +126,14 @@
             </div>
 
             @if (version.combustible) {
-              <div class="contenido-caracteristicas flex gap-x-small align-items-center justify-content-end">
+              <div class="flex flex-wrap gap-x-small gap-y-x-small align-items-center justify-content-end mobile:justify-content-start w-full">
                 <bal-tag color="grey-light">{{ version.combustible }}</bal-tag>
                 <bal-tag color="grey-light">
                   {{ version.cilindrada ? version.cilindrada + ' ' + (lang + '.list.cc' | translate) : '' }}
                 </bal-tag>
                 <bal-tag color="grey-light">{{ version.potencia }}</bal-tag>
-                <bal-tag color="grey-light">{{ version.puertas }}</bal-tag>
-                <span class="fecha-fabricacion text-body-small text-light ml-small">
+                <bal-tag color="grey-light" class="white-space-normal">{{ version.puertas }}</bal-tag>
+                <span class="text-body-small text-light ms-auto mobile:ms-none">
                   {{ version.inicioFabricacion }}
                 </span>
               </div>
@@ -155,6 +155,7 @@
     <bal-button
       color="primary"
       [disabled]="botonDeshabilitado()"
+      [expanded]="esMobile()"
       (click)="confirmarVersion()"
     >
       {{ lang + '.buttons.confirm' | translate }}

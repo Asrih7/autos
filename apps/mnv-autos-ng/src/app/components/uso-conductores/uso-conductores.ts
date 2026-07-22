@@ -12,11 +12,11 @@ import {
   OnInit,
   OnDestroy,
   DestroyRef,
-  Injector, // 🔥 FIX NG0203
+  Injector, 
 } from "@angular/core";
 import { NavigationEnd, Router } from "@angular/router";
 import { filter } from "rxjs";
-import { BalButton } from "@baloise/ds-angular";
+import { BalButton , BalButtonGroup} from "@baloise/ds-angular";
 import { TranslateModule } from "@ngx-translate/core";
 
 import { USO_CONDUCTORES_STEPS } from "./uso-conductores.steps";
@@ -27,7 +27,7 @@ import { takeUntilDestroyed } from "@angular/core/rxjs-interop";
 @Component({
   selector: "app-uso-conductores",
   standalone: true,
-  imports: [BalButton, TranslateModule],
+  imports: [BalButton, BalButtonGroup, TranslateModule],
   templateUrl: "./uso-conductores.html",
   styleUrl: "./uso-conductores.scss",
 })
@@ -38,7 +38,7 @@ export class UsoConductoresComponent
   private readonly state = inject(UsoConductoresStateService);
   private readonly navService = inject(PageNavigationService);
   private readonly destroyRef = inject(DestroyRef);
-  private readonly injector = inject(Injector); // 🔥 FIX NG0203
+  private readonly injector = inject(Injector); 
   private navigating = false;
   private activeStepInstance: ParentNextStep | null = null;
   private readonly stepComponentRefs = new Map<string, ComponentRef<any>>();
@@ -86,18 +86,6 @@ export class UsoConductoresComponent
       previousPageUrl: "/vehiculos/accesorios",
       previousPageLabel: "Vehículos",
       nextPageUrl: "/precio-coberturas",
-    });
-
-    // Register a before-navigate callback so the global footer triggers step validation/normalization
-    this.navService.setBeforeNavigateCallback((currentUrl: string) => {
-      // If we are on the uso-conductores page, delegate to goNext() which handles active step checks
-      if (this.navService.activePageConfig() && this.navService.activePageConfig()!.pageId === 'uso-conductores') {
-        // call goNext which will perform onParentNext on the active step and navigate
-        this.goNext();
-        // indicate that PageNavigationService should NOT proceed with its own navigation
-        return false;
-      }
-      return true;
     });
   }
 
@@ -156,7 +144,6 @@ export class UsoConductoresComponent
 
   private async syncStepFromUrl(): Promise<void> {
     const stepId = this.currentRouteStep;
-    console.log("[syncStepFromUrl] router.url:", this.router.url, "-> stepId:", stepId);
 
     if (stepId === "intervinientes" && !this.state.canContinueFromUso()) {
       this.navigateTo("uso-vehiculo", true);
@@ -250,7 +237,6 @@ export class UsoConductoresComponent
       try {
         this.activeStepInstance.validate();
       } catch (e) {
-        console.warn("Error forcing validation:", e);
       }
     }
   }
@@ -328,7 +314,6 @@ export class UsoConductoresComponent
   ngOnDestroy(): void {
     this.navService.activePageConfig.set(null);
     this.stepComponentRefs.clear();
-    this.navService.clearBeforeNavigateCallback();
   }
 }
 

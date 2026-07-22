@@ -1,12 +1,27 @@
 <app-header></app-header>
 
-<div class="contenedor">
-  <app-menu></app-menu>
+<div class="contenedor h-full">
+  @if (sidebarLayout.isOpen()) {
+    <app-menu
+      class="flex h-full 
+        mobile:z-index-tooltip mobile:absolute
+        tablet:z-index-tooltip tablet:absolute
+        desktop:static"
+    ></app-menu>
+  } @else {
+
+    <bal-button
+      icon="nav-go-right"
+      square="true"
+      color="primary"
+      size="small"
+      (balClick)="sidebarLayout.openMenu()"
+      class="bg-grey-1"
+    ></bal-button>
+  }
 
   <main class="principal" role="main">
     <router-outlet></router-outlet>
     <app-footer></app-footer>
   </main>
 </div>
-
-

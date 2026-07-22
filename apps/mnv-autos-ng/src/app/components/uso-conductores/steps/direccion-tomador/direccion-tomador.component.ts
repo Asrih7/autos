@@ -1,20 +1,20 @@
 import { CommonModule } from '@angular/common';
-import { Component, EventEmitter, Input, OnInit, Output, signal, inject, effect, untracked } from '@angular/core';
+import { Component, EventEmitter, Input, OnInit, Output, signal, inject } from '@angular/core';
 import { FormsModule } from '@angular/forms';
-import { BalHeading, BalToast } from '@baloise/ds-angular';
+import { toSignal } from '@angular/core/rxjs-interop';
+import { BalHeading, BalSelect, BalSelectOption } from '@baloise/ds-angular';
 import { TranslateModule } from '@ngx-translate/core';
+import { Subject, of, startWith } from 'rxjs';
+import { catchError, debounceTime, distinctUntilChanged, switchMap } from 'rxjs/operators';
+
 import { DireccionModel } from '../../models/direccion.model';
+import { DireccionService } from '../../services/direccion.service';
 import { UsoConductoresStateService } from '../../uso-conductores-state.service';
-import { DatosDomicilioModel, formatDireccionToString, EMPTY_DATOS_DOMICILIO } from '../../../../../../../../libs/shared/ui/src/lib/address.model';
-import { DatosDomicilioService } from '../../../../../../../../libs/shared/ui/src/lib/datos-domicilio.service';
-import { PageNavigationService } from '@mnv-autos-ng/navigation';
-import { DatosDomicilioGoogle } from '../../../../../../../../libs/shared/ui/src/lib/datos-domicilio-google/datos-domicilio-google';
-import { DatosDomicilioForm } from '../../../../../../../../libs/shared/ui/src/lib/datos-domicilio-form/datos-domicilio-form';
 
 @Component({
   selector: 'app-direccion-tomador',
   standalone: true,
-  imports: [CommonModule, FormsModule, BalHeading, BalToast, TranslateModule, DatosDomicilioGoogle, DatosDomicilioForm],
+  imports: [CommonModule, FormsModule, BalSelect, BalSelectOption, TranslateModule,BalHeading],
   templateUrl: './direccion-tomador.component.html',
   styleUrls: ['./direccion-tomador.component.scss'],
 })
@@ -22,170 +22,66 @@ export class DireccionTomadorComponent implements OnInit {
   @Input() initial: Partial<DireccionModel> | null = null;
   @Output() save = new EventEmitter<DireccionModel>();
   @Output() direccionCompleted = new EventEmitter<void>();
-  @Output() stepSelected = new EventEmitter<string>();
+@Output() stepSelected = new EventEmitter<string>();
 
   model = signal<DireccionModel>({ domicilio: '' });
-  direccion = signal<DatosDomicilioModel>({ ...EMPTY_DATOS_DOMICILIO });
-  formDisabled = signal(false);
-  normalized = signal(false);
-  toastOpen = signal(false);
-  toastMessage = signal('');
-  toastType = signal<'success' | 'info' | 'warning' | 'danger'>('success');
 
-  readonly toastDurationMs = 3000;
+  private readonly query$ = new Subject<string>();
 
-    processing = signal(false);
-  private fromGoogle = false;
+  private readonly direccionService = inject(DireccionService);
   private readonly usoState = inject(UsoConductoresStateService);
-  private readonly datosService = inject(DatosDomicilioService);
-  private readonly navService = inject(PageNavigationService);
 
-  constructor() {
-    // Normalización ahora se invoca al pulsar 'Continuar' (ver onParentNext)
-  }
+  suggestions = toSignal(
+    this.query$.pipe(
+      debounceTime(200),
+      distinctUntilChanged(),
+      switchMap((query: string) =>
+        query
+          ? this.direccionService.searchAddress(query).pipe(catchError(() => of([])))
+          : of([]),
+      ),
+      startWith<string[]>([]),
+    ),
+  );
 
   ngOnInit(): void {
-    this.stepSelected.emit('direccion-tomador');
-
-    const savedDireccion = this.usoState.direccionTomador();
-    const completed = this.usoState.direccionTomadorCompleted();
-    const fromGoogle = this.usoState.direccionTomadorFromGoogle();
-
-    if (savedDireccion && Object.values(savedDireccion).some(v => v?.toString().trim())) {
-      this.direccion.set(savedDireccion);
-      this.model.set({ domicilio: formatDireccionToString(savedDireccion) });
-
-      if (completed && this.isReady(savedDireccion)) {
-        this.normalized.set(true);
-      }
-
-      if (fromGoogle) {
-        this.formDisabled.set(true);
-      }
-    } else if (this.initial?.domicilio) {
+      this.stepSelected.emit('fecha-efecto-seguro');
+    if (this.initial?.domicilio) {
       this.model.set({ domicilio: this.initial.domicilio });
+      this.query$.next(this.initial.domicilio);
     }
   }
 
-  onAddressSelected(address: DatosDomicilioModel): void {
-    this.fromGoogle = true;
-
-    this.direccion.set(address);
-    this.model.set({ domicilio: formatDireccionToString(address) });
-    this.saveDireccionToState(address);
-
-    this.usoState.setDireccionTomadorFromGoogle(true);
-
-    this.formDisabled.set(true);
-    this.normalized.set(false);
+  searchQueryChanged(query: string): void {
+    this.query$.next((query || '').toString().trim());
   }
 
-  onGoogleCleared(): void {
-    this.fromGoogle = false;
-    this.formDisabled.set(false);
-    this.usoState.setDireccionTomadorFromGoogle(false);
+  onSelectChange(event: any): void {
+    const value = event?.detail ?? event?.detail?.value ?? event?.target?.value ?? null;
+    const domicilio = typeof value === 'object' && 'value' in value ? value.value : value;
+    this.model.set({ ...this.model(), domicilio });
+
+    const trimmed = domicilio?.toString().trim() ?? '';
+    if (trimmed.length >= 3) {
+      this.save.emit({ domicilio: trimmed });
+      this.direccionCompleted.emit();
+      this.usoState.completeDireccionTomador();
+    }
   }
 
-  onFormChanged(updated: DatosDomicilioModel): void {
-    if (this.fromGoogle) {
-      this.fromGoogle = false;
+  onSave(): void {
+    const domicilio = (this.model().domicilio || '').trim();
+    if (!domicilio || domicilio.length < 3) {
       return;
     }
 
-    this.direccion.set(updated);
-    this.model.set({ domicilio: formatDireccionToString(updated) });
-    this.saveDireccionToState(updated);
-
-    this.normalized.set(false);
+    this.save.emit({ domicilio });
+    this.direccionCompleted.emit();
+    this.usoState.completeDireccionTomador();
   }
 
-  onCodigoPostalChanged(codigoPostal: string): void {
-    if (this.fromGoogle) {
-      this.fromGoogle = false;
-      return;
-    }
-
-    const address = { ...this.direccion(), codigoPostal };
-    this.direccion.set(address);
-    this.model.set({ domicilio: formatDireccionToString(address) });
-    this.saveDireccionToState(address);
-
-    this.normalized.set(false);
-  }
-
-  private saveDireccionToState(address: DatosDomicilioModel): void {
-    this.usoState.updateDireccionTomador(address);
-  }
-
-  public validate(): void {}
-
-  public onParentNext(): boolean {
-    const current = this.direccion();
-    const ready = this.isReady(current);
-
-    if (!ready) {
-      this.showToast('Completa todos los campos de la dirección antes de continuar.', 'warning');
-      return true;
-    }
-
-    if (this.normalized()) {
-      // Already normalized -> allow navigation
-      return false;
-    }
-
-      if (this.processing()) {
-      // Already processing normalization -> block navigation
-      return true;
-    }
-
-    // Start normalization and block navigation until it finishes
-      this.processing.set(true);
-      this.formDisabled.set(true);
-    this.datosService.normalizeAddress(current).subscribe({
-      next: (normalized: DatosDomicilioModel) => {
-        this.direccion.set(normalized);
-        this.normalized.set(true);
-        const domicilioString = formatDireccionToString(normalized);
-        this.model.set({ domicilio: domicilioString });
-          this.processing.set(false);
-
-        this.showToast('La dirección ha sido normalizada.', 'success');
-
-        setTimeout(() => {
-          this.save.emit({ domicilio: domicilioString });
-          this.usoState.completeDireccionTomador();
-          this.direccionCompleted.emit();
-          // Trigger navigation after successful normalization and toast
-          this.navService.navigateNext();
-        }, this.toastDurationMs);
-      },
-      error: () => {
-          this.processing.set(false);
-          // restore formEnabled only if not fromGoogle
-          if (!this.fromGoogle) {
-            this.formDisabled.set(false);
-          }
-        this.showToast('No se ha podido normalizar la dirección. Inténtalo de nuevo.', 'danger');
-      },
-    });
-
-    return true;
-  }
-
-  private isReady(current: DatosDomicilioModel): boolean {
-    return !!(
-      current.tipoVia.trim() &&
-      current.nombreVia.trim() &&
-      current.numero.trim() &&
-      current.codigoPostal.trim() &&
-      current.provincia.trim() &&
-      current.localidad.trim()
-    );
-  }
-
-  private showToast(message: string, type: 'success' | 'info' | 'warning' | 'danger' = 'success'): void {
-    this.toastMessage.set(message);
-    this.toastType.set(type);
-    this.toastOpen.set(true);
+  saveDireccion(): void {
+    this.direccionCompleted.emit();
+    this.usoState.completeDireccionTomador();
   }
 }

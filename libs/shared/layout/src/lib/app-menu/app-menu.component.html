@@ -1,39 +1,44 @@
 <nav class="sidebar-shell" aria-label="Menú principal">
-
-  <button type="button" class="sidebar-back" (click)="goBack()">
-      <bal-icon name="caret-left"></bal-icon>
-      <span>Tu cotización</span>
+  <button type="button" class="sidebar-back" (click)="hideMenu()">
+    <bal-icon name="caret-left"></bal-icon>
+    <span>Tu cotización</span>
   </button>
 
   <ul role="list">
     @for (item of items(); track item.id) {
-     <li
-  class="sidebar-nav-item"
-  [class.sidebar-nav-item--active]="item.state === 'active'"
-  [class.sidebar-nav-item--completed]="item.state === 'completed'"
-  [class.sidebar-nav-item--disabled]="item.disabled"   
-  (click)="navigate(item)"
->
-
+      <li
+        class="sidebar-nav-item"
+        [class.sidebar-nav-item--active]="item.state === 'active'"
+        [class.sidebar-nav-item--completed]="item.state === 'completed'"
+        [class.sidebar-nav-item--disabled]="item.disabled"
+        (click)="navigate(item)"
+      >
         <div class="step-indicator">
-<span class="step-circle">
-  @switch (item.state) {
-    @case ('completed') {
-      <bal-icon name="check" size="small" class="step-check" color="auto" aria-hidden="true"></bal-icon>
-    }
-    @case ('active') {
-      <span class="step-circle-dot"></span>
-    }
-    @default {
-      <span class="step-circle-dot step-circle-dot--pending"></span>
-    }
-  }
-</span>
-
-
+          <span class="step-circle">
+            @switch (item.state) {
+              @case ("completed") {
+                <bal-icon
+                  name="check"
+                  size="small"
+                  class="step-check"
+                  color="auto"
+                  aria-hidden="true"
+                ></bal-icon>
+              }
+              @case ("active") {
+                <span class="step-circle-dot"></span>
+              }
+              @default {
+                <span class="step-circle-dot step-circle-dot--pending"></span>
+              }
+            }
+          </span>
 
           @if (!item.isLast) {
-            <span class="step-line" [class.step-line--completed]="item.state === 'completed'"></span>
+            <span
+              class="step-line"
+              [class.step-line--completed]="item.state === 'completed'"
+            ></span>
           }
         </div>
 
@@ -43,5 +48,19 @@
       </li>
     }
   </ul>
-
+  <div
+    class="flex flex-direction-column  mt-auto mr-normal"
+  >
+    <div class="flex flex-direction-row w-full justify-content-end align-items-center ">
+      <!-- <span></span> -->
+      <bal-button
+        square="true"
+        color="tertiary"
+        iconRight="close"
+        size="small"
+        (click)="hideMenu()"
+      >Cerrar</bal-button>
+    </div>
+    <!-- <span class="flex-direction-row font-weight-bold"> Version 1.0.0 </span> -->
+  </div>
 </nav>

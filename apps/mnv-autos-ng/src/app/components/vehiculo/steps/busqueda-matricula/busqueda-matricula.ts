@@ -4,7 +4,6 @@ import {
   inject,
   input,
   OnInit,
-  OnDestroy,
   signal,
 } from "@angular/core";
 import {
@@ -21,6 +20,8 @@ import {
 import { TranslateModule } from "@ngx-translate/core";
 import { StepCompleteCallback } from "../../vehiculo";
 import { VehiculoStateService } from "../../services/vehiculo-state.service";
+import { useIsMobile } from '@mnv-autos-ng/util';
+import { MetodoBusqueda } from "../../models/vehiculo.models";
 
 @Component({
   selector: "app-busqueda-matricula",
@@ -39,31 +40,28 @@ import { VehiculoStateService } from "../../services/vehiculo-state.service";
   templateUrl: "./busqueda-matricula.html",
   styleUrl: "./busqueda-matricula.scss",
 })
-export class BusquedaMatricula implements OnInit, OnDestroy {
+export class BusquedaMatricula implements OnInit {
   readonly onStepComplete = input<StepCompleteCallback>();
   private readonly stateService = inject(VehiculoStateService);
 
-  readonly opcionSeleccionada = signal<"matricula" | "bastidor">("matricula");
+  readonly esMobile = useIsMobile();
+  readonly opcionSeleccionada = signal<MetodoBusqueda>("matricula");
   readonly textoBusqueda = signal<string>("");
 
   private readonly baseLangKey = "vehiculo.busquedaMatricula";
-  readonly esMobile = signal<boolean>(false);
-  private mediaQueryList?: MediaQueryList;
 
   ngOnInit(): void {
     const savedState = this.stateService.state();
     if (savedState.metodoBusqueda) {
       this.opcionSeleccionada.set(savedState.metodoBusqueda);
     }
+    
     if (savedState.matriculaOBastidor) {
-      this.textoBusqueda.set(savedState.matriculaOBastidor);
-    }
-
-    if (typeof window !== 'undefined') {
-      this.mediaQueryList = window.matchMedia('(max-width: 767px)');
-      this.esMobile.set(this.mediaQueryList.matches);
-      
-      this.mediaQueryList.addEventListener('change', this.evaluarPantalla);
+      const visibleText = savedState.matriculaOBastidor === "MANUAL_SEARCH_ACTIVE" 
+        ? "" 
+        : savedState.matriculaOBastidor;
+        
+      this.textoBusqueda.set(visibleText);
     }
   }
 
@@ -103,7 +101,7 @@ export class BusquedaMatricula implements OnInit, OnDestroy {
     const parsedEvent = parseCustomEvent(event);
     if (!parsedEvent) return;
 
-    const valorSeleccionado = parsedEvent as "matricula" | "bastidor";
+    const valorSeleccionado = parsedEvent as MetodoBusqueda;
 
     this.opcionSeleccionada.set(valorSeleccionado);
     this.textoBusqueda.set("");
@@ -142,12 +140,4 @@ export class BusquedaMatricula implements OnInit, OnDestroy {
       callback({ accion: "FORZAR_BUSQUEDA_MANUAL" });
     }
   }
-
-  ngOnDestroy(): void {
-    this.mediaQueryList?.removeEventListener('change', this.evaluarPantalla);
-  }
-
-  private readonly evaluarPantalla = (e: MediaQueryListEvent) => {
-    this.esMobile.set(e.matches);
-  };
 }

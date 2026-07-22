@@ -1,4 +1,4 @@
-<section class="w-6 flex flex-direction-column gap-normal bg-white mb-large">
+<section class="w-full tablet:w-10 desktop:w-6 flex flex-direction-column gap-normal bg-white mb-large mobile:mb-normal tablet:mb-large">
 
   <bal-heading level="h3" visual-level="h4" class="mb-none text-blue">
     {{ 'usoConductores.seguroAnterior.title' | translate }}
@@ -53,13 +53,13 @@
 
 
 @if (mostrarSeccionIntermedia()) {
-<section class="w-6 flex flex-direction-column gap-normal bg-white mb-large">
+<section class="w-full tablet:w-10 desktop:w-6 flex flex-direction-column gap-normal bg-white mb-large mobile:mb-normal tablet:mb-large">
 
   <bal-heading level="h3" visual-level="h4" class="mb-none text-blue">
     {{ 'usoConductores.seguroAnterior.intermedia.title' | translate }}
   </bal-heading>
 
-  <p class=" w-6 text-body-small text-light mt-none text-blue">
+  <p class="w-full text-body-small text-light mt-none text-blue">
     {{ 'usoConductores.seguroAnterior.intermedia.subtitle' | translate }}
   </p>
 
@@ -77,17 +77,17 @@
 
 
 @if (mostrarPolizaActual()) {
-<section class="w-6 flex flex-direction-column gap-normal bg-white mb-large">
+<section class="w-full tablet:w-10 desktop:w-6 flex flex-direction-column gap-normal bg-white mb-large mobile:mb-normal tablet:mb-large">
 
   <bal-heading level="h3" visual-level="h4" class="mb-none text-blue">
     {{ 'usoConductores.seguroAnterior.polizaActual.title' | translate }}
   </bal-heading>
 
-  <p class="w-7 text-body-small text-light mt-none text-blue">
+  <p class="w-full text-body-small text-light mt-none text-blue">
     {{ 'usoConductores.seguroAnterior.polizaActual.subtitle' | translate }}
   </p>
 
-  <div class="flex w-4 align-center gap-normal">
+  <div class="flex w-full mobile:flex-direction-column mobile:gap-small tablet:flex-direction-row tablet:gap-normal tablet:w-8 align-center gap-normal">
     @for (digito of digitosPoliza; track digito) {
       <bal-input
         #digitoPolizaInput
@@ -106,11 +106,11 @@
     }
   </div>
 
-  <div class="flex align-center mt-normal">
-    <bal-button class="inline-flex" elementType="button" (click)="continuarSinNumeroPoliza()">
+<bal-button-group direction="auto" class="mt-large">
+    <bal-button class="w-full" elementType="button" (click)="continuarSinNumeroPoliza()">
       {{ 'usoConductores.seguroAnterior.polizaActual.continueWithout' | translate }}
     </bal-button>
-  </div>
+  </bal-button-group>
 
 </section>
 
@@ -118,18 +118,18 @@
 
 
 @if (mostrarAniosAsegurado()) {
-<section class="w-6 flex flex-direction-column gap-normal bg-white mb-large">
+<section class="w-full tablet:w-10 desktop:w-6 flex flex-direction-column gap-normal bg-white mb-large mobile:mb-normal tablet:mb-large">
 
   <bal-heading level="h3" visual-level="h4" class="mb-none text-blue">
     {{ 'usoConductores.seguroAnterior.aniosAsegurado.title' | translate }}
   </bal-heading>
 
-  <p class="w-6 text-body-small text-light mt-none text-blue">
+  <p class="w-full text-body-small text-light mt-none text-blue">
     {{ 'usoConductores.seguroAnterior.aniosAsegurado.subtitle' | translate }}
   </p>
 
   <bal-select
-    class="w-6"
+    class="w-full tablet:w-8"
     name="anios-asegurado"
     [placeholder]="'usoConductores.seguroAnterior.aniosAsegurado.placeholder' | translate"
     [value]="aniosAseguradoSeleccionado()"
@@ -147,18 +147,18 @@
 
 
 @if (mostrarSiniestro()) {
-<section class="w-6 flex flex-direction-column gap-normal bg-white mb-large">
+<section class="w-full tablet:w-10 desktop:w-6 flex flex-direction-column gap-normal bg-white mb-large mobile:mb-normal tablet:mb-large">
 
   <bal-heading level="h3" visual-level="h4" class="mb-none text-blue">
     {{ 'usoConductores.seguroAnterior.siniestro.title' | translate }}
   </bal-heading>
 
-  <p class="w-6 text-body-small text-light mt-none text-blue">
+  <p class="w-full text-body-small text-light mt-none text-blue">
     {{ 'usoConductores.seguroAnterior.siniestro.subtitle' | translate }}
   </p>
 
   <bal-select
-    class="w-6"
+    class="w-full tablet:w-8"
     name="siniestro"
     [placeholder]="'usoConductores.seguroAnterior.siniestro.placeholder' | translate"
     [value]="siniestroSeleccionado()"

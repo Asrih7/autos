@@ -22,6 +22,7 @@ import {
 import { DataGridSelector } from "@mnv-autos-ng/ui";
 import { VehiculoStateService } from "../../services/vehiculo-state.service";
 import { TranslateModule } from "@ngx-translate/core";
+import { useIsMobile } from '@mnv-autos-ng/util';
 
 @Component({
   selector: "app-busqueda-manual",
@@ -45,6 +46,7 @@ export class BusquedaManualComponent implements OnInit {
   readonly onStepComplete = input<(stepOutputData: unknown) => void>();
   readonly selectModelo = viewChild<BalSelect>("selectComponent");
   readonly baseLangKey = "vehiculo.busquedaManual";
+  readonly esMobile = useIsMobile();
 
   readonly catalogoMarcas = signal<Marca[]>([
     { id: "aud", nombre: "Audi", logo: "assets/logos/audi.png" },
@@ -67,24 +69,24 @@ export class BusquedaManualComponent implements OnInit {
   readonly modeloSeleccionadoId = signal<string | null>(null);
   readonly mostrarModelos = signal<boolean>(false);
 
-  private isInitializing = false;
+  // private isInitializing = false;
 
-  constructor() {
-    effect(() => {
-      const brandId = this.marcaSeleccionadaId();
+  // constructor() {
+  //   effect(() => {
+  //     const brandId = this.marcaSeleccionadaId();
 
-      if (brandId) {
-        if (!this.isInitializing) {
-          this.modeloSeleccionadoId.set(null);
-        }
+  //     if (brandId) {
+  //       if (!this.isInitializing) {
+  //         this.modeloSeleccionadoId.set(null);
+  //       }
         
-        setTimeout(() => void this.selectModelo()?.setFocus(), 60);
-      }
-    });
-  }
+  //       setTimeout(() => void this.selectModelo()?.setFocus(), 60);
+  //     }
+  //   });
+  // }
 
   ngOnInit(): void {
-    this.isInitializing = true;
+    // this.isInitializing = true;
 
     const currentSummary = this.stateService.selectedBrandAndModel();
 
@@ -97,9 +99,9 @@ export class BusquedaManualComponent implements OnInit {
       }
     }
 
-    setTimeout(() => {
-      this.isInitializing = false;
-    }, 0);
+    // setTimeout(() => {
+    //   this.isInitializing = false;
+    // }, 0);
   }
 
   readonly marcaModeloSelecionado = computed<Pick<Vehiculo, "marca" | "modelo">>(() => {

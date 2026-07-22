@@ -20,6 +20,7 @@
     <bal-button
       color="primary"
       [disabled]="marcaSeleccionadaId() === null"
+      [expanded]="esMobile()"
       (click)="confirmarMarca()">
       {{ baseLangKey + '.brands.confirmBtn' | translate }}
     </bal-button>
@@ -61,6 +62,7 @@
       <bal-button
         color="primary"
         [disabled]="modeloSeleccionadoId() === null"
+        [expanded]="esMobile()"
         (click)="confirmarModelo()">
         {{ baseLangKey + '.models.confirmBtn' | translate }}
       </bal-button>

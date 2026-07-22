@@ -70,37 +70,14 @@ export class PageNavigationService {
   }
 
   navigateNext(): void {
-    const invoke = async () => {
-      const config = this.activePageConfig();
+    const config = this.activePageConfig();
 
-      if (config) {
-        await this.router.navigateByUrl(config.nextPageUrl);
-      } else {
-        if (this.router.url.includes("/tu-cliente")) {
-          await this.router.navigate(["/vehiculos"]);
-        }
-      }
-    };
-
-    // If a beforeNavigate callback is registered, call it and respect its result
-    if (this.beforeNavigateCallback) {
-      Promise.resolve(this.beforeNavigateCallback(this.router.url)).then((shouldProceed) => {
-        if (shouldProceed) {
-          void invoke();
-        }
-      });
+    if (config) {
+      void this.router.navigateByUrl(config.nextPageUrl);
     } else {
-      void invoke();
+      if (this.router.url.includes("/tu-cliente")) {
+        void this.router.navigate(["/vehiculos"]);
+      }
     }
-  }
-
-  private beforeNavigateCallback?: (currentUrl: string) => Promise<boolean> | boolean;
-
-  setBeforeNavigateCallback(cb: (currentUrl: string) => Promise<boolean> | boolean): void {
-    this.beforeNavigateCallback = cb;
-  }
-
-  clearBeforeNavigateCallback(): void {
-    this.beforeNavigateCallback = undefined;
   }
 }

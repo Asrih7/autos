@@ -4,7 +4,6 @@ import { NgComponentOutlet } from '@angular/common';
 import { toObservable, toSignal } from '@angular/core/rxjs-interop';
 import { switchMap, from, of } from 'rxjs';
 import { VEHICULO_STEPS, VehiculoStepDefinition } from './vehiculo.steps';
-import { VehiculoStateService } from './services/vehiculo-state.service';
 import { ScrollOnRenderDirective } from '@mnv-autos-ng/util';
 import { PageNavigationService } from '@mnv-autos-ng/navigation';
 
@@ -25,9 +24,8 @@ export interface RenderedLayer {
   styleUrls: ['./vehiculo.scss']
 })
 export class VehiculoComponent implements OnInit, OnDestroy {
-  private readonly router = inject(Router);
-  private readonly stateService = inject(VehiculoStateService);
   private readonly navService = inject(PageNavigationService);
+  private readonly router = inject(Router);
   
   step = input.required<string>();
   readonly steps: VehiculoStepDefinition[] = VEHICULO_STEPS;
@@ -41,25 +39,9 @@ export class VehiculoComponent implements OnInit, OnDestroy {
     });
   }
 
-  private readonly verifiedStep = computed(() => {
-    const currentStep = this.step();
-    const state = this.stateService.state();
-
-    if (currentStep === ':step') {
-      void this.router.navigate(['/vehiculos', 'busqueda-matricula'], { replaceUrl: true });
-      return 'busqueda-matricula';
-    }
-    
-    if (!state.matriculaOBastidor && currentStep !== 'busqueda-matricula') {
-      void this.router.navigate(['/vehiculos', 'busqueda-matricula'], { replaceUrl: true });
-      return 'busqueda-matricula';
-    }
-    
-    return this.steps.some(s => s.id === currentStep) ? currentStep : 'busqueda-matricula';
-  });
-
   private readonly targetStepsToRender = computed(() => {
-    const targetIdx = this.steps.findIndex(s => s.id === this.verifiedStep());
+    const currentStep = this.step();
+    const targetIdx = this.steps.findIndex(s => s.id === currentStep);
     return targetIdx !== -1 ? this.steps.slice(0, targetIdx + 1) : [this.steps[0]];
   });
 
@@ -88,7 +70,6 @@ export class VehiculoComponent implements OnInit, OnDestroy {
 
   handleStepNavigation(currentStepId: string, stepOutputData: unknown): void {
     console.log(`Navigation triggered from ${currentStepId}`, stepOutputData);
-
     const idx = this.steps.findIndex(s => s.id === currentStepId);
     const nextStep = this.steps[idx + 1];
 

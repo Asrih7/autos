@@ -19,6 +19,7 @@ import {
 } from "@baloise/ds-angular";
 import { VehiculoStateService } from "../../services/vehiculo-state.service";
 import { TranslateModule, TranslateService } from "@ngx-translate/core";
+import { useIsMobile } from '@mnv-autos-ng/util';
 
 export interface FilterDropdownOption {
   label: string;
@@ -54,6 +55,7 @@ export class ConfirmacionVersion implements OnInit {
   private readonly stateService = inject(VehiculoStateService);
   private readonly translate = inject(TranslateService);
   
+  readonly esMobile = useIsMobile();
   readonly nombreVehiculoCompleto = this.stateService.nombreVehiculoCompleto;
 
   readonly listaVersiones = computed<Version[]>(() => [

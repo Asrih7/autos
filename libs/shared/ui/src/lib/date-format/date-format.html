@@ -1,4 +1,4 @@
-<section class="w-6 flex flex-direction-column gap-normal bg-white mb-large">
+<section class="w-full tablet:w-10 desktop:w-6 flex flex-direction-column gap-normal bg-white mb-large mobile:mb-normal tablet:mb-large">
 
   <bal-heading level="h3" visual-level="h4" class="mb-none text-blue">
     {{ 'usoConductores.fechaEfectoSeguro.title' | translate }}
@@ -10,9 +10,7 @@
 
   <bal-field class="block w-full">
     <bal-field-control>
-
-      <div class="w-6 flex align-end gap-small w-full">
-
+      <div class="w-6 mobile:w-full flex align-end gap-small">
         <bal-input
           #diaInput
           name="dia"

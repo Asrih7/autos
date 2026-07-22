@@ -28,18 +28,18 @@ export const VEHICULO_STEPS: VehiculoStepDefinition[] = [
       import('./steps/confirmacion-version/confirmacion-version')
         .then(m => m.ConfirmacionVersion),
   },
-  // {
-  //   id: 'resto-campos',
-  //   label: 'Datos Adicionales',
-  //   component: () =>
-  //     import('./steps/resto-campos/resto-campos')
-  //       .then(m => m.RestoCampos),
-  // },
-  // {
-  //   id: 'accesorios',
-  //   label: 'Accesorios',
-  //   component: () =>
-  //     import('./steps/accesorios/accesorios')
-  //       .then(m => m.Accesorios),
-  // },
+  {
+    id: 'resto-campos',
+    label: 'Datos Adicionales',
+    component: () =>
+      import('./steps/resto-campos/resto-campos')
+        .then(m => m.RestoCampos),
+  },
+  {
+    id: 'accesorios',
+    label: 'Accesorios',
+    component: () =>
+      import('./steps/accesorios/accesorios')
+        .then(m => m.Accesorios),
+  },
 ];

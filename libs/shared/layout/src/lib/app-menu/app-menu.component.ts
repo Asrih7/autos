@@ -3,7 +3,7 @@ import { NavigationEnd, Router } from "@angular/router";
 import { Location } from "@angular/common";
 import { toSignal } from "@angular/core/rxjs-interop";
 import { filter, map, startWith } from "rxjs/operators";
-import { BalIcon } from "@baloise/ds-angular";
+import { BalIcon, BalButton } from "@baloise/ds-angular";
 import { SidebarLayout, SidebarItem } from "@mnv-autos-ng/layout-state";
 
 type StepState = "completed" | "active" | "pending";
@@ -18,7 +18,7 @@ interface MenuItem extends SidebarItem {
 @Component({
   selector: "app-menu",
   standalone: true,
-  imports: [BalIcon],
+  imports: [BalIcon, BalButton],
   templateUrl: "./app-menu.component.html",
   styleUrls: ["./app-menu.component.css"],
 })
@@ -65,8 +65,8 @@ export class AppMenuComponent {
     });
   });
 
-  goBack(): void {
-    this.location.back();
+  hideMenu(): void {
+    this.sidebarLayout.closeMenu();
   }
 
   navigate(item: MenuItem): void {

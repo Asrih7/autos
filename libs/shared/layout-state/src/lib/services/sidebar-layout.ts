@@ -7,8 +7,18 @@ export interface SidebarItem { id: string; label: string; path: string; }
 export class SidebarLayout {
   private readonly _items = signal<SidebarItem[]>([]);
   readonly items: Signal<SidebarItem[]> = this._items.asReadonly();
+  private readonly _isOpen = signal<boolean>(true);
+  readonly isOpen = this._isOpen.asReadonly();
 
   constructor() { this.initializeMenuFromAppPages(); }
+
+  openMenu(): void {
+    this._isOpen.set(true);
+  }
+
+  closeMenu(): void {
+    this._isOpen.set(false);
+  }
 
   private initializeMenuFromAppPages(): void {
     const pages = APP_PAGES

@@ -5,6 +5,8 @@ import { TranslateModule, TranslateService, TranslateLoader } from '@ngx-transla
 import { TranslateHttpLoader } from '@ngx-translate/http-loader';
 
 import { AppHeaderComponent, AppMenuComponent, AppFooterComponent } from '@mnv-autos-ng/layout'
+import { SidebarLayout } from '@mnv-autos-ng/layout-state';
+import { BalButton } from '@baloise/ds-angular';
 
 export function HttpLoaderFactory(http: HttpClient): TranslateHttpLoader {
   return new TranslateHttpLoader(http, './assets/i18n/', '.json');
@@ -19,12 +21,14 @@ export function HttpLoaderFactory(http: HttpClient): TranslateHttpLoader {
     AppHeaderComponent,
     AppMenuComponent,
     AppFooterComponent,
+    BalButton
   ],
   templateUrl: './app.html',
   styleUrls: ['./app.scss']
 })
 export class App {
   private readonly translate = inject(TranslateService);
+  protected sidebarLayout = inject(SidebarLayout);
 
   constructor() {
     this.translate.setDefaultLang('es');

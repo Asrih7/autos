@@ -9,11 +9,13 @@
 .seccion-wizard-dinamica {
   width: 100%;
   display: block;
+  
+  scroll-margin-top: var(--bal-space-normal, 2rem);
 }
 
-.entry-animation {
-  animation: viewFadeSlideIn 0.38s cubic-bezier(0.16, 1, 0.3, 1) forwards;
-}
+// .entry-animation {
+//   animation: viewFadeSlideIn 0.38s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+// }
 
 @keyframes viewFadeSlideIn {
   from {

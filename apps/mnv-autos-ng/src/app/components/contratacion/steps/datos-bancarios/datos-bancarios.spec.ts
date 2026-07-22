@@ -1,17 +1,17 @@
 import { ComponentFixture, TestBed } from "@angular/core/testing";
-import { ContratacionComponent } from "./contratacion";
+import { DatosBancarios } from "./datos-bancarios";
 import { TranslateModule } from "@ngx-translate/core";
 
-describe("Contratacion", () => {
-  let component: ContratacionComponent;
-  let fixture: ComponentFixture<ContratacionComponent>;
+describe("DatosBancarios", () => {
+  let component: DatosBancarios;
+  let fixture: ComponentFixture<DatosBancarios>;
 
   beforeEach(async () => {
     await TestBed.configureTestingModule({
-      imports: [ContratacionComponent, TranslateModule.forRoot()],
+      imports: [DatosBancarios, TranslateModule.forRoot()],
     }).compileComponents();
 
-    fixture = TestBed.createComponent(ContratacionComponent);
+    fixture = TestBed.createComponent(DatosBancarios);
     component = fixture.componentInstance;
     await fixture.whenStable();
   });

@@ -12,10 +12,11 @@
 .sidebar-shell {
   display: flex !important;
   flex-direction: column !important;
-  width: 220px !important;
-  min-width: 20rem !important;
-  max-width: 220px !important;
+  /* width: 20rem !important;
+  min-width: 20rem !important; */
+  max-width: 20rem !important;
   min-height: 100% !important;
+  height: 100%;
   background: #ffffff !important;
   border-right: 1px solid #e5e7eb !important;
   box-shadow: none !important;

@@ -1,4 +1,5 @@
-<section class="w-12 flex flex-direction-column gap-normal bg-white mb-large">
+
+<section class="w-full flex flex-direction-column gap-normal bg-white mb-large mobile:mb-normal tablet:mb-large">
 
   <bal-heading level="h3" visual-level="h4" class="mb-none text-blue">
     {{ 'usoConductores.intervinientes.pageTitle' | translate }}
@@ -35,7 +36,7 @@
 @switch (true) {
 
   @case (tomadorEsPropietario() && tomadorEsConductorHabitual()) {
-    <section class="w-8 mb-large">
+    <section class="w-full tablet:w-10 desktop:w-8 mb-large mobile:mb-normal tablet:mb-large">
       <bal-card class="overflow-visible">
         <div class="bg-grey-light p-normal text-body-small text-blue text-uppercase">
           {{ 'usoConductores.intervinientes.sections.tomadorPropietarioConductor' | translate }}
@@ -47,7 +48,8 @@
               $implicit: tomador,
               showDocumento: true,
               showCarnet: true,
-              useEdad: false
+              useEdad: false,
+              requireCarnet: true
             }">
           </ng-container>
         </div>
@@ -56,7 +58,7 @@
   }
 
   @case (!tomadorEsPropietario() && tomadorEsConductorHabitual()) {
-    <section class="w-8 mb-large">
+    <section class="w-full tablet:w-10 desktop:w-8 mb-large mobile:mb-normal tablet:mb-large">
       <bal-card class="overflow-visible">
         <div class="bg-grey-light p-normal text-body-small text-blue text-uppercase">
           {{ 'usoConductores.intervinientes.sections.tomadorConductor' | translate }}
@@ -68,14 +70,15 @@
               $implicit: tomador,
               showDocumento: true,
               showCarnet: true,
-              useEdad: false
+              useEdad: false,
+              requireCarnet: true
             }">
           </ng-container>
         </div>
       </bal-card>
     </section>
 
-    <section class="w-8 mb-large">
+    <section class="w-full tablet:w-10 desktop:w-8 mb-large mobile:mb-normal tablet:mb-large">
       <bal-card class="overflow-visible">
         <div class="bg-grey-light p-normal text-body-small text-blue text-uppercase">
           {{ 'usoConductores.intervinientes.sections.propietarioVehicle' | translate }}
@@ -87,7 +90,8 @@
               $implicit: propietario,
               showDocumento: true,
               showCarnet: true,
-              useEdad: false
+              useEdad: false,
+              requireCarnet: false
             }">
           </ng-container>
         </div>
@@ -96,7 +100,7 @@
   }
 
   @case (tomadorEsPropietario() && !tomadorEsConductorHabitual()) {
-    <section class="w-8 mb-large">
+    <section class="w-full tablet:w-10 desktop:w-8 mb-large mobile:mb-normal tablet:mb-large">
       <bal-card class="overflow-visible">
         <div class="bg-grey-light p-normal text-body-small text-blue text-uppercase">
           {{ 'usoConductores.intervinientes.sections.tomadorPropietario' | translate }}
@@ -108,14 +112,15 @@
               $implicit: tomador,
               showDocumento: false,
               showCarnet: true,
-              useEdad: useEdadTomador()
+              useEdad: useEdadTomador(),
+              requireCarnet: true
             }">
           </ng-container>
         </div>
       </bal-card>
     </section>
 
-    <section class="w-8 mb-large">
+    <section class="w-full tablet:w-10 desktop:w-8 mb-large mobile:mb-normal tablet:mb-large">
       <bal-card class="overflow-visible">
         <div class="bg-grey-light p-normal text-body-small text-blue text-uppercase">
           {{ 'usoConductores.intervinientes.sections.conductorHabitual' | translate }}
@@ -127,7 +132,8 @@
               $implicit: conductorHabitual,
               showDocumento: false,
               showCarnet: true,
-              useEdad: useEdadConductorHabitual()
+              useEdad: useEdadConductorHabitual(),
+              requireCarnet: true
             }">
           </ng-container>
         </div>
@@ -136,7 +142,7 @@
   }
 
   @case (!tomadorEsPropietario() && !tomadorEsConductorHabitual()) {
-    <section class="w-8 mb-large">
+    <section class="w-full tablet:w-10 desktop:w-8 mb-large mobile:mb-normal tablet:mb-large">
       <bal-card class="overflow-visible">
         <div class="bg-grey-light p-normal text-body-small text-blue text-uppercase">
           {{ 'usoConductores.intervinientes.sections.tomador' | translate }}
@@ -148,14 +154,15 @@
               $implicit: tomador,
               showDocumento: true,
               showCarnet: true,
-              useEdad: false
+              useEdad: false,
+              requireCarnet: true
             }">
           </ng-container>
         </div>
       </bal-card>
     </section>
 
-    <section class="w-8 mb-large">
+    <section class="w-full tablet:w-10 desktop:w-8 mb-large mobile:mb-normal tablet:mb-large">
       <bal-card class="overflow-visible">
         <div class="bg-grey-light p-normal text-body-small text-blue text-uppercase">
           {{ 'usoConductores.intervinientes.sections.propietario' | translate }}
@@ -167,14 +174,15 @@
               $implicit: propietario,
                 showDocumento: true,
                 showCarnet: true,
-                useEdad: false
+                useEdad: false,
+                requireCarnet: false
             }">
           </ng-container>
         </div>
       </bal-card>
     </section>
 
-    <section class="w-8 mb-large">
+    <section class="w-full tablet:w-10 desktop:w-8 mb-large mobile:mb-normal tablet:mb-large">
       <bal-card class="overflow-visible">
         <div class="bg-grey-light p-normal text-body-small text-blue text-uppercase">
           {{ 'usoConductores.intervinientes.sections.conductorHabitual' | translate }}
@@ -186,7 +194,8 @@
               $implicit: conductorHabitual,
               showDocumento: true,
               showCarnet: true,
-              useEdad: false
+              useEdad: false,
+              requireCarnet: true
             }">
           </ng-container>
         </div>
@@ -197,7 +206,7 @@
 }
 
 @for (oc of conductoresOcasionales(); track oc; let idx = $index) {
-  <section class="w-8 mb-large">
+  <section class="w-full tablet:w-10 desktop:w-8 mb-large mobile:mb-normal tablet:mb-large">
     <bal-card class="overflow-visible">
       <div class="bg-grey-light p-normal flex align-items-center justify-content-space-between text-body-small text-blue text-uppercase">
         <span>{{ 'usoConductores.intervinientes.sections.conductorOcasional' | translate }}</span>
@@ -212,7 +221,8 @@
             $implicit: oc,
             showDocumento: true,
             showCarnet: true,
-            useEdad: false
+            useEdad: false,
+            requireCarnet: true
           }">
         </ng-container>
       </div>
@@ -220,7 +230,7 @@
   </section>
 }
 
-<section class="w-8 flex justify-content-end mb-large">
+<section class="w-full tablet:w-10 desktop:w-8 flex justify-content-end mb-large mobile:mb-normal tablet:mb-large">
   <bal-button variant="ghost" color="grey" (click)="addConductorOcasional()">
     <span class="flex align-items-center gap-small">
       {{ 'usoConductores.intervinientes.sections.addConductor' | translate }}
@@ -230,12 +240,12 @@
 </section>
 
 <!-- persona form: single horizontal row, all fields same height -->
-<ng-template #personaForm let-model let-showDocumento="showDocumento" let-showCarnet="showCarnet" let-useEdad="useEdad">
-  <div class="flex flex-wrap gap-normal align-items-end">
+<ng-template #personaForm let-model let-showDocumento="showDocumento" let-showCarnet="showCarnet" let-useEdad="useEdad" let-requireCarnet="requireCarnet">
+  <div class="flex flex-wrap gap-normal align-items-end mobile:flex-direction-column mobile:align-items-stretch tablet:flex-direction-row">
 
     @if (showDocumento) {
       <div class="flex-1 min-w-0">
-        <bal-field>
+        <bal-field [invalid]="!!documentoError(model)">
           <bal-field-label class="text-body-small text-light mt-none text-blue">{{ 'usoConductores.intervinientes.form.documento' | translate }}</bal-field-label>
           <bal-field-control>
             <bal-select
@@ -248,12 +258,15 @@
               }
             </bal-select>
           </bal-field-control>
+          @if (documentoError(model)) {
+            <bal-field-message color="danger">{{ documentoError(model) }}</bal-field-message>
+          }
         </bal-field>
       </div>
     }
 
     <div class="flex-1 min-w-0">
-      <bal-field>
+      <bal-field [invalid]="!!numeroDocumentoError(model) && !!model.numeroDocumento">
         <bal-field-label class="text-body-small text-light mt-none text-blue">{{ 'usoConductores.intervinientes.form.numeroNif' | translate }}</bal-field-label>
         <bal-field-control>
           <bal-input
@@ -264,11 +277,14 @@
             [invalid]="!!numeroDocumentoError(model) && !!model.numeroDocumento"
           ></bal-input>
         </bal-field-control>
+        @if (numeroDocumentoError(model) && model.numeroDocumento) {
+          <bal-field-message color="danger">{{ numeroDocumentoError(model) }}</bal-field-message>
+        }
       </bal-field>
     </div>
 
     <div class="flex-1 min-w-0">
-      <bal-field>
+      <bal-field [invalid]="!!paisError(model)">
         <bal-field-label class="text-body-small text-light mt-none text-blue">{{ 'usoConductores.intervinientes.form.pais' | translate }}</bal-field-label>
         <bal-field-control>
           <bal-select
@@ -281,12 +297,15 @@
             }
           </bal-select>
         </bal-field-control>
+        @if (paisError(model)) {
+          <bal-field-message color="danger">{{ paisError(model) }}</bal-field-message>
+        }
       </bal-field>
     </div>
 
     @if (!esCIF(model)) {
       <div class="flex-1 min-w-0">
-        <bal-field>
+        <bal-field [invalid]="!!fechaNacimientoError(model)">
           <bal-field-label class="text-body-small text-light mt-none text-blue">{{ 'usoConductores.intervinientes.form.fechaNacimiento' | translate }}</bal-field-label>
           <bal-field-control>
             <bal-date
@@ -294,13 +313,16 @@
               (balChange)="onDateChange($event, model, 'fechaNacimiento')"
             ></bal-date>
           </bal-field-control>
+          @if (fechaNacimientoError(model)) {
+            <bal-field-message color="danger">{{ fechaNacimientoError(model) }}</bal-field-message>
+          }
         </bal-field>
       </div>
     }
 
     @if (showCarnet && !esCIF(model)) {
       <div class="flex-1 min-w-0">
-        <bal-field>
+        <bal-field [invalid]="!!tipoCarnetError(model, showCarnet, requireCarnet)">
           <bal-field-label class="text-body-small text-light mt-none text-blue">{{ 'usoConductores.intervinientes.form.tipoCarnet' | translate }}</bal-field-label>
           <bal-field-control>
             <bal-select
@@ -313,25 +335,33 @@
               }
             </bal-select>
           </bal-field-control>
+          @if (tipoCarnetError(model, showCarnet, requireCarnet)) {
+            <bal-field-message color="danger">{{ tipoCarnetError(model, showCarnet, requireCarnet) }}</bal-field-message>
+          }
         </bal-field>
       </div>
 
       @if (useEdad) {
         <div class="flex-1 min-w-0">
-          <bal-field>
+          <bal-field [invalid]="!!edadObtencionCarnetError(model, showCarnet, requireCarnet, true)">
             <bal-field-label class="text-body-small text-light mt-none text-blue">{{ 'usoConductores.intervinientes.form.edadObtuvoCarnet' | translate }}</bal-field-label>
             <bal-field-control>
               <bal-input
                 type="number"
+                maxlength="2"
                 [value]="model.edadObtencionCarnet"
                 (balInput)="onInputChange($event, model, 'edadObtencionCarnet')"
+                [invalid]="!!edadObtencionCarnetError(model, showCarnet, requireCarnet, true)"
               ></bal-input>
             </bal-field-control>
+            @if (edadObtencionCarnetError(model, showCarnet, requireCarnet, true)) {
+              <bal-field-message color="danger">{{ edadObtencionCarnetError(model, showCarnet, requireCarnet, true) }}</bal-field-message>
+            }
           </bal-field>
         </div>
       } @else {
         <div class="flex-1 min-w-0">
-          <bal-field>
+          <bal-field [invalid]="!!fechaObtencionCarnetError(model, showCarnet, requireCarnet, false)">
             <bal-field-label class="text-body-small text-light mt-none text-blue">{{ 'usoConductores.intervinientes.form.fechaObtuvoCarnet' | translate }}</bal-field-label>
             <bal-field-control>
               <bal-date
@@ -339,6 +369,9 @@
                 (balChange)="onDateChange($event, model, 'fechaObtencionCarnet')"
               ></bal-date>
             </bal-field-control>
+            @if (fechaObtencionCarnetError(model, showCarnet, requireCarnet, false)) {
+              <bal-field-message color="danger">{{ fechaObtencionCarnetError(model, showCarnet, requireCarnet, false) }}</bal-field-message>
+            }
           </bal-field>
         </div>      
       }

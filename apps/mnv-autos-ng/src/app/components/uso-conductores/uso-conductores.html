@@ -1,11 +1,11 @@
-<div>
+<div class="w-full">
   <div (click)="onStepAreaInteraction($event)" (focusin)="onStepAreaInteraction($event)">
     <ng-container #stepOutlet></ng-container>
   </div>
 
-  <div class="flex justify-between mt-large">
+  <bal-button-group direction="auto" class="mt-large">
     <bal-button [disabled]="!nextEnabled()" (click)="goNext()">
       {{ 'usoConductores.navigation.next' | translate }}
     </bal-button>
-  </div>
+  </bal-button-group>
 </div>

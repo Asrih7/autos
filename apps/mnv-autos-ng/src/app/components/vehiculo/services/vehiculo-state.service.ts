@@ -3,14 +3,16 @@ import {
   BrandModelSummary,
   Marca,
   Modelo,
+  RestoCamposModel,
   Vehiculo,
   Version,
+  AccesoriosAdicionales,
+  MetodoBusqueda,
 } from "../models/vehiculo.models";
 
 export interface VehiculoGlobalState {
   matriculaOBastidor: string | null;
-  metodoBusqueda: "matricula" | "bastidor" | null;
-
+  metodoBusqueda: MetodoBusqueda | null;
   vehiculoData: Partial<Vehiculo>;
 }
 
@@ -18,9 +20,7 @@ export interface VehiculoGlobalState {
 export class VehiculoStateService {
   private readonly STORAGE_KEY = "mnv_autos_vehiculo_state";
 
-  private readonly _state = signal<VehiculoGlobalState>(
-    this.loadInitialState(),
-  );
+  private readonly _state = signal<VehiculoGlobalState>(this.loadInitialState());
   readonly state = this._state.asReadonly();
 
   readonly selectedBrandAndModel = computed<BrandModelSummary>(() => {
@@ -44,24 +44,22 @@ export class VehiculoStateService {
       try {
         sessionStorage.setItem(this.STORAGE_KEY, JSON.stringify(this._state()));
       } catch (err) {
-        console.error(
-          "Error al guardar el estado del vehículo en la sesión:",
-          err,
-        );
+        console.error("Error al guardar el estado del vehículo en la sesión:", err);
       }
     });
   }
 
-  saveMatriculaOBastidor(
-    metodo: "matricula" | "bastidor",
-    valor: string,
-  ): void {
-    this._state.update((current) => ({
-      ...current,
-      metodoBusqueda: metodo,
-      matriculaOBastidor: valor,
-    }));
+  saveMatriculaOBastidor(metodo: MetodoBusqueda, valor: string): void {
+    this._state.update((current) => {
+      return {
+        ...current,
+        metodoBusqueda: metodo,
+        matriculaOBastidor: valor,
+        vehiculoData: current.vehiculoData
+      };
+    });
   }
+
 
   saveMarca(marca: Marca): void {
     this._state.update((current) => ({
@@ -104,14 +102,25 @@ export class VehiculoStateService {
     }));
   }
 
-  saveRestoCampos(
-    campos: Partial<Omit<Vehiculo, "marca" | "modelo" | "version">>,
-  ): void {
+  saveRestoCampos(campos: RestoCamposModel): void {
     this._state.update((current) => ({
       ...current,
       vehiculoData: {
         ...current.vehiculoData,
-        ...campos,
+        restoCampos: {
+          ...campos,
+        },
+      },
+    }));
+  }
+
+  saveAccesoriosData(tieneAccesoriosSeries: boolean, accesorios: AccesoriosAdicionales[]): void {
+    this._state.update((current) => ({
+      ...current,
+      vehiculoData: {
+        ...current.vehiculoData,
+        tieneAccesoriosSeries,
+        accesoriosAdicionales: [...accesorios],
       },
     }));
   }

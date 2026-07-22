@@ -1,10 +1,11 @@
 import { Component, inject, OnDestroy, OnInit } from "@angular/core";
 import { PageNavigationService } from "@mnv-autos-ng/navigation";
+import { DatosBancarios } from "./steps/datos-bancarios/datos-bancarios";
 
 @Component({
   selector: "app-contratacion",
   standalone: true,
-  imports: [],
+  imports: [DatosBancarios],
   templateUrl: "./contratacion.html",
   styleUrls: ["./contratacion.scss"],
 })

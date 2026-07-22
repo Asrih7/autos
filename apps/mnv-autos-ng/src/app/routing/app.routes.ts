@@ -1,4 +1,5 @@
 import { Route } from '@angular/router';
+import { vehiculoProgressGuard } from '../core/guards/vehiculo-progress.guard';
 
 import { usoConductoresEntryGuard } from './uso-conductores-entry.guard';
 
@@ -19,6 +20,7 @@ export const appRoutes: Route[] = [
   },
   {
     path: 'vehiculos/:step',
+    canActivate: [vehiculoProgressGuard],
     loadComponent: () =>
       import('../components/vehiculo/vehiculo')
         .then(m => m.VehiculoComponent),

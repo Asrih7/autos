@@ -1,4 +1,4 @@
-<section class="w-6 flex flex-direction-column gap-normal bg-white mb-large">
+<section class="w-full tablet:w-10 desktop:w-6 flex flex-direction-column gap-normal bg-white mb-large mobile:mb-normal tablet:mb-large">
 
   <bal-heading level="h3" visual-level="h4" class="mb-none text-blue">
     {{ 'usoConductores.usoVehiculo.title' | translate }}
@@ -25,9 +25,9 @@
           [class.selected]="usoSeleccionado() === opcion.value"
           (click)="onRowClick(opcion, otrosDropdown)"
         >
-          <div class="flex align-items-center justify-content-space-between gap-normal w-full">
+          <div class="flex align-items-center justify-content-space-between gap-normal w-full mobile:flex-direction-column mobile:align-items-start mobile:gap-small tablet:flex-direction-row tablet:align-items-center">
 
-            <div class="flex align-items-center gap-normal">
+            <div class="flex flex-direction-row align-items-center gap-normal mobile:flex-direction-row mobile:align-items-center">
               <bal-radio [value]="opcion.value"></bal-radio>
               <span class="text-body-small text-light">
                 {{ otherLabel() || ('Otros usos' | translate) }}
@@ -67,7 +67,7 @@
           [class.selected]="usoSeleccionado() === opcion.value"
           (click)="selectUso(opcion.value)"
         >
-          <div class="flex align-items-center gap-normal w-full">
+          <div class="flex flex-direction-row align-items-center gap-normal w-full mobile:flex-direction-row mobile:align-items-center">
             <bal-radio [value]="opcion.value"></bal-radio>
             <span class="text-body-small text-light">
               {{ getOtroUsoLabel(opcion) }}

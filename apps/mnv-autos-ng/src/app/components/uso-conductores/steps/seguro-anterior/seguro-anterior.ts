@@ -19,7 +19,8 @@ import {
   BalRadioGroup,
   BalSelect,
   BalSelectOption,
-  BalHeading
+  BalHeading,
+  BalButtonGroup
 } from "@baloise/ds-angular";
 
 import { TranslateModule, TranslateService } from "@ngx-translate/core";
@@ -42,7 +43,8 @@ import { SeguroAnteriorOpcion, SelectOpcion } from "./../../models/seguro-anteri
     BalSelectOption,
     DataGridSelector,
     TranslateModule,
-    BalHeading
+    BalHeading,
+    BalButtonGroup
   ],
   templateUrl: "./seguro-anterior.html",
   styleUrl: "./seguro-anterior.scss",

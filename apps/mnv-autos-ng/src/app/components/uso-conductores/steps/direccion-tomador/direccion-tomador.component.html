@@ -1,69 +1,37 @@
+<section class="w-full flex flex-direction-column gap-normal bg-white mb-large mobile:mb-normal tablet:mb-large">
+  <bal-heading level="h3"
+      visual-level="h4"
+      class="mb-none text-blue">{{ 'usoConductores.intervinientes.address.title' | translate }}</bal-heading>
+  <p class="text-body-small text-light mt-none text-blue">{{ 'usoConductores.intervinientes.address.subtitle' | translate }}</p>
 
-<section class="w-6 flex flex-direction-column gap-normal bg-white mb-large">
-  <bal-heading level="h3" visual-level="h4" class="mb-none text-blue">
-    {{ 'usoConductores.intervinientes.address.title' | translate }}
-  </bal-heading>
-
-  <p class="text-body-small text-light mt-none text-blue">
-    {{ 'usoConductores.intervinientes.address.subtitle' | translate }}
-  </p>
-
-  <app-datos-domicilio-google
+  <bal-select
+    class="w-full mobile:w-full tablet:w-8"
+    id="domicilio"
+    data-testid="select-domicilio"
     [value]="model().domicilio"
-    (addressSelected)="onAddressSelected($event)"
-    (clearSelection)="onGoogleCleared()">
-  </app-datos-domicilio-google>
+    typeahead
+    [placeholder]="'usoConductores.intervinientes.address.placeholder' | translate"
+    (balInput)="searchQueryChanged($any($event).detail ?? $any($event))"
+    (balChange)="onSelectChange($any($event))"
+    [attr.aria-label]="'usoConductores.intervinientes.address.ariaLabel' | translate">
 
-  <app-datos-domicilio-form
-    [model]="direccion()"
-    [disabled]="formDisabled()"
-    (modelChange)="onFormChanged($event)"
-    (codigoPostalChange)="onCodigoPostalChanged($event)">
-  </app-datos-domicilio-form>
+    @if (suggestions()?.length) {
+      @for (opt of suggestions(); track opt) {
+        <bal-select-option [value]="opt" [label]="opt">{{ opt }}</bal-select-option>
+      }
+    } @else {
+      <bal-select-option
+        value="Calle Mayor 1, 28013 Madrid"
+        label="Calle Mayor 1, 28013 Madrid">
+        {{ 'usoConductores.intervinientes.address.example1' | translate }}
+      </bal-select-option>
 
-    @if (processing()) {
-      <div class="overlay">
-        <div class="overlay-content">
-          <div class="spinner" aria-hidden="true"></div>
-          <div class="overlay-text">Normalizando dirección...</div>
-        </div>
-      </div>
+      <bal-select-option
+        value="Plaza España 5, 28008 Madrid"
+        label="Plaza España 5, 28008 Madrid">
+        {{ 'usoConductores.intervinientes.address.example2' | translate }}
+      </bal-select-option>
     }
 
-  @if (toastOpen()) {
-    <bal-toast
-      [duration]="toastDurationMs"
-      [color]="toastType()"
-      (balClose)="toastOpen.set(false)">
-      {{ toastMessage() }}
-    </bal-toast>
-  }
+  </bal-select>
 </section>
-
-<style>
-.overlay {
-  position: absolute;
-  inset: 0;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  background: rgba(255,255,255,0.85);
-  z-index: 40;
-}
-.overlay-content {
-  display:flex;
-  flex-direction:column;
-  align-items:center;
-  gap:0.75rem;
-}
-.spinner {
-  width: 40px;
-  height: 40px;
-  border-radius: 50%;
-  border: 4px solid #eee;
-  border-top-color: #2b87f0;
-  animation: spin 1s linear infinite;
-}
-@keyframes spin { to { transform: rotate(360deg); } }
-.overlay-text { font-size: 0.95rem; color: #1f2937; }
-</style>

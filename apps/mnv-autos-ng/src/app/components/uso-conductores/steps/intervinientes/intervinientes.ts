@@ -66,7 +66,7 @@ import { USO_CONDUCTORES_STEPS } from '../../uso-conductores.steps';
 })
 export class IntervinientesComponent implements OnInit {
   @Output() intervinientesCompleted = new EventEmitter<void>();
-@Output() stepSelected = new EventEmitter<string>();
+  @Output() stepSelected = new EventEmitter<string>();
   tomadorEsPropietario = signal(true);
   tomadorEsConductorHabitual = signal(true);
 
@@ -111,6 +111,9 @@ export class IntervinientesComponent implements OnInit {
   private readonly cdr = inject(ChangeDetectorRef);
 
   private readonly NIE_MAP = { X: '0', Y: '1', Z: '2' } as const;
+  private readonly CIF_LETTER_ONLY = ['K', 'P', 'Q', 'S'];
+  private readonly CIF_NUMBER_ONLY = ['A', 'B', 'E', 'H'];
+  private readonly CIF_CONTROL_LETTERS = 'JABCDEFGHI'; // index 0..9 maps D=0..9
 
   constructor(private bdi: BdiService, private sisnet: SisnetService) {
     this.documentos$ = this.bdi.getDocumentTypes().pipe(catchError(() => of([])));
@@ -437,16 +440,17 @@ onTomadorEsConductorHabitualChange(event: any): void {
     if (!model.numeroDocumento || model.numeroDocumento.trim().length === 0) return false;
     if (!model.pais) return false;
 
-    if (model.documento === 'NIF' || model.documento === 'NIE') {
-      if (!this.isDocumentoValid(model.numeroDocumento)) return false;
-    }
+   if (model.documento === 'NIF' || model.documento === 'NIE') {
+  if (!this.isDocumentoValid(model.numeroDocumento, model.documento)) return false;
+}
 
     if (model.documento === 'PASAPORTE') {
-      if (!/^[A-Z0-9]{3,}$/.test(String(model.numeroDocumento).toUpperCase())) return false;
+      if (!/^[A-Z0-9]{5,12}$/.test(String(model.numeroDocumento).toUpperCase())) return false;
     }
 
     if (model.documento === 'CIF') {
       if (!/^[A-HJ-NP-SUVW][0-9]{7}[0-9A-J]$/i.test(String(model.numeroDocumento))) return false;
+      if (!this.validateCifControl(String(model.numeroDocumento))) return false;
       return true;
     }
 
@@ -458,6 +462,7 @@ onTomadorEsConductorHabitualChange(event: any): void {
 
       if (opts.useEdad) {
         if (!model.edadObtencionCarnet) return false;
+        if (!this.isEdadObtencionCarnetValid(model.edadObtencionCarnet)) return false;
       } else {
         if (!model.fechaObtencionCarnet) return false;
       }
@@ -529,22 +534,23 @@ onTomadorEsConductorHabitualChange(event: any): void {
     this.checkCompletion();
   }
 
-  isDocumentoValid(value: string): boolean {
-    if (!value) return false;
-    const v = String(value).toUpperCase().trim();
+ isDocumentoValid(value: string, documento: string): boolean {
+  if (!value) return false;
+  const v = String(value).toUpperCase().trim();
 
-    const nifRegex = /^[0-9]{8}[A-Z]$/;
-    const nieRegex = /^[XYZ][0-9]{7}[A-Z]$/;
-    const cifRegex = /^[A-HJ-NP-SUVW][0-9]{7}[0-9A-J]$/i;
-    const passportRegex = /^[A-Z0-9]{3,}$/;
-
-    if (nifRegex.test(v)) return this.validateNifControl(v);
-    if (nieRegex.test(v)) return this.validateNieControl(v);
-    if (cifRegex.test(v)) return true;
-    if (passportRegex.test(v)) return true;
-
-    return false;
+  switch (documento) {
+    case 'NIF':
+      return /^[0-9]{8}[A-Z]$/.test(v) && this.validateNifControl(v);
+    case 'NIE':
+      return /^[XYZ][0-9]{7}[A-Z]$/.test(v) && this.validateNieControl(v);
+    case 'CIF':
+      return /^[A-HJ-NP-SUVW][0-9]{7}[0-9A-J]$/i.test(v) && this.validateCifControl(v);
+    case 'PASAPORTE':
+      return /^[A-Z0-9]{5,12}$/.test(v);
+    default:
+      return false;
   }
+}
 
   validateNifControl(nif: string): boolean {
     if (!nif || nif.length !== 9) return false;
@@ -573,12 +579,112 @@ onTomadorEsConductorHabitualChange(event: any): void {
     return this.validateNifControl(nifLike);
   }
 
+  validateCifControl(cif: string): boolean {
+    if (!cif || cif.length !== 9) return false;
+
+    const v = cif.toUpperCase();
+    const entityLetter = v[0];
+    const digits = v.slice(1, 8);
+    const controlChar = v[8];
+
+    if (!/^[0-9]{7}$/.test(digits)) return false;
+
+    let pares = 0; // positions 2,4,6 (0-indexed: 1,3,5)
+    let impares = 0; // positions 1,3,5,7 (0-indexed: 0,2,4,6)
+
+    for (let i = 0; i < 7; i++) {
+      const digit = Number(digits[i]);
+      if (i % 2 === 0) {
+        // odd position (1st,3rd,5th,7th): double it, sum the resulting digits
+        const doubled = digit * 2;
+        impares += doubled > 9 ? Math.floor(doubled / 10) + (doubled % 10) : doubled;
+      } else {
+        // even position (2nd,4th,6th): sum directly
+        pares += digit;
+      }
+    }
+
+    const c = pares + impares;
+    const d = (10 - (c % 10)) % 10;
+
+    const expectedLetter = this.CIF_CONTROL_LETTERS[d];
+    const expectedNumber = String(d);
+
+    if (this.CIF_LETTER_ONLY.includes(entityLetter)) {
+      return controlChar === expectedLetter;
+    }
+    if (this.CIF_NUMBER_ONLY.includes(entityLetter)) {
+      return controlChar === expectedNumber;
+    }
+    // Entity letters that accept either a number or a letter as control char
+    return controlChar === expectedNumber || controlChar === expectedLetter;
+  }
+
   numeroDocumentoError(model: Persona): string | null {
     if (!model.numeroDocumento || model.numeroDocumento.trim().length === 0) return 'Campo obligatorio';
-    if ((model.documento === 'NIF' || model.documento === 'NIE') && !this.isDocumentoValid(model.numeroDocumento))
+   if ((model.documento === 'NIF' || model.documento === 'NIE') && !this.isDocumentoValid(model.numeroDocumento, model.documento))
+  return 'Formato inválido';
+    if (model.documento === 'CIF') {
+      if (!/^[A-HJ-NP-SUVW][0-9]{7}[0-9A-J]$/i.test(String(model.numeroDocumento))) return 'Formato CIF inválido';
+      if (!this.validateCifControl(String(model.numeroDocumento))) return 'Dígito de control CIF inválido';
+    }
+    if (model.documento === 'PASAPORTE' && !/^[A-Z0-9]{5,12}$/.test(String(model.numeroDocumento).toUpperCase()))
       return 'Formato inválido';
-    if (model.documento === 'CIF' && !/^[A-HJ-NP-SUVW][0-9]{7}[0-9A-J]$/i.test(String(model.numeroDocumento)))
-      return 'Formato CIF inválido';
+    return null;
+  }
+
+  private personaStarted(model: Persona): boolean {
+    return !this.isEmptyPersonaModel(model);
+  }
+
+  isEdadObtencionCarnetValid(value: string | number | undefined | null): boolean {
+    if (value === undefined || value === null || String(value).trim() === '') return false;
+    return /^[0-9]{2}$/.test(String(value).trim());
+  }
+
+  documentoError(model: Persona): string | null {
+    if (this.personaStarted(model) && !model.documento) return 'Campo obligatorio';
+    return null;
+  }
+
+  paisError(model: Persona): string | null {
+    if (this.personaStarted(model) && !model.pais) return 'Campo obligatorio';
+    return null;
+  }
+
+  fechaNacimientoError(model: Persona): string | null {
+    if (this.esCIF(model)) return null;
+    if (this.personaStarted(model) && !model.fechaNacimiento) return 'Campo obligatorio';
+    return null;
+  }
+
+  tipoCarnetError(model: Persona, showCarnet: boolean, requireCarnet: boolean): string | null {
+    if (this.esCIF(model)) return null;
+    if (!showCarnet || !requireCarnet) return null;
+    if (this.personaStarted(model) && !model.tipoCarnet) return 'Campo obligatorio';
+    return null;
+  }
+
+  fechaObtencionCarnetError(model: Persona, showCarnet: boolean, requireCarnet: boolean, useEdad: boolean): string | null {
+    if (this.esCIF(model)) return null;
+    if (!showCarnet || !requireCarnet || useEdad) return null;
+    if (this.personaStarted(model) && !model.fechaObtencionCarnet) return 'Campo obligatorio';
+    return null;
+  }
+
+  edadObtencionCarnetError(model: Persona, showCarnet: boolean, requireCarnet: boolean, useEdad: boolean): string | null {
+    if (this.esCIF(model)) return null;
+    if (!showCarnet || !requireCarnet || !useEdad) return null;
+
+    const value = model.edadObtencionCarnet;
+    const hasValue = value !== undefined && value !== null && String(value).trim() !== '';
+
+    if (!hasValue) {
+      return this.personaStarted(model) ? 'Campo obligatorio' : null;
+    }
+    if (!this.isEdadObtencionCarnetValid(value)) {
+      return 'Debe tener 2 dígitos';
+    }
     return null;
   }
 }
