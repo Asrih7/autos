@@ -1,5 +1,5 @@
 import { Component } from '@angular/core';
-import {  BalNavbar, BalNavbarBrand } from '@baloise/ds-angular';
+import { BalNavbar, BalNavbarBrand } from '@baloise/ds-angular';
 
 @Component({
   selector: 'app-header',

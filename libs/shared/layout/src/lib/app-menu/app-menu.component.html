@@ -1,8 +1,18 @@
 <nav class="sidebar-shell" aria-label="Menú principal">
-  <button type="button" class="sidebar-back" (click)="hideMenu()">
-    <bal-icon name="caret-left"></bal-icon>
-    <span>Tu cotización</span>
-  </button>
+
+  @if (isDesktop()) {
+ <button type="button" class="sidebar-back" (click)="hideMenu()">
+      <bal-icon name="caret-left"></bal-icon>
+      <span>Tu cotización</span>
+    </button>
+  }
+  <!-- SOLO mobile/tablet -->
+  @if (isMobileOrTablet()) {
+    <button type="button" class="sidebar-back" (click)="hideMenu()">
+      <bal-icon name="caret-left"></bal-icon>
+      <span>Tu cotización</span>
+    </button>
+  }
 
   <ul role="list">
     @for (item of items(); track item.id) {
@@ -22,7 +32,6 @@
                   size="small"
                   class="step-check"
                   color="auto"
-                  aria-hidden="true"
                 ></bal-icon>
               }
               @case ("active") {
@@ -48,19 +57,21 @@
       </li>
     }
   </ul>
-  <div
-    class="flex flex-direction-column  mt-auto mr-normal"
-  >
-    <div class="flex flex-direction-row w-full justify-content-end align-items-center ">
-      <!-- <span></span> -->
-      <bal-button
-        square="true"
-        color="tertiary"
-        iconRight="close"
-        size="small"
-        (click)="hideMenu()"
-      >Cerrar</bal-button>
+
+  <!-- SOLO mobile/tablet -->
+  @if (isMobileOrTablet()) {
+    <div class="flex flex-direction-column mt-auto mr-normal">
+      <div class="flex flex-direction-row w-full justify-content-end align-items-center">
+        <bal-button
+          square="true"
+          color="tertiary"
+          iconRight="close"
+          size="small"
+          (click)="hideMenu()"
+        >
+          Cerrar
+        </bal-button>
+      </div>
     </div>
-    <!-- <span class="flex-direction-row font-weight-bold"> Version 1.0.0 </span> -->
-  </div>
+  }
 </nav>

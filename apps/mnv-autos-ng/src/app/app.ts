@@ -1,4 +1,4 @@
-import { Component, inject } from '@angular/core';
+import { Component, inject, computed } from '@angular/core';
 import { RouterOutlet } from '@angular/router';
 import { HttpClient } from '@angular/common/http';
 import { TranslateModule, TranslateService, TranslateLoader } from '@ngx-translate/core';
@@ -6,7 +6,7 @@ import { TranslateHttpLoader } from '@ngx-translate/http-loader';
 
 import { AppHeaderComponent, AppMenuComponent, AppFooterComponent } from '@mnv-autos-ng/layout'
 import { SidebarLayout } from '@mnv-autos-ng/layout-state';
-import { BalButton } from '@baloise/ds-angular';
+import { BalButton, BalBreakpointsService } from '@baloise/ds-angular';
 
 export function HttpLoaderFactory(http: HttpClient): TranslateHttpLoader {
   return new TranslateHttpLoader(http, './assets/i18n/', '.json');
@@ -29,6 +29,11 @@ export function HttpLoaderFactory(http: HttpClient): TranslateHttpLoader {
 export class App {
   private readonly translate = inject(TranslateService);
   protected sidebarLayout = inject(SidebarLayout);
+  private readonly breakpoints = inject(BalBreakpointsService);
+
+  readonly isMobileOrTablet = computed(() =>
+    this.breakpoints.mobile() || this.breakpoints.tablet()
+  );
 
   constructor() {
     this.translate.setDefaultLang('es');

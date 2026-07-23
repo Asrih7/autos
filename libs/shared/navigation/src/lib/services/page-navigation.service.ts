@@ -70,14 +70,25 @@ export class PageNavigationService {
   }
 
   navigateNext(): void {
-    const config = this.activePageConfig();
+  const config = this.activePageConfig();
 
-    if (config) {
-      void this.router.navigateByUrl(config.nextPageUrl);
-    } else {
-      if (this.router.url.includes("/tu-cliente")) {
-        void this.router.navigate(["/vehiculos"]);
-      }
+  // ⭐ Si no hay configuración, fallback solo para el primer paso
+  if (!config) {
+    if (this.router.url.includes("/tu-cliente")) {
+      void this.router.navigate(["/vehiculos"]);
     }
+    return;
   }
+
+  // ⭐ Si NO existe nextPageUrl → estamos en el último paso → NO navegar
+  if (!config.nextPageUrl || config.nextPageUrl.trim() === "") {
+    console.warn("Último paso alcanzado. No hay navegación siguiente.");
+    return;
+  }
+
+  // ⭐ Navegación normal
+  void this.router.navigateByUrl(config.nextPageUrl);
+}
+
+
 }
