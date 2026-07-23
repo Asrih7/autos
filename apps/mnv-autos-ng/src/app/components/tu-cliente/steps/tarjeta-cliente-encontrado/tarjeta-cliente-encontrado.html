@@ -1,0 +1,46 @@
+<article class="tarjeta-cliente-encontrado">
+  <span
+    class="tarjeta-cliente-encontrado__status"
+    aria-label="Datos verificados"
+    title="Datos verificados"
+  >
+    <bal-icon
+      name="check"
+      size="small"
+      aria-hidden="true"
+      style="color: var(--bal-color-success-500, #178b7d)"
+    ></bal-icon>
+  </span>
+
+  <header class="tarjeta-cliente-encontrado__header">
+    <h2>{{ person().name }}</h2>
+    <p>{{ person().clientType }}</p>
+  </header>
+
+  <button
+    class="tarjeta-cliente-encontrado__edit"
+    type="button"
+    (click)="requestEdit()"
+  >
+    Editar
+  </button>
+
+  <dl class="tarjeta-cliente-encontrado__details">
+    <div>
+      <dt>{{ person().documentType }}</dt>
+      <dd>{{ person().documentNumber }}</dd>
+    </div>
+    <div>
+      <dt>Nacionalidad</dt>
+      <dd>{{ person().nationality }}</dd>
+    </div>
+    <div>
+      <dt>Edad</dt>
+      <dd>{{ person().age }} a&ntilde;os</dd>
+    </div>
+    <div class="tarjeta-cliente-encontrado__address">
+      <dt class="visually-hidden">Direcci&oacute;n</dt>
+      <dd>{{ person().address }}</dd>
+    </div>
+  </dl>
+</article>

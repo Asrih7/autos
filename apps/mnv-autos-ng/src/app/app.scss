@@ -1,16 +1,12 @@
-/* ROOT ocupa toda la ventana */
+/* ROOT: el navegador debe scrollear */
 html, body {
   margin: 0;
   padding: 0;
   height: 100%;
-  overflow: hidden; /* el navegador NO scrollea */
+  overflow: auto; /* ← FIX REAL */
 }
 
-app-root {
-  height: 100%;
-}
-
-/* HEADER FIJO ARRIBA */
+/* HEADER FIJO */
 app-header {
   position: fixed;
   top: 0;
@@ -22,7 +18,7 @@ app-header {
   border-bottom: 1px solid #e5e7eb;
 }
 
-/* DESKTOP: SIDEBAR FIJO A LA IZQUIERDA */
+/* SIDEBAR FIJO */
 app-menu {
   position: fixed;
   top: 60px;
@@ -33,32 +29,22 @@ app-menu {
   background: white;
 }
 
-/* CONTENEDOR DEL CONTENIDO (a la derecha del sidebar) */
+/* CONTENEDOR DEL CONTENIDO */
 .contenedor {
-  position: absolute;
-  top: 60px;
-  left: 300px;
-  width: calc(100vw - 300px);
-  height: calc(100vh - 60px);
-  overflow: hidden;
+  margin-left: 300px; /* ← sidebar fijo */
+  padding-top: 60px;  /* ← header fijo */
+  min-height: calc(100vh - 60px);
+  background: #f9fafb;
 }
 
 /* CONTENIDO QUE SCROLLEA */
 .principal {
-  width: 100%;
-  //height: 100%;
   padding: 40px 48px;
   box-sizing: border-box;
-  background: #f9fafb;
-  overflow-y: auto; /* ← ÚNICO scroll */
 }
-
-/* ---------------------------------------------------------
-   MOBILE / TABLET
---------------------------------------------------------- */
 @media (max-width: 768px) {
 
-  /* Sidebar NO fijo en mobile */
+  /* Sidebar deja de ser fijo y ocupa todo el ancho */
   app-menu {
     position: static;
     width: 100%;
@@ -66,40 +52,17 @@ app-menu {
     overflow: visible;
   }
 
-  /* Contenedor ocupa todo el ancho */
+  /* Contenedor ya no tiene margen lateral */
   .contenedor {
-    position: static;
-    width: 100%;
-    height: calc(100vh - 60px);
-    margin-top: 60px;
-    overflow: hidden;
-    flex-direction: column;
+    margin-left: 0;
+    padding-top: 60px; /* sigue debajo del header */
+    min-height: calc(100vh - 60px);
+    background: #f9fafb;
   }
 
-  /* Contenido scrollea */
+  /* Contenido con padding más pequeño y scroll normal */
   .principal {
-    height: calc(100vh - 60px);
-    overflow-y: auto;
     padding: 20px 16px;
-  }
-
-  /* Overlay cuando el menú está abierto */
-  app-menu.mobile-overlay {
-    position: fixed;
-    top: 60px;
-    left: 0;
-    width: 100%;
-    height: calc(100vh - 60px);
-    background: white;
-    z-index: 3000;
-    overflow-y: auto;
-  }
-
-  /* Botón abrir menú */
-  .bg-grey-1 {
-    position: fixed;
-    top: 70px;
-    right: 16px;
-    z-index: 1500;
+    box-sizing: border-box;
   }
 }

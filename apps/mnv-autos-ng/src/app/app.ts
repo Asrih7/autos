@@ -21,7 +21,6 @@ export function HttpLoaderFactory(http: HttpClient): TranslateHttpLoader {
     AppHeaderComponent,
     AppMenuComponent,
     AppFooterComponent,
-    BalButton
   ],
   templateUrl: './app.html',
   styleUrls: ['./app.scss']

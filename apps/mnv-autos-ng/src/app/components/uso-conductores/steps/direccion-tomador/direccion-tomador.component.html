@@ -1,37 +1,33 @@
-<section class="w-full flex flex-direction-column gap-normal bg-white mb-large mobile:mb-normal tablet:mb-large">
-  <bal-heading level="h3"
-      visual-level="h4"
-      class="mb-none text-blue">{{ 'usoConductores.intervinientes.address.title' | translate }}</bal-heading>
-  <p class="text-body-small text-light mt-none text-blue">{{ 'usoConductores.intervinientes.address.subtitle' | translate }}</p>
 
-  <bal-select
-    class="w-full mobile:w-full tablet:w-8"
-    id="domicilio"
-    data-testid="select-domicilio"
-    [value]="model().domicilio"
-    typeahead
-    [placeholder]="'usoConductores.intervinientes.address.placeholder' | translate"
-    (balInput)="searchQueryChanged($any($event).detail ?? $any($event))"
-    (balChange)="onSelectChange($any($event))"
-    [attr.aria-label]="'usoConductores.intervinientes.address.ariaLabel' | translate">
 
-    @if (suggestions()?.length) {
-      @for (opt of suggestions(); track opt) {
-        <bal-select-option [value]="opt" [label]="opt">{{ opt }}</bal-select-option>
-      }
-    } @else {
-      <bal-select-option
-        value="Calle Mayor 1, 28013 Madrid"
-        label="Calle Mayor 1, 28013 Madrid">
-        {{ 'usoConductores.intervinientes.address.example1' | translate }}
-      </bal-select-option>
+<section class="w-6 flex flex-direction-column gap-normal bg-white mb-large">
+  <bal-heading level="h3" visual-level="h4" class="mb-none text-blue">
+    {{ 'usoConductores.intervinientes.address.title' | translate }}
+  </bal-heading>
 
-      <bal-select-option
-        value="Plaza España 5, 28008 Madrid"
-        label="Plaza España 5, 28008 Madrid">
-        {{ 'usoConductores.intervinientes.address.example2' | translate }}
-      </bal-select-option>
-    }
+  <p class="text-body-small text-light mt-none text-blue">
+    {{ 'usoConductores.intervinientes.address.subtitle' | translate }}
+  </p>
 
-  </bal-select>
+ <app-datos-domicilio-google
+  [value]="formDisabled() ? model().domicilio : ''"
+  (addressSelected)="onAddressSelected($event)">
+</app-datos-domicilio-google>
+
+
+  <app-datos-domicilio-form
+    [model]="direccion()"
+    [disabled]="formDisabled()"
+    (modelChange)="onFormChanged($event)"
+    (codigoPostalChange)="onCodigoPostalChanged($event)">
+  </app-datos-domicilio-form>
+
+  @if (toastOpen()) {
+    <bal-toast
+      [duration]="toastDurationMs"
+      [color]="toastType()"
+      (balClose)="toastOpen.set(false)">
+      {{ toastMessage() }}
+    </bal-toast>
+  }
 </section>

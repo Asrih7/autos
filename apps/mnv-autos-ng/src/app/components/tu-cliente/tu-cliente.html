@@ -1,1 +1,6 @@
 <p>tu-cliente works!</p>
+<app-tarjeta-cliente-encontrado [person]="person" (edit)="handleEdit($event)" />
+<app-fecha-nacimiento
+  label="Fecha de nacimiento del Tomador"
+  [(value)]="birthDate"
+/>

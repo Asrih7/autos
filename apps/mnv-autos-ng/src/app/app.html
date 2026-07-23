@@ -1,4 +1,4 @@
-<app-header></app-header>
+<app-header (menuClick)="sidebarLayout.openMenu()"></app-header>
 
 <div class="contenedor h-full">
 
@@ -21,14 +21,7 @@
         <app-footer></app-footer>
       </main>
 
-      <bal-button
-        icon="nav-go-right"
-        square="true"
-        color="primary"
-        size="small"
-        (balClick)="sidebarLayout.openMenu()"
-        class="bg-grey-1"
-      ></bal-button>
+   
     }
   }
 
