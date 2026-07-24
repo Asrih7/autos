@@ -1,6 +1,6 @@
 {
   "name": "mnv-autos-ng",
-  "version": "0.0.0",
+  "version": "0.0.1",
   "license": "MIT",
   "private": true,
   "files": [
@@ -25,14 +25,21 @@
     "@angular/platform-browser": "~20.3.2",
     "@angular/platform-browser-dynamic": "~20.3.2",
     "@angular/router": "~20.3.2",
-    "@archit-tools/utils": "^1.0.2",
-    "@baloise/ds-angular": "19.10.1",
-    "@baloise/ds-table": "19.10.1",
     "@archit-lib-helvetiang/core": "^1.0.0",
     "@archit-lib-helvetiang/data": "^1.0.0",
     "@archit-lib-helvetiang/features": "^1.0.0",
     "@archit-lib-helvetiang/shared": "^1.0.0",
     "@archit-lib-helvetiang/ui": "^1.0.0",
+    "@archit-tools/utils": "^1.0.2",
+    "@baloise/design-system-icons": "^15.2.4",
+    "@baloise/ds-angular": "19.10.1",
+    "@baloise/ds-brand-icons": "^19.10.1",
+    "@baloise/ds-icons": "^19.10.1",
+    "@baloise/ds-table": "19.10.1",
+    "@helvetia-lib/helvetia-ng-core-lib": "3.7.15",
+    "@helvetia-lib/helvetia-primeng-theme": "1.0.4",
+    "@helvetia/core": "0.0.2",
+    "@helvetia/themes": "^1.0.3",
     "@ngx-translate/core": "^15.0.0",
     "@ngx-translate/http-loader": "^8.0.0",
     "ag-grid-angular": "^35.3.1",
@@ -41,12 +48,7 @@
     "cometd": "^7.0.1",
     "event-source-polyfill": "^1.0.31",
     "rxjs": "~7.8.0",
-    "zone.js": "0.15.0",
-    "@helvetia-lib/helvetia-ng-core-lib": "3.7.15",
-    "@helvetia-lib/helvetia-primeng-theme": "1.0.4",
-    "@helvetia/core": "0.0.2",
-    "@helvetia/themes": "^1.0.3"
-
+    "zone.js": "0.15.0"
   },
   "devDependencies": {
     "@analogjs/vite-plugin-angular": "2.2.0",

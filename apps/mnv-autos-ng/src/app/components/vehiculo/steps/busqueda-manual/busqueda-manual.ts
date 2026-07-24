@@ -1,15 +1,14 @@
 import {
   Component,
-  computed,
   effect,
   signal,
   viewChild,
   inject,
   input,
   OnInit,
+  untracked,
 } from "@angular/core";
 import { FormsModule } from "@angular/forms";
-import { Marca, Modelo, Vehiculo } from "../../models/vehiculo.models";
 import {
   BalHeading,
   BalButton,
@@ -48,45 +47,38 @@ export class BusquedaManualComponent implements OnInit {
   readonly baseLangKey = "vehiculo.busquedaManual";
   readonly esMobile = useIsMobile();
 
-  readonly catalogoMarcas = signal<Marca[]>([
-    { id: "aud", nombre: "Audi", logo: "assets/logos/audi.png" },
-    { id: "dac", nombre: "Dacia", logo: "assets/logos/dacia.png" },
-    { id: "fia", nombre: "Fiat", logo: "assets/logos/fiat.png" },
-    { id: "hyu", nombre: "Hyundai", logo: "assets/logos/hyundai.png" },
-    { id: "kia", nombre: "Kia", logo: "assets/logos/kia.png" },
-    { id: "nis", nombre: "Nissan", logo: "assets/logos/nissan.png" },
-    { id: "jee", nombre: "Jeep", logo: "assets/logos/jeep.png" },
-    { id: "for", nombre: "Ford", logo: "assets/logos/ford.png" },
-  ]);
-
-  readonly listaModelos = signal<Modelo[]>([
-    { id: "golf", nombre: "Golf" },
-    { id: "polo", nombre: "Polo" },
-    { id: "passat", nombre: "Passat" },
-  ]);
+  readonly catalogoMarcas = this.stateService.marcas;
+  readonly listaModelos = this.stateService.modelos;
+  readonly cargandoModelos = this.stateService.loadingModelos;
 
   readonly marcaSeleccionadaId = signal<string | null>(null);
   readonly modeloSeleccionadoId = signal<string | null>(null);
   readonly mostrarModelos = signal<boolean>(false);
 
-  // private isInitializing = false;
+  private isInitializing = false;
 
-  // constructor() {
-  //   effect(() => {
-  //     const brandId = this.marcaSeleccionadaId();
+  constructor() {
+    effect(() => {
+      const brandId = this.marcaSeleccionadaId();
 
-  //     if (brandId) {
-  //       if (!this.isInitializing) {
-  //         this.modeloSeleccionadoId.set(null);
-  //       }
-        
-  //       setTimeout(() => void this.selectModelo()?.setFocus(), 60);
-  //     }
-  //   });
-  // }
+      if (brandId) {
+        untracked(() => {
+          this.stateService.loadModelosCatalog(brandId);
+
+          if (!this.isInitializing) {
+            this.modeloSeleccionadoId.set(null);
+          }
+          
+          setTimeout(() => void this.selectModelo()?.setFocus(), 100);
+        });
+      }
+    });
+  }
 
   ngOnInit(): void {
-    // this.isInitializing = true;
+    this.isInitializing = true;
+    
+    this.stateService.loadMarcasCatalog();
 
     const currentSummary = this.stateService.selectedBrandAndModel();
 
@@ -95,24 +87,14 @@ export class BusquedaManualComponent implements OnInit {
       
       if (currentSummary.modelo?.id) {
         this.modeloSeleccionadoId.set(currentSummary.modelo.id);
-        this.mostrarModelos.set(true); // Expand fields view block automatically
+        this.mostrarModelos.set(true); 
       }
     }
 
-    // setTimeout(() => {
-    //   this.isInitializing = false;
-    // }, 0);
+    setTimeout(() => {
+      this.isInitializing = false;
+    }, 0);
   }
-
-  readonly marcaModeloSelecionado = computed<Pick<Vehiculo, "marca" | "modelo">>(() => {
-    const marcaEncontrada = this.catalogoMarcas().find((m) => this.marcaSeleccionadaId() === m.id);
-    const modeloEncontrado = this.listaModelos().find((m) => this.modeloSeleccionadoId() === m.id);
-
-    return {
-      marca: marcaEncontrada ? marcaEncontrada : { id: "", nombre: '', logo: '' },
-      modelo: modeloEncontrado ? modeloEncontrado : { id: "", nombre: "" },
-    };
-  });
 
   confirmarMarca(): void {
     const brandObject = this.catalogoMarcas().find(m => m.id === this.marcaSeleccionadaId());
@@ -133,8 +115,9 @@ export class BusquedaManualComponent implements OnInit {
   }
 
   confirmarModelo(): void {
-    if (this.modeloSeleccionadoId() !== null) {
-      const modelObject = this.listaModelos().find(m => m.id === this.modeloSeleccionadoId());
+    const modeloId = this.modeloSeleccionadoId();
+    if (modeloId !== null) {
+      const modelObject = this.listaModelos().find(m => m.id === modeloId);
       if (modelObject) {
         this.stateService.saveModelo(modelObject);
       }

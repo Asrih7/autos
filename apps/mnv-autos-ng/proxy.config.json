@@ -1,0 +1,14 @@
+{
+  "/mnv-autos-sb": {
+    "target": "https://mnv-autos-sb.rosa-inte-back.caser.local",
+    "secure": false,
+    "changeOrigin": true,
+    "logLevel": "debug"
+  },
+  "/mnv-seguridad-sb": {
+    "target": "https://mnv-seguridad-sb.rosa-inte-back.caser.local",
+    "secure": false,
+    "changeOrigin": true,
+    "logLevel": "debug"
+  }
+}

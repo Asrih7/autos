@@ -1,10 +1,12 @@
 import {
   Component,
   computed,
+  effect,
   inject,
   input,
   OnInit,
   signal,
+  untracked,
 } from "@angular/core";
 import {
   BalButton,
@@ -42,13 +44,32 @@ import { MetodoBusqueda } from "../../models/vehiculo.models";
 })
 export class BusquedaMatricula implements OnInit {
   readonly onStepComplete = input<StepCompleteCallback>();
-  private readonly stateService = inject(VehiculoStateService);
+  protected readonly stateService = inject(VehiculoStateService);
 
   readonly esMobile = useIsMobile();
   readonly opcionSeleccionada = signal<MetodoBusqueda>("matricula");
   readonly textoBusqueda = signal<string>("");
 
+  readonly estaCargando = this.stateService.loading; 
+  readonly errorApi = this.stateService.error;
+
   private readonly baseLangKey = "vehiculo.busquedaMatricula";
+
+  constructor() {
+    effect(() => {
+      if (this.stateService.busquedaExitosa()) {
+        
+        untracked(() => {
+          const callback = this.onStepComplete();
+          if (callback) {
+            callback({ status: "REGISTRATION_LOOKUP_COMPLETE" });
+          }
+          this.stateService.clearBusquedaExitosa();
+        });
+        
+      }
+    });
+  }
 
   ngOnInit(): void {
     const savedState = this.stateService.state();
@@ -89,7 +110,7 @@ export class BusquedaMatricula implements OnInit {
     () => this.textoBusqueda().trim().length > 0 && !this.esTextoValido(),
   );
 
-  readonly botonDeshabilitado = computed(() => !this.esTextoValido());
+  readonly botonDeshabilitado = computed(() => !this.esTextoValido() || this.estaCargando());
 
   readonly mensajeErrorDinamico = computed(() =>
     this.opcionSeleccionada() === "matricula"
@@ -117,15 +138,10 @@ export class BusquedaMatricula implements OnInit {
 
   alBuscar(): void {
     if (!this.botonDeshabilitado()) {
-      const metodo = this.opcionSeleccionada();
-      const valor = this.textoBusqueda().trim();
-
-      this.stateService.saveMatriculaOBastidor(metodo, valor);
-
-      const callback = this.onStepComplete();
-      if (callback) {
-        callback({ status: "REGISTRATION_LOOKUP_COMPLETE" });
-      }
+      this.stateService.buscarVehiculoPorApi(
+        this.opcionSeleccionada(), 
+        this.textoBusqueda().trim()
+      );
     }
   }
 

@@ -18,6 +18,7 @@
             color="secondary"
             class="mobile:w-6"
             [expanded]="esMobile()"
+            [disabled]="cargandoCarrocerias()"
             [isActive]="tieneRemolque() === true"
             (click)="tieneRemolque.set(true)">
             {{ rc + '.remolque.options.si' | translate }}
@@ -27,6 +28,7 @@
             color="secondary"
             class="mobile:w-6"
             [expanded]="esMobile()"
+            [disabled]="cargandoCarrocerias()"
             [isActive]="tieneRemolque() === false"
             (click)="tieneRemolque.set(false)">
             {{ rc + '.remolque.options.no' | translate }}
@@ -50,6 +52,7 @@
               [value]="fechaMatriculacionIso()" 
               (balChange)="onDateChange($event)"
               [max]="maxDateLimit()"
+              [disabled]="cargandoCarrocerias()"
               placeholder="DD.MM.YYYY"
               required="true"
               allow-invalid-value="false">
@@ -74,7 +77,11 @@
         
         <bal-field>
           <bal-field-control>
-            <bal-select [value]="tipoCarroceria()" (balChange)="onSelectChange($event)">
+            <bal-select 
+              [value]="tipoCarroceria()" 
+              (balChange)="onSelectChange($event)"
+              [disabled]="cargandoCarrocerias()"
+              [loading]="cargandoCarrocerias()">
               @for (opcion of opcionesCarroceria(); track opcion.codigo) {
                 <bal-select-option [value]="opcion.descripcion" [label]="opcion.descripcion">
                   {{ opcion.descripcion }}
@@ -101,6 +108,7 @@
               [value]="codigoPostal()" 
               (balInput)="onInputChange($event)"
               [invalid]="cpInvalido()"
+              [disabled]="cargandoCarrocerias()"
               maxlength="5"
               [placeholder]="rc + '.codigoPostal.placeholders.cp' | translate">
             </bal-input>
@@ -136,6 +144,7 @@
       <bal-button 
         color="primary" 
         [disabled]="botonDeshabilitado()"
+        [loading]="cargandoCarrocerias()"
         [expanded]="esMobile()"
         (click)="confirmarDetalles()">
         {{ rc + '.buttons.confirm' | translate }}

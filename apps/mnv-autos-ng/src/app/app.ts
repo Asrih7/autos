@@ -6,7 +6,7 @@ import { TranslateHttpLoader } from '@ngx-translate/http-loader';
 
 import { AppHeaderComponent, AppMenuComponent, AppFooterComponent } from '@mnv-autos-ng/layout'
 import { SidebarLayout } from '@mnv-autos-ng/layout-state';
-import { BalButton, BalBreakpointsService } from '@baloise/ds-angular';
+import { BalBreakpointsService } from '@baloise/ds-angular';
 
 export function HttpLoaderFactory(http: HttpClient): TranslateHttpLoader {
   return new TranslateHttpLoader(http, './assets/i18n/', '.json');

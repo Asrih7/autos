@@ -1,27 +1,59 @@
-import { Injectable, signal, computed, effect } from "@angular/core";
+import { Injectable, signal, computed, effect, inject } from "@angular/core";
 import {
   BrandModelSummary,
   Marca,
   Modelo,
   RestoCamposModel,
   Vehiculo,
-  Version,
+  VersionVehiculo,
   AccesoriosAdicionales,
   MetodoBusqueda,
+  CarroceriaOption,
 } from "../models/vehiculo.models";
+import { VehiculoHttpService } from "./vehiculo-http.service";
 
 export interface VehiculoGlobalState {
   matriculaOBastidor: string | null;
   metodoBusqueda: MetodoBusqueda | null;
   vehiculoData: Partial<Vehiculo>;
+  loading: boolean;
+  loadingModelos: boolean;
+  loadingVersiones: boolean;
+  loadingCarrocerias: boolean;
+  loadingAccesorios: boolean;
+  error: string | null;
+  busquedaExitosa: boolean;
+  marcasCatalog: Marca[];
+  modelosCatalog: Modelo[];
+  versionesCatalog: VersionVehiculo[];
+  carroceriasCatalog: CarroceriaOption[];
+  accesoriosCatalog: AccesoriosAdicionales[];
 }
 
 @Injectable({ providedIn: "root" })
 export class VehiculoStateService {
+  private readonly httpService = inject(VehiculoHttpService);
   private readonly STORAGE_KEY = "mnv_autos_vehiculo_state";
 
+  // 1. STATE DECLARATIONS
   private readonly _state = signal<VehiculoGlobalState>(this.loadInitialState());
   readonly state = this._state.asReadonly();
+
+  // 2. SELECTORS (LOADING STATUS)
+  readonly loading = computed(() => this._state().loading);
+  readonly loadingModelos = computed(() => this._state().loadingModelos);
+  readonly loadingVersiones = computed(() => this._state().loadingVersiones);
+  readonly loadingCarrocerias = computed(() => this._state().loadingCarrocerias);
+  readonly loadingAccesorios = computed(() => this._state().loadingAccesorios);
+  readonly error = computed(() => this._state().error);
+  readonly busquedaExitosa = computed(() => this._state().busquedaExitosa);
+
+  // 3. SELECTORS (CATALOGS & DATA)
+  readonly marcas = computed(() => this._state().marcasCatalog);
+  readonly modelos = computed(() => this._state().modelosCatalog);
+  readonly versionesRaw = computed(() => this._state().versionesCatalog);
+  readonly carrocerias = computed(() => this._state().carroceriasCatalog);
+  readonly accesoriosRaw = computed(() => this._state().accesoriosCatalog);
 
   readonly selectedBrandAndModel = computed<BrandModelSummary>(() => {
     const current = this._state().vehiculoData;
@@ -39,45 +71,126 @@ export class VehiculoStateService {
     return `${current.marca?.nombre ?? ""} ${current.modelo?.nombre ?? ""}`.trim();
   });
 
+
+  // 4. LIFECYCLE & SYNC EFFECTS
   constructor() {
     effect(() => {
       try {
-        sessionStorage.setItem(this.STORAGE_KEY, JSON.stringify(this._state()));
+        const { 
+          loading, loadingModelos, loadingVersiones, loadingCarrocerias, loadingAccesorios,
+          error, busquedaExitosa, 
+          marcasCatalog, modelosCatalog, versionesCatalog, carroceriasCatalog, accesoriosCatalog, 
+          ...stateToPersist 
+        } = this._state();
+        
+        sessionStorage.setItem(this.STORAGE_KEY, JSON.stringify(stateToPersist));
       } catch (err) {
-        console.error("Error al guardar el estado del vehículo en la sesión:", err);
+        console.error("Error saving vehicle state to session storage:", err);
       }
     });
   }
 
-  saveMatriculaOBastidor(metodo: MetodoBusqueda, valor: string): void {
-    this._state.update((current) => {
-      return {
-        ...current,
-        metodoBusqueda: metodo,
-        matriculaOBastidor: valor,
-        vehiculoData: current.vehiculoData
-      };
+  // 5. ASYNCHRONOUS API LOAD ACTIONS
+  buscarVehiculoPorApi(metodo: MetodoBusqueda, valor: string): void {
+    this._state.update(s => ({ 
+      ...s, 
+      metodoBusqueda: metodo,
+      matriculaOBastidor: valor,
+      loading: true, 
+      error: null, 
+      busquedaExitosa: false 
+    }));
+
+    this.httpService.buscarPorMatriculaOBastidor(metodo, valor).subscribe({
+      next: (vehiculoApi) => {
+        this._state.update(s => ({ 
+          ...s, 
+          vehiculoData: vehiculoApi, 
+          loading: false, 
+          busquedaExitosa: true
+        }));
+      },
+      error: (err) => {
+        this._state.update(s => ({ 
+          ...s, 
+          loading: false, 
+          error: err.message || "Error al buscar el vehículo" 
+        }));
+      }
+    });
+  }
+
+  loadMarcasCatalog(): void {
+    if (this._state().marcasCatalog.length > 0) return;
+
+    this.httpService.getMarcas().subscribe({
+      next: (marcas) => this._state.update(s => ({ ...s, marcasCatalog: marcas })),
+      error: (err) => this._state.update(s => ({ ...s, error: err.message }))
+    });
+  }
+
+  loadModelosCatalog(marcaId: string): void {
+    this._state.update(s => ({ ...s, loadingModelos: true, modelosCatalog: [] }));
+
+    this.httpService.getModelosPorMarca(marcaId).subscribe({
+      next: (modelos) => this._state.update(s => ({ ...s, modelosCatalog: modelos, loadingModelos: false })),
+      error: (err) => this._state.update(s => ({ ...s, error: err.message, loadingModelos: false }))
+    });
+  }
+
+  loadVersionesCatalog(marcaId: string, modeloId: string): void {
+    this._state.update(s => ({ ...s, loadingVersiones: true, versionesCatalog: [] }));
+
+    this.httpService.getVersionesPorModelo(marcaId, modeloId).subscribe({
+      next: (versiones) => this._state.update(s => ({ ...s, versionesCatalog: versiones, loadingVersiones: false })),
+      error: (err) => this._state.update(s => ({ ...s, error: err.message, loadingVersiones: false }))
+    });
+  }
+
+  loadCarroceriasCatalog(): void {
+    if (this._state().carroceriasCatalog.length > 0) return;
+
+    this._state.update(s => ({ ...s, loadingCarrocerias: true }));
+    this.httpService.getOpcionesCarroceria().subscribe({
+      next: (carrocerias) => this._state.update(s => ({ ...s, carroceriasCatalog: carrocerias, loadingCarrocerias: false })),
+      error: (err) => this._state.update(s => ({ ...s, error: err.message, loadingCarrocerias: false }))
+    });
+  }
+
+  loadAccesoriosCatalog(versionId: string): void {
+    this._state.update(s => ({ ...s, loadingAccesorios: true, accesoriosCatalog: [] }));
+
+    this.httpService.getAccesoriosPorVehiculo(versionId).subscribe({
+      next: (accesorios) => this._state.update(s => ({ ...s, accesoriosCatalog: accesorios, loadingAccesorios: false })),
+      error: (err) => this._state.update(s => ({ ...s, error: err.message, loadingAccesorios: false }))
     });
   }
 
 
+  // 6. LOCAL STATE MUTATIONS (SAVE ACTIONS)
+  clearBusquedaExitosa(): void {
+    this._state.update(s => ({ ...s, busquedaExitosa: false }));
+  }
+
+  saveMatriculaOBastidor(metodo: MetodoBusqueda, valor: string): void {
+    this._state.update((current) => ({
+      ...current,
+      metodoBusqueda: metodo,
+      matriculaOBastidor: valor
+    }));
+  }
+
   saveMarca(marca: Marca): void {
     this._state.update((current) => ({
       ...current,
-      vehiculoData: {
-        ...current.vehiculoData,
-        marca: marca,
-      },
+      vehiculoData: { ...current.vehiculoData, marca, modelo: undefined },
     }));
   }
 
   saveModelo(modelo: Modelo): void {
     this._state.update((current) => ({
       ...current,
-      vehiculoData: {
-        ...current.vehiculoData,
-        modelo: modelo,
-      },
+      vehiculoData: { ...current.vehiculoData, modelo },
     }));
   }
 
@@ -92,13 +205,10 @@ export class VehiculoStateService {
     }));
   }
 
-  saveVersionSeleccionada(version: Version): void {
+  saveVersionSeleccionada(version: VersionVehiculo): void {
     this._state.update((current) => ({
       ...current,
-      vehiculoData: {
-        ...current.vehiculoData,
-        version: version,
-      },
+      vehiculoData: { ...current.vehiculoData, version },
     }));
   }
 
@@ -107,9 +217,7 @@ export class VehiculoStateService {
       ...current,
       vehiculoData: {
         ...current.vehiculoData,
-        restoCampos: {
-          ...campos,
-        },
+        restoCampos: { ...campos },
       },
     }));
   }
@@ -125,29 +233,52 @@ export class VehiculoStateService {
     }));
   }
 
+
+  // 7. INFRASTRUCTURE & CACHE RESET HANDLERS
   resetState(): void {
     sessionStorage.removeItem(this.STORAGE_KEY);
     this._state.set({
       matriculaOBastidor: null,
       metodoBusqueda: null,
       vehiculoData: {},
+      loading: false,
+      loadingModelos: false,
+      loadingVersiones: false,
+      loadingCarrocerias: false,
+      loadingAccesorios: false,
+      error: null,
+      busquedaExitosa: false,
+      marcasCatalog: [],
+      modelosCatalog: [],
+      versionesCatalog: [],
+      carroceriasCatalog: [],
+      accesoriosCatalog: []
     });
   }
-
   private loadInitialState(): VehiculoGlobalState {
-    try {
-      const cachedString = sessionStorage.getItem(this.STORAGE_KEY);
-      if (cachedString) {
-        return JSON.parse(cachedString) as VehiculoGlobalState;
-      }
-    } catch (err) {
-      console.error("Error al decodificar la sesión previa del vehículo:", err);
-    }
-
-    return {
+    const defaultState: VehiculoGlobalState = {
       matriculaOBastidor: null,
       metodoBusqueda: null,
       vehiculoData: {},
+      loading: false,
+      loadingModelos: false,
+      loadingVersiones: false,
+      loadingCarrocerias: false,
+      loadingAccesorios: false,
+      error: null,
+      busquedaExitosa: false,
+      marcasCatalog: [],
+      modelosCatalog: [],
+      versionesCatalog: [],
+      carroceriasCatalog: [],
+      accesoriosCatalog: []
     };
+    try {
+      const cachedString = sessionStorage.getItem(this.STORAGE_KEY);
+      if (cachedString) return { ...defaultState, ...JSON.parse(cachedString) };
+    } catch {
+      return defaultState;
+    }
+    return defaultState;
   }
 }

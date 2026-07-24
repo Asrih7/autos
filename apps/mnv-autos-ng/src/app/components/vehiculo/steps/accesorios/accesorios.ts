@@ -1,10 +1,12 @@
 import {
   Component,
   computed,
+  effect,
   inject,
   input,
   OnInit,
   signal,
+  untracked,
 } from "@angular/core";
 import {
   BalButton,
@@ -21,6 +23,7 @@ import {
   BalRadioIcon,
   BalSegment,
   BalSegmentItem,
+  BalSpinner,
   BalStack,
   parseCustomEvent,
 } from "@baloise/ds-angular";
@@ -35,6 +38,7 @@ import { useIsMobile } from '@mnv-autos-ng/util';
 
 @Component({
   selector: "app-accesorios",
+  standalone: true,
   imports: [
     FormsModule,
     TranslateModule,
@@ -52,7 +56,8 @@ import { useIsMobile } from '@mnv-autos-ng/util';
     BalLabel,
     BalRadioIcon,
     BalSegment,
-    BalSegmentItem
+    BalSegmentItem,
+    BalSpinner
   ],
   templateUrl: "./accesorios.html",
   styleUrl: "./accesorios.scss",
@@ -66,13 +71,8 @@ export class Accesorios implements OnInit {
   readonly tipoSelectorAccesorios = signal<"genericos" | "fabricante">("genericos");
   readonly filtroBusqueda = signal<string>("");
 
-  readonly listaAccesoriosCompleta = signal<AccesoriosAdicionales[]>([
-    { checked: false, idAccesorio: 101, idModeloVehiculo: 99, codigoAccesorio: "ACC01", anyoAccesorio: "2024", mesAccesorio: 1, importeAccesorio: 234, descripcionAccesorio: "Alarma", tipoAccesorio: "Seguridad" },
-    { checked: false, idAccesorio: 102, idModeloVehiculo: 99, codigoAccesorio: "ACC02", anyoAccesorio: "2024", mesAccesorio: 1, importeAccesorio: 500, descripcionAccesorio: "Alarma antirrobo hasta 400 €", tipoAccesorio: "Seguridad" },
-    { checked: false, idAccesorio: 103, idModeloVehiculo: 99, codigoAccesorio: "ACC03", anyoAccesorio: "2024", mesAccesorio: 1, importeAccesorio: 781, descripcionAccesorio: "Arranque codificado", tipoAccesorio: "Seguridad" },
-    { checked: false, idAccesorio: 201, idModeloVehiculo: 99, codigoAccesorio: "ACC04", anyoAccesorio: "2024", mesAccesorio: 1, importeAccesorio: 312, descripcionAccesorio: "Cierre centralizado", tipoAccesorio: "Sonido y multimedia" },
-    { checked: false, idAccesorio: 301, idModeloVehiculo: 99, codigoAccesorio: "FAC01", anyoAccesorio: "2024", mesAccesorio: 1, importeAccesorio: 1200, descripcionAccesorio: "Navegador Satélite Oficial", tipoAccesorio: "Fabricante" }
-  ]);
+  readonly cargandoAccesorios = this.stateService.loadingAccesorios;
+  readonly listaAccesoriosCompleta = signal<AccesoriosAdicionales[]>([]);
 
   readonly arrayIdsSeleccionados = computed<number[]>(() => {
     return this.listaAccesoriosCompleta()
@@ -105,32 +105,50 @@ export class Accesorios implements OnInit {
     return Array.from(gruposMap.entries()).map(([nombreGrupo, items]) => ({ nombreGrupo, items }));
   });
 
+  constructor() {
+    effect(() => {
+      const masterCatalog = this.stateService.accesoriosRaw();
+      
+      if (masterCatalog.length > 0) {
+        untracked(() => {
+          const cachedState = this.stateService.state().vehiculoData;
+          const savedIds = new Set(cachedState?.accesoriosAdicionales?.map(i => i.idAccesorio) ?? []);
+
+          this.listaAccesoriosCompleta.set(
+            masterCatalog.map(item => ({
+              ...item,
+              checked: savedIds.has(item.idAccesorio)
+            }))
+          );
+        });
+      }
+    });
+  }
+
   ngOnInit(): void {
     const cachedState = this.stateService.state().vehiculoData;
-    if (cachedState) {
-      if (cachedState.tieneAccesoriosSeries !== undefined) {
-        this.tieneAccesoriosSeries.set(cachedState.tieneAccesoriosSeries);
-      }
-      
-      if (cachedState.accesoriosAdicionales && cachedState.accesoriosAdicionales.length > 0) {
-        const savedIds = new Set(cachedState.accesoriosAdicionales.map(i => i.idAccesorio));
-        
-        this.listaAccesoriosCompleta.update(items => 
-          items.map(item => ({
-            ...item,
-            checked: savedIds.has(item.idAccesorio)
-          }))
-        );
-      }
+    
+    if (cachedState?.version?.id) {
+      this.stateService.loadAccesoriosCatalog(cachedState.version.id);
+    }
+
+    if (cachedState && cachedState.tieneAccesoriosSeries !== undefined) {
+      this.tieneAccesoriosSeries.set(cachedState.tieneAccesoriosSeries);
     }
   }
 
-  onRadioGroupChange(event: CustomEvent<string>): void {
-    this.cambiarModoAccesorios(event.detail === "serie");
+  onRadioGroupChange(event: Event): void {
+    const parsed = parseCustomEvent(event);
+    if (typeof parsed === 'string') {
+      this.cambiarModoAccesorios(parsed === "serie");
+    }
   }
 
-  onSegmentChange(event: CustomEvent<"genericos" | "fabricante">): void {
-    this.tipoSelectorAccesorios.set(event.detail);
+  onSegmentChange(event: Event): void {
+    const parsed = parseCustomEvent(event);
+    if (typeof parsed === 'string') {
+      this.tipoSelectorAccesorios.set(parsed as "genericos" | "fabricante");
+    }
   }
 
   cambiarModoAccesorios(esDeSerie: boolean): void {

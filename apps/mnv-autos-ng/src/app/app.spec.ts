@@ -1,9 +1,14 @@
-import { NO_ERRORS_SCHEMA } from '@angular/core';
+import { NO_ERRORS_SCHEMA, signal } from '@angular/core';
 import { TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
 import { TranslateModule } from '@ngx-translate/core';
-
+import { BalBreakpointsService } from '@baloise/ds-angular';
 import { App } from './app';
+
+class MockBalBreakpointsService {
+  readonly mobile = signal<boolean>(false).asReadonly();
+  readonly tablet = signal<boolean>(false).asReadonly();
+}
 
 describe('App', () => {
   beforeEach(async () => {
@@ -14,6 +19,10 @@ describe('App', () => {
       ],
       providers: [
         provideRouter([]),
+        {
+          provide: BalBreakpointsService,
+          useClass: MockBalBreakpointsService
+        }
       ],
       schemas: [NO_ERRORS_SCHEMA],
     }).compileComponents();

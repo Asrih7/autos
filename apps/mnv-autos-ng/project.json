@@ -73,6 +73,9 @@
     "serve": {
       "continuous": true,
       "executor": "@angular/build:dev-server",
+      "options": {
+        "proxyConfig": "apps/mnv-autos-ng/proxy.config.json"
+      },
       "configurations": {
         "production": {
           "buildTarget": "mnv-autos-ng:build:production"

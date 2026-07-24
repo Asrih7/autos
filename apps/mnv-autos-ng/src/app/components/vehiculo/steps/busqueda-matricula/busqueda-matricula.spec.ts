@@ -1,41 +1,72 @@
 import { ComponentFixture, TestBed } from "@angular/core/testing";
 import { BusquedaMatricula } from "./busqueda-matricula";
-import { describe, it, expect, beforeEach, vi, type Mock, type MockInstance } from "vitest";
+import { describe, it, expect, beforeEach, vi, type MockInstance } from "vitest";
 import { TranslateModule } from "@ngx-translate/core";
 import { VehiculoGlobalState, VehiculoStateService } from "../../services/vehiculo-state.service";
-import { signal, WritableSignal } from "@angular/core";
-import { MetodoBusqueda } from "../../models/vehiculo.models";
+import { signal, WritableSignal, type Signal } from "@angular/core";
 import * as util from "@mnv-autos-ng/util";
 import { StepCompleteCallback } from "../../vehiculo";
+import { MetodoBusqueda } from "../../models/vehiculo.models";
 
 vi.mock("@mnv-autos-ng/util", () => ({
   useIsMobile: vi.fn(),
 }));
 
 interface MockVehiculoStateService {
-  state: WritableSignal<Partial<VehiculoGlobalState>>;
+  state: WritableSignal<VehiculoGlobalState>;
+  loading: Signal<boolean>;
+  error: Signal<string | null>;
+  busquedaExitosa: Signal<boolean>;
+  buscarVehiculoPorApi: MockInstance<(metodo: MetodoBusqueda, valor: string) => void>;
   saveMatriculaOBastidor: MockInstance<(metodo: MetodoBusqueda, valor: string) => void>;
+  clearBusquedaExitosa: MockInstance<() => void>;
 }
 
 describe("BusquedaMatricula", () => {
   let component: BusquedaMatricula;
   let fixture: ComponentFixture<BusquedaMatricula>;
   let mockStateService: MockVehiculoStateService;
-  let mockStateSignal: WritableSignal<Partial<VehiculoGlobalState>>;
-  let mockOnStepComplete: Mock<StepCompleteCallback>;
+  let mockStateSignal: WritableSignal<VehiculoGlobalState>;
+  let mockLoadingSignal: WritableSignal<boolean>;
+  let mockErrorSignal: WritableSignal<string | null>;
+  let mockBusquedaExitosaSignal: WritableSignal<boolean>;
+  let mockOnStepComplete: MockInstance<StepCompleteCallback>;
 
   beforeEach(async () => {
-    mockStateSignal = signal<Partial<VehiculoGlobalState>>({
-      metodoBusqueda: null,
+    mockStateSignal = signal<VehiculoGlobalState>({
       matriculaOBastidor: null,
+      metodoBusqueda: null,
+      vehiculoData: {},
+      loading: false,
+      loadingModelos: false,
+      loadingVersiones: false,
+      loadingCarrocerias: false,
+      loadingAccesorios: false,
+      error: null,
+      busquedaExitosa: false,
+      marcasCatalog: [],
+      modelosCatalog: [],
+      versionesCatalog: [],
+      carroceriasCatalog: [],
+      accesoriosCatalog: []
     });
+
+    mockLoadingSignal = signal<boolean>(false);
+    mockErrorSignal = signal<string | null>(null);
+    mockBusquedaExitosaSignal = signal<boolean>(false);
 
     mockStateService = {
       state: mockStateSignal,
+      loading: mockLoadingSignal.asReadonly(),
+      error: mockErrorSignal.asReadonly(),
+      busquedaExitosa: mockBusquedaExitosaSignal.asReadonly(),
+      buscarVehiculoPorApi: vi.fn(),
       saveMatriculaOBastidor: vi.fn(),
+      clearBusquedaExitosa: vi.fn(),
     };
 
-    (util.useIsMobile as Mock).mockReturnValue(signal(false));
+    const mockMobileSignal = signal<boolean>(false);
+    vi.mocked(util.useIsMobile).mockReturnValue(mockMobileSignal);
 
     mockOnStepComplete = vi.fn();
 
@@ -68,10 +99,11 @@ describe("BusquedaMatricula", () => {
     });
 
     it("should restore saved state values from service if they exist", () => {
-      mockStateSignal.set({
+      mockStateSignal.update(s => ({
+        ...s,
         metodoBusqueda: "bastidor",
-        matriculaOBastidor: "1234567890ABCDEFG",
-      });
+        matriculaOBastidor: "1234567890ABCDEFG"
+      }));
 
       fixture.detectChanges();
 
@@ -80,10 +112,11 @@ describe("BusquedaMatricula", () => {
     });
 
     it("should set visible text to empty string if service state indicates manual search is active", () => {
-      mockStateSignal.set({
+      mockStateSignal.update(s => ({
+        ...s,
         metodoBusqueda: "matricula",
-        matriculaOBastidor: "MANUAL_SEARCH_ACTIVE",
-      });
+        matriculaOBastidor: "MANUAL_SEARCH_ACTIVE"
+      }));
 
       fixture.detectChanges();
 
@@ -165,14 +198,23 @@ describe("BusquedaMatricula", () => {
       fixture.detectChanges();
     });
 
-    it("should trigger state service update and execution callback on valid form submit (alBuscar)", () => {
+    it("should trigger state service API call on valid form submit (alBuscar)", () => {
       component.opcionSeleccionada.set("matricula");
       component.textoBusqueda.set("1234BBB");
 
       component.alBuscar();
 
-      expect(mockStateService.saveMatriculaOBastidor).toHaveBeenCalledWith("matricula", "1234BBB");
+      expect(mockStateService.buscarVehiculoPorApi).toHaveBeenCalledWith("matricula", "1234BBB");
+    });
+
+    it("should trigger step callback and clear state when busquedaExitosa transitions to true", () => {
+      fixture.detectChanges();
+      
+      mockBusquedaExitosaSignal.set(true);
+      fixture.detectChanges();
+
       expect(mockOnStepComplete).toHaveBeenCalledWith({ status: "REGISTRATION_LOOKUP_COMPLETE" });
+      expect(mockStateService.clearBusquedaExitosa).toHaveBeenCalled();
     });
 
     it("should block search calls if formatting rules fail criteria", () => {
@@ -181,7 +223,7 @@ describe("BusquedaMatricula", () => {
 
       component.alBuscar();
 
-      expect(mockStateService.saveMatriculaOBastidor).not.toHaveBeenCalled();
+      expect(mockStateService.buscarVehiculoPorApi).not.toHaveBeenCalled();
       expect(mockOnStepComplete).not.toHaveBeenCalled();
     });
 

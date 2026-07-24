@@ -45,7 +45,8 @@
             (balChange)="onModeloChanged($event)"
             typeahead="true"
             [placeholder]="baseLangKey + '.models.selectPlaceholder' | translate"
-            [disabled]="!marcaSeleccionadaId()">
+            [disabled]="!marcaSeleccionadaId() || cargandoModelos()"
+            [loading]="cargandoModelos()">
             
             @for (mod of listaModelos(); track mod.id) {
               <bal-select-option [value]="mod.id" [label]="mod.nombre">
@@ -61,7 +62,7 @@
     <div class="bloque-accion buttons justify-content-end">
       <bal-button
         color="primary"
-        [disabled]="modeloSeleccionadoId() === null"
+        [disabled]="modeloSeleccionadoId() === null || cargandoModelos()"
         [expanded]="esMobile()"
         (click)="confirmarModelo()">
         {{ baseLangKey + '.models.confirmBtn' | translate }}

@@ -1,7 +1,7 @@
 export interface Vehiculo {
   marca: Marca;
   modelo: Modelo;
-  version: Version;
+  version: VersionVehiculo;
   tieneAccesoriosSeries: boolean;
   restoCampos: RestoCamposModel;
   accesoriosAdicionales: AccesoriosAdicionales[];
@@ -29,7 +29,7 @@ export interface Marca {
   nombre: string;
   logo: string;
 }
-export interface Version {
+export interface VersionVehiculo {
   id: string;
   nombre: string;
   combustible: string;
@@ -37,11 +37,6 @@ export interface Version {
   potencia: string;
   puertas: string;
   inicioFabricacion: string;
-    // "idVersion": "string", OK
-  // "version": "string",
-  // "cilindradaCc": "string", OK
-  // "potenciaCv": "string", OK
-  // "numeroPuertas": "string", OK
 }
 export type BrandModelSummary = Pick<Vehiculo, "marca" | "modelo">;
 

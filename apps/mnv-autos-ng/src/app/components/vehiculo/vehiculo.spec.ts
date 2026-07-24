@@ -18,7 +18,7 @@ describe("VehiculoComponent", () => {
 
     fixture = TestBed.createComponent(VehiculoComponent);
 
-    fixture.componentRef.setInput("step", 0); // Ajusta si tu input no es number
+    fixture.componentRef.setInput("step", 0);
 
     component = fixture.componentInstance;
   });

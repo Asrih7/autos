@@ -20,7 +20,8 @@
       "@mnv-autos-ng/navigation": ["libs/shared/navigation/src/index.ts"],
       "@mnv-autos-ng/layout-state": ["libs/shared/layout-state/src/index.ts"],
       "@mnv-autos-ng/app-state": ["libs/shared/app-state/src/index.ts"],
-      "@mnv-autos-ng/shared/ui": ["libs/shared/ui/src/index.ts"],
+      "@mnv-autos-ng/ui": ["libs/shared/ui/src/index.ts"],
+      "@mnv-autos-ng/util": ["libs/shared/util/src/index.ts"],
       "@mnv-autos-ng/shared/ui/*": ["libs/shared/ui/src/*"]
     }
   },

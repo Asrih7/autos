@@ -13,6 +13,7 @@
   <div class="bloque-formulario mb-normal">
     <bal-segment
       [value]="opcionSeleccionada()"
+      [disabled]="estaCargando()"
       (balChange)="alCambiarOpcion($event)"
       class="flex w-full flex-direction-row mobile gapless"
     >
@@ -33,25 +34,35 @@
   </div>
 
   <div class="bloque-formulario">
-    <bal-field [invalid]="esInvalido()">
+    <bal-field [invalid]="esInvalido() || !!errorApi()">
       <bal-field-control>
         <bal-input
           [value]="textoBusqueda()"
+          [disabled]="estaCargando()"
           (balInput)="onInputUpdate($event)"
           [placeholder]="placeholderDinamico() | translate"
           [maxLength]="opcionSeleccionada() === 'matricula' ? 7 : 17"
           [pattern]="patronDinamico()"
-          [invalid]="esInvalido()"
+          [invalid]="esInvalido() || !!errorApi()"
           clickable="true"
         >
         </bal-input>
       </bal-field-control>
 
       @if (esInvalido()) {
-      <bal-field-message invalid="true">
-        {{ mensajeErrorDinamico() | translate }}
-      </bal-field-message>
+        <bal-field-message invalid="true">
+          {{ mensajeErrorDinamico() | translate }}
+        </bal-field-message>
       }
+
+      @if (errorApi(); as apiErrorMessage) {
+        @if (!esInvalido()) {
+          <bal-field-message invalid="true">
+            {{ apiErrorMessage | translate }}
+          </bal-field-message>
+        }
+      }
+
     </bal-field>
   </div>
 
@@ -62,6 +73,7 @@
     <bal-button
       color="primary"
       [disabled]="botonDeshabilitado()"
+      [loading]="estaCargando()"
       (click)="alBuscar()"
       [expanded]="esMobile()"
     >
@@ -70,6 +82,7 @@
 
     <bal-button
       color="secondary"
+      [disabled]="estaCargando()"
       [expanded]="esMobile()"
       (click)="activarBusquedaManual()" 
     >

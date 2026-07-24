@@ -1,8 +1,8 @@
-import { Component, computed, effect, inject, input, OnInit, signal } from "@angular/core";
+import { Component, computed, effect, inject, input, OnInit, signal, untracked } from "@angular/core";
 import { BalButton, BalField, BalFieldControl, BalInput, BalInputDate, BalSelect, BalSelectOption, parseCustomEvent } from "@baloise/ds-angular";
 import { VehiculoStateService } from "../../services/vehiculo-state.service";
-import { CarroceriaOption, RestoCamposModel } from "../../models/vehiculo.models";
-import { TranslateModule, TranslateService } from "@ngx-translate/core";
+import { RestoCamposModel } from "../../models/vehiculo.models";
+import { TranslateModule } from "@ngx-translate/core";
 import { getProvinciaByPostalCode, useIsMobile } from '@mnv-autos-ng/util'; 
 
 @Component({
@@ -14,11 +14,11 @@ import { getProvinciaByPostalCode, useIsMobile } from '@mnv-autos-ng/util';
 export class RestoCampos implements OnInit {
   readonly onStepComplete = input<(stepOutputData: unknown) => void>();
   private readonly stateService = inject(VehiculoStateService);
-  private readonly translate = inject(TranslateService);
 
   readonly esMobile = useIsMobile();
 
-  readonly opcionesCarroceria = signal<CarroceriaOption[]>([]);
+  readonly opcionesCarroceria = this.stateService.carrocerias;
+  readonly cargandoCarrocerias = this.stateService.loadingCarrocerias
   readonly tieneRemolque = signal<boolean>(false);
   readonly tipoCarroceria = signal<string>("Sin carroceria especial");
   readonly fechaMatriculacionIso = signal<string>(""); 
@@ -49,7 +49,8 @@ export class RestoCampos implements OnInit {
       !this.fechaMatriculacionIso().trim() || 
       !this.codigoPostal().trim() || 
       this.cpInvalido() ||
-      !this.provincia().trim()
+      !this.provincia().trim()||
+      this.cargandoCarrocerias() 
     );
   });
 
@@ -58,26 +59,29 @@ export class RestoCampos implements OnInit {
       const cp = this.codigoPostal().trim();
       
       if (cp.length === 5 && !this.cpInvalidoFormato()) {
-        const resolved = getProvinciaByPostalCode(cp);
-        
-        if (resolved) {
-          this.provincia.set(resolved);
-          this.isCpInvalidoEnEspana.set(false);
-        } else {
-          this.provincia.set("");
-          this.isCpInvalidoEnEspana.set(true);
-        }
+        untracked(() => {
+          const resolved = getProvinciaByPostalCode(cp);
+          if (resolved) {
+            this.provincia.set(resolved);
+            this.isCpInvalidoEnEspana.set(false);
+          } else {
+            this.provincia.set("");
+            this.isCpInvalidoEnEspana.set(true);
+          }
+        });
       } else {
-        if (cp.length < 5) {
-          this.provincia.set(""); 
-          this.isCpInvalidoEnEspana.set(false);
-        }
+        untracked(() => {
+          if (cp.length < 5) {
+            this.provincia.set(""); 
+            this.isCpInvalidoEnEspana.set(false);
+          }
+        });
       }
     });
   }
 
   ngOnInit(): void {
-    this.fetchCarroceriasFromApi();
+    this.stateService.loadCarroceriasCatalog();
     
     const cachedVehicle = this.stateService.state().vehiculoData;
     if (cachedVehicle?.restoCampos) {
@@ -91,14 +95,6 @@ export class RestoCampos implements OnInit {
         this.fechaMatriculacionIso.set(this.convertToIso(data.fechaPrimeraMatriculacion));
       }
     }
-  }
-
-  private fetchCarroceriasFromApi(): void {
-    this.opcionesCarroceria.set([
-      { codigo: "1", descripcion: "Sin carroceria especial" },
-      { codigo: "2", descripcion: "Furgón" },
-      { codigo: "3", descripcion: "Camión" }
-    ]);
   }
 
   onSelectChange(event: Event): void {

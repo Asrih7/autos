@@ -1,6 +1,6 @@
-import { Component, computed, input, signal, inject, OnInit } from "@angular/core";
+import { Component, computed, input, signal, inject, OnInit, effect, untracked } from "@angular/core";
 import { FormsModule } from "@angular/forms";
-import { Version } from "../../models/vehiculo.models"; 
+import { VersionVehiculo } from "../../models/vehiculo.models"; 
 import {
   BalHeading,
   BalBadge,
@@ -16,6 +16,7 @@ import {
   BalButton,
   parseCustomEvent,
   BalRadioIcon,
+  BalSpinner,
 } from "@baloise/ds-angular";
 import { VehiculoStateService } from "../../services/vehiculo-state.service";
 import { TranslateModule, TranslateService } from "@ngx-translate/core";
@@ -45,6 +46,7 @@ export interface FilterDropdownOption {
     BalIcon,
     BalButton,
     TranslateModule,
+    BalSpinner
   ],
   templateUrl: "./confirmacion-version.html",
   styleUrl: "./confirmacion-version.scss",
@@ -57,14 +59,12 @@ export class ConfirmacionVersion implements OnInit {
   
   readonly esMobile = useIsMobile();
   readonly nombreVehiculoCompleto = this.stateService.nombreVehiculoCompleto;
+  readonly cargandoVersiones = this.stateService.loadingVersiones;
 
-  readonly listaVersiones = computed<Version[]>(() => [
-    { id: "v1", nombre: "SUMMUM 7PZ", combustible: "Diesel", cilindrada: "2400", potencia: "185 cv", puertas: "5 puertas", inicioFabricacion: "04/2009" },
-    { id: "v2", nombre: "SUMMUM AUTO 7PZ", combustible: "Diesel", cilindrada: "2400", potencia: "185 cv", puertas: "5 puertas", inicioFabricacion: "04/2009" },
-    { id: "v3", nombre: "R-DESIGN 7PZ", combustible: "Diesel", cilindrada: "2400", potencia: "185 cv", puertas: "5 puertas", inicioFabricacion: "04/2009" },
-    { id: "v4", nombre: "MOMENTUM 7PZ", combustible: "Diesel", cilindrada: "2400", potencia: "185 cv", puertas: "5 puertas", inicioFabricacion: "04/2009" },
-    { id: "v5", nombre: "SUMMUM 7PZ", combustible: "Diesel", cilindrada: "2400", potencia: "185 cv", puertas: "5 puertas", inicioFabricacion: "04/2009" },
-    { 
+  readonly listaVersiones = computed<VersionVehiculo[]>(() => {
+    const apiVersiones = this.stateService.versionesRaw();
+    
+    const fallbackOption: VersionVehiculo = { 
       id: "v6", 
       nombre: this.translate.instant('vehiculo.confirmacionVersion.list.noneOfThese'), 
       combustible: "", 
@@ -72,8 +72,10 @@ export class ConfirmacionVersion implements OnInit {
       potencia: "", 
       puertas: "", 
       inicioFabricacion: "" 
-    },
-  ]);
+    };
+
+    return [...apiVersiones, fallbackOption];
+  });
 
   readonly versionSeleccionadaId = signal<string | null>(null);
 
@@ -87,14 +89,33 @@ export class ConfirmacionVersion implements OnInit {
   readonly filtroPotencia = signal<string | null>(null);
   readonly filtroCombustible = signal<string | null>(null);
 
+  constructor() {
+    effect(() => {
+      const versiones = this.listaVersiones();
+      const currentSelection = this.versionSeleccionadaId();
+
+      if (versiones.length > 0 && !currentSelection) {
+        untracked(() => {
+          this.versionSeleccionadaId.set(versiones[0].id);
+        });
+      }
+    });
+  }
+
   ngOnInit(): void {
+    const currentSummary = this.stateService.selectedBrandAndModel();
+    
+    if (currentSummary.marca?.id && currentSummary.modelo?.id) {
+      this.stateService.loadVersionesCatalog(currentSummary.marca.id, currentSummary.modelo.id);
+    }
+
     const cachedVehicle = this.stateService.state().vehiculoData;
     if (cachedVehicle?.version?.id) {
       this.versionSeleccionadaId.set(cachedVehicle.version.id);
     }
   }
 
-  readonly versionesFiltradas = computed<Version[]>(() => {
+  readonly versionesFiltradas = computed<VersionVehiculo[]>(() => {
     let resultado = this.listaVersiones();
 
     const busqueda = this.filtroGlobal().toLowerCase().trim();
@@ -124,14 +145,14 @@ export class ConfirmacionVersion implements OnInit {
     return resultado;
   });
 
-  readonly objetoVersionSeleccionada = computed<Version | null>(() => {
+  readonly objetoVersionSeleccionada = computed<VersionVehiculo | null>(() => {
     const id = this.versionSeleccionadaId();
     if (!id) return null;
     return this.listaVersiones().find((v) => v.id === id) || null;
   });
 
   readonly botonDeshabilitado = computed<boolean>(
-    () => !this.versionSeleccionadaId(),
+    () => !this.versionSeleccionadaId() || this.cargandoVersiones(),
   );
 
   readonly opcionesPuertas = computed(() => this.mapearOpcionesUnique("puertas"));
@@ -139,7 +160,7 @@ export class ConfirmacionVersion implements OnInit {
   readonly opcionesPotencia = computed(() => this.mapearOpcionesUnique("potencia"));
   readonly opcionesCombustible = computed(() => this.mapearOpcionesUnique("combustible"));
 
-  private mapearOpcionesUnique(propiedad: keyof Version): FilterDropdownOption[] {
+  private mapearOpcionesUnique(propiedad: keyof VersionVehiculo): FilterDropdownOption[] {
     const valoresValidos = this.listaVersiones()
       .map((v) => v[propiedad])
       .filter((valor): valor is string => typeof valor === "string" && valor.trim().length > 0);
@@ -165,7 +186,7 @@ export class ConfirmacionVersion implements OnInit {
 
   onFiltroChanged(tipo: "puertas" | "cilindrada" | "potencia" | "combustible", event: Event): void {
     const parsedEvent = parseCustomEvent(event);
-    if (!parsedEvent) return;
+    if (parsedEvent === undefined) return;
 
     const value = Array.isArray(parsedEvent) ? parsedEvent[0] : parsedEvent;
     

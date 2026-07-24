@@ -1,11 +1,11 @@
 import { ComponentFixture, TestBed } from "@angular/core/testing";
 import { RestoCampos } from "./resto-campos";
-import { describe, it, expect, beforeEach, vi, type Mock, type MockInstance } from "vitest";
+import { describe, it, expect, beforeEach, vi, type MockInstance } from "vitest";
 import { TranslateModule, TranslateService } from "@ngx-translate/core";
 import { VehiculoGlobalState, VehiculoStateService } from "../../services/vehiculo-state.service";
-import { signal, WritableSignal } from "@angular/core";
-import { RestoCamposModel } from "../../models/vehiculo.models";
+import { signal, type WritableSignal, type Signal } from "@angular/core";
 import * as util from "@mnv-autos-ng/util";
+import { CarroceriaOption, RestoCamposModel } from "../../models/vehiculo.models";
 
 vi.mock("@mnv-autos-ng/util", () => ({
   useIsMobile: vi.fn(),
@@ -13,32 +13,62 @@ vi.mock("@mnv-autos-ng/util", () => ({
 }));
 
 interface MockVehiculoStateService {
-  state: WritableSignal<Partial<VehiculoGlobalState>>;
+  state: WritableSignal<VehiculoGlobalState>;
+  carrocerias: Signal<CarroceriaOption[]>;
+  loadingCarrocerias: Signal<boolean>;
+  loadCarroceriasCatalog: MockInstance<() => void>;
   saveRestoCampos: MockInstance<(payload: RestoCamposModel) => void>;
 }
 
-describe("RestoCampos", () => {
+describe("RestoCampos Component tests", () => {
   let component: RestoCampos;
   let fixture: ComponentFixture<RestoCampos>;
   let mockStateService: MockVehiculoStateService;
-  let mockStateSignal: WritableSignal<Partial<VehiculoGlobalState>>;
-  let mockOnStepComplete: Mock<(stepOutputData: unknown) => void>;
+  let mockStateSignal: WritableSignal<VehiculoGlobalState>;
+  let mockOnStepComplete: MockInstance<(stepOutputData: unknown) => void>;
   let translateService: TranslateService;
 
+  let mockCarroceriasSignal: WritableSignal<CarroceriaOption[]>;
+  let mockLoadingCarroceriasSignal: WritableSignal<boolean>;
+
   beforeEach(async () => {
-    mockStateSignal = signal<Partial<VehiculoGlobalState>>({
-      vehiculoData: {
-        restoCampos: undefined,
-      }
+    mockStateSignal = signal<VehiculoGlobalState>({
+      matriculaOBastidor: null,
+      metodoBusqueda: null,
+      vehiculoData: {},
+      loading: false,
+      loadingModelos: false,
+      loadingVersiones: false,
+      loadingCarrocerias: false,
+      loadingAccesorios: false,
+      error: null,
+      busquedaExitosa: false,
+      marcasCatalog: [],
+      modelosCatalog: [],
+      versionesCatalog: [],
+      carroceriasCatalog: [],
+      accesoriosCatalog: []
     });
+
+    mockCarroceriasSignal = signal<CarroceriaOption[]>([
+      { codigo: "1", descripcion: "Sin carroceria especial" },
+      { codigo: "2", descripcion: "Furgón" },
+      { codigo: "3", descripcion: "Camión" }
+    ]);
+    mockLoadingCarroceriasSignal = signal<boolean>(false);
 
     mockStateService = {
       state: mockStateSignal,
+      carrocerias: mockCarroceriasSignal.asReadonly(),
+      loadingCarrocerias: mockLoadingCarroceriasSignal.asReadonly(),
+      loadCarroceriasCatalog: vi.fn(),
       saveRestoCampos: vi.fn(),
     };
 
-    (util.useIsMobile as Mock).mockReturnValue(signal(false));
-    (util.getProvinciaByPostalCode as Mock).mockReturnValue(undefined);
+    const mockMobileSignal = signal<boolean>(false);
+    vi.mocked(util.useIsMobile).mockReturnValue(mockMobileSignal);
+    vi.mocked(util.getProvinciaByPostalCode).mockReturnValue(null);
+    
     mockOnStepComplete = vi.fn();
 
     await TestBed.configureTestingModule({
@@ -53,7 +83,7 @@ describe("RestoCampos", () => {
 
     translateService = TestBed.inject(TranslateService);
     vi.spyOn(translateService, 'instant').mockImplementation((key: string | string[]) => {
-      return Array.isArray(key) ? key.map(k => `mock-${k}`) : `mock-${key}`;
+      return Array.isArray(key) ? key.map(k => `mock-${k}`).join(', ') : `mock-${key}`;
     });
 
     fixture = TestBed.createComponent(RestoCampos);
@@ -64,12 +94,13 @@ describe("RestoCampos", () => {
   it("should create and fetch bodywork options from API on load", () => {
     fixture.detectChanges();
     expect(component).toBeTruthy();
+    expect(mockStateService.loadCarroceriasCatalog).toHaveBeenCalled();
     expect(component.opcionesCarroceria().length).toBe(3);
   });
 
   describe("Initialization (ngOnInit)", () => {
     it("should initialize with empty fields if cache structure is missing", () => {
-      mockStateSignal.set({ vehiculoData: undefined });
+      mockStateSignal.update(s => ({ ...s, vehiculoData: {} }));
       fixture.detectChanges();
 
       expect(component.codigoPostal()).toBe("");
@@ -78,9 +109,10 @@ describe("RestoCampos", () => {
     });
 
     it("should restore fields correctly when cached service data exists", () => {
-      (util.getProvinciaByPostalCode as Mock).mockReturnValue("Madrid");
+      vi.mocked(util.getProvinciaByPostalCode).mockReturnValue("Madrid");
 
-      mockStateSignal.set({
+      mockStateSignal.update(s => ({
+        ...s,
         vehiculoData: {
           restoCampos: {
             tieneRemolque: true,
@@ -88,12 +120,11 @@ describe("RestoCampos", () => {
             codigoPostalRegistro: "28001",
             provinciaRegistro: "Madrid",
             fechaPrimeraMatriculacion: "21/07/2026"
-          } as RestoCamposModel
+          }
         }
-      });
+      }));
 
       fixture.detectChanges();
-      TestBed.tick();
 
       expect(component.tieneRemolque()).toBe(true);
       expect(component.tipoCarroceria()).toBe("Furgón");
@@ -102,7 +133,6 @@ describe("RestoCampos", () => {
       expect(component.fechaMatriculacionIso()).toBe("2026-07-21"); 
     });
   });
-
 
   describe("Postal Code Logic & Reactive Effects", () => {
     beforeEach(() => {
@@ -118,21 +148,21 @@ describe("RestoCampos", () => {
     });
 
     it("should successfully set province when getProvinciaByPostalCode returns a match", () => {
-      (util.getProvinciaByPostalCode as Mock).mockReturnValue("Madrid");
+      vi.mocked(util.getProvinciaByPostalCode).mockReturnValue("Madrid");
       
       component.codigoPostal.set("28001");
-      TestBed.tick();
+      fixture.detectChanges();
 
       expect(component.provincia()).toBe("Madrid");
       expect(component.isCpInvalidoEnEspana()).toBe(false);
       expect(component.cpInvalido()).toBe(false);
     });
 
-    it("should flag an invalid country code error if getProvinciaByPostalCode returns undefined", () => {
-      (util.getProvinciaByPostalCode as Mock).mockReturnValue(undefined);
+    it("should flag an invalid country code error if getProvinciaByPostalCode returns null", () => {
+      vi.mocked(util.getProvinciaByPostalCode).mockReturnValue(null);
       
       component.codigoPostal.set("99999");
-      TestBed.tick();
+      fixture.detectChanges();
 
       expect(component.provincia()).toBe("");
       expect(component.isCpInvalidoEnEspana()).toBe(true);
@@ -144,7 +174,7 @@ describe("RestoCampos", () => {
       component.isCpInvalidoEnEspana.set(true);
 
       component.codigoPostal.set("280");
-      TestBed.tick();
+      fixture.detectChanges();
 
       expect(component.provincia()).toBe("");
       expect(component.isCpInvalidoEnEspana()).toBe(false);
@@ -180,19 +210,25 @@ describe("RestoCampos", () => {
     });
 
     it("should update bodywork type from custom selector change events", () => {
-      const mockEvent = new CustomEvent("balChange", { detail: "Camión" });
+      const mockEvent = { target: { value: "Camión" } } as unknown as Event;
+      Object.defineProperty(mockEvent, 'detail', { value: 'Camión' });
+      
       component.onSelectChange(mockEvent);
       expect(component.tipoCarroceria()).toBe("Camión");
     });
 
     it("should update registration dates from custom input date events", () => {
-      const mockEvent = new CustomEvent("balChange", { detail: "2026-07-21" });
+      const mockEvent = { target: { value: "2026-07-21" } } as unknown as Event;
+      Object.defineProperty(mockEvent, 'detail', { value: '2026-07-21' });
+      
       component.onDateChange(mockEvent);
       expect(component.fechaMatriculacionIso()).toBe("2026-07-21");
     });
 
     it("should sanitize text values down to numeric entries inside onInputChange", () => {
-      const mockEvent = new CustomEvent("balInput", { detail: "28a00b1" });
+      const mockEvent = { target: { value: "28a00b1" } } as unknown as Event;
+      Object.defineProperty(mockEvent, 'detail', { value: '28a00b1' });
+      
       component.onInputChange(mockEvent);
       expect(component.codigoPostal()).toBe("28001");
     });

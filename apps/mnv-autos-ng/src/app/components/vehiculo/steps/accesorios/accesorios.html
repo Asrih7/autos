@@ -11,6 +11,7 @@
 
     <bal-radio-group 
       [value]="tieneAccesoriosSeries() ? 'serie' : 'opcionales'"
+      [disabled]="cargandoAccesorios()"
       (balChange)="onRadioGroupChange($any($event))"
       interface="tile"
       class="flex flex-direction-column gap-normal">
@@ -48,82 +49,91 @@
         </p>
       </div>
 
-      <div class="mb-normal">
-        <bal-segment 
-          [value]="tipoSelectorAccesorios()" 
-          (balChange)="onSegmentChange($any($event))"
-          class="flex w-full flex-direction-row mobile:gap-none">
-          
-          <bal-segment-item 
-            value="genericos" 
-            [label]="acc + '.subSection.segments.genericos' | translate"
-            class="w-6 text-align-center">
-          </bal-segment-item>
-
-          <bal-segment-item 
-            value="fabricante" 
-            [label]="acc + '.subSection.segments.fabricante' | translate"
-            class="w-6 text-align-center">
-          </bal-segment-item>
-
-        </bal-segment>
-      </div>
-
-      <div class="mb-normal">
-        <bal-field>
-          <bal-field-control>
-            <bal-input 
-              [value]="filtroBusqueda()" 
-              (balInput)="onSearchInput($event)"
-              [placeholder]="acc + '.subSection.searchPlaceholder' | translate">
-            </bal-input>
-          </bal-field-control>
-        </bal-field>
-      </div>
-
-      @for (grupo of listaAccesoriosFiltrados(); track grupo.nombreGrupo) {
+      @if (cargandoAccesorios()) {
+        <div class="lista-cargando py-large text-center text-light flex flex-direction-column align-items-center">
+          <bal-spinner size="large" class="mb-small"></bal-spinner>
+          <p class="text-body-small">
+            {{ acc + '.subSection.loadingText' | translate }}
+          </p>
+        </div>
+      } @else {
         <div class="mb-normal">
-          <span class="text-medium font-weight-bold mb-small block">
-            {{ (grupo.nombreGrupo === 'Accesorios del Fabricante' ? (acc + '.subSection.groups.fabricante' | translate) : grupo.nombreGrupo) }}
-          </span>
-          
-          <bal-checkbox-group interface="tile" class="flex flex-direction-column gap-normal">
+          <bal-segment 
+            [value]="tipoSelectorAccesorios()" 
+            (balChange)="onSegmentChange($any($event))"
+            class="flex w-full flex-direction-row mobile:gap-none">
             
-            @for (item of grupo.items; track item.idAccesorio) {
-              <bal-checkbox 
-                [name]="'acc-' + item.idAccesorio" 
-                [value]="item.idAccesorio"
-                [checked]="item.checked"
-                (click)="$event.preventDefault(); toggleAccesorioSelection(item)">
-                
-                <div class="w-full flex align-items-center justify-content-space-between flex-wrap py-x-small">
+            <bal-segment-item 
+              value="genericos" 
+              [label]="acc + '.subSection.segments.genericos' | translate"
+              class="w-6 text-align-center">
+            </bal-segment-item>
+
+            <bal-segment-item 
+              value="fabricante" 
+              [label]="acc + '.subSection.segments.fabricante' | translate"
+              class="w-6 text-align-center">
+            </bal-segment-item>
+
+          </bal-segment>
+        </div>
+
+        <div class="mb-normal">
+          <bal-field>
+            <bal-field-control>
+              <bal-input 
+                [value]="filtroBusqueda()" 
+                (balInput)="onSearchInput($event)"
+                [placeholder]="acc + '.subSection.searchPlaceholder' | translate">
+              </bal-input>
+            </bal-field-control>
+          </bal-field>
+        </div>
+
+        @for (grupo of listaAccesoriosFiltrados(); track grupo.nombreGrupo) {
+          <div class="mb-normal">
+            <span class="text-medium font-weight-bold mb-small block">
+              {{ (grupo.nombreGrupo === 'Accesorios del Fabricante' ? (acc + '.subSection.groups.fabricante' | translate) : grupo.nombreGrupo) }}
+            </span>
+            
+            <bal-checkbox-group interface="tile" class="flex flex-direction-column gap-normal">
+              
+              @for (item of grupo.items; track item.idAccesorio) {
+                <bal-checkbox 
+                  [name]="'acc-' + item.idAccesorio" 
+                  [value]="item.idAccesorio"
+                  [checked]="item.checked"
+                  (click)="$event.preventDefault(); toggleAccesorioSelection(item)">
                   
-                  <div class="flex-initial pe-normal" style="min-width: 60%;">
-                    <bal-content>
-                      <bal-label class="text-medium font-weight-regular text-grey-dark normal-whitespace">
-                        {{ item.descripcionAccesorio }}
-                      </bal-label>
-                    </bal-content>
+                  <div class="w-full flex align-items-center justify-content-space-between flex-wrap py-x-small">
+                    
+                    <div class="flex-initial pe-normal" style="min-width: 60%;">
+                      <bal-content>
+                        <bal-label class="text-medium font-weight-regular text-grey-dark normal-whitespace">
+                          {{ item.descripcionAccesorio }}
+                        </bal-label>
+                      </bal-content>
+                    </div>
+
+                    <div class="flex align-items-center gap-normal no-shrink ms-auto">
+                      <span class="text-medium font-weight-bold text-grey-light">
+                        {{ item.importeAccesorio }} €
+                      </span>
+                      <bal-check></bal-check>
+                    </div>
+
                   </div>
 
-                  <div class="flex align-items-center gap-normal no-shrink ms-auto">
-                    <span class="text-medium font-weight-bold text-grey-light">
-                      {{ item.importeAccesorio }} €
-                    </span>
-                    <bal-check></bal-check>
-                  </div>
+                </bal-checkbox>
+              }
 
-                </div>
-
-              </bal-checkbox>
-            }
-
-          </bal-checkbox-group>
-        </div>
-      } @empty {
-        <div class="text-center p-normal border-light border-radius-normal bg-grey-1 text-grey text-small">
-          {{ acc + '.subSection.emptyMessage' | translate }}
-        </div>
+            </bal-checkbox-group>
+          </div>
+        } @empty {
+          <div class="text-center p-normal border-light border-radius-normal bg-grey-1 text-grey text-small">
+            {{ acc + '.subSection.emptyMessage' | translate }}
+          </div>
+        }
       }
 
     </div>
@@ -131,12 +141,14 @@
 
   <div class="flex flex-direction-column align-items-end gap-normal mt-normal">
     <bal-button color="primary" 
+      [disabled]="cargandoAccesorios()"
+      [loading]="cargandoAccesorios()"
       (click)="guardarYAvanzar()" 
       [expanded]="esMobile()">
       {{ acc + '.buttons.confirm' | translate }}
     </bal-button>
     
-    @if (tieneAccesoriosSeries()) {
+    @if (tieneAccesoriosSeries() && !cargandoAccesorios()) {
       <button type="button" class="p-none bg-transparent border-none pointer underline text-medium" (click)="saltarYNoDeclarar()">
         {{ acc + '.buttons.skip' | translate }}
       </button>
