@@ -1,5 +1,6 @@
 import { CommonModule } from '@angular/common';
-import { Component, EventEmitter, Input, OnChanges, Output, SimpleChanges, signal } from '@angular/core';
+import { Component, DestroyRef, EventEmitter, Input, OnChanges, Output, SimpleChanges, computed, inject, signal } from '@angular/core';
+import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
 import {
   BalField,
@@ -16,6 +17,7 @@ import {
   EMPTY_DATOS_DOMICILIO,
 } from '../address.model';
 import { DatosDomicilioService } from '../datos-domicilio.service';
+import { Subject, debounceTime, distinctUntilChanged, switchMap } from 'rxjs';
 
 @Component({
   selector: 'app-datos-domicilio-form',
@@ -39,72 +41,133 @@ export class DatosDomicilioForm implements OnChanges {
   @Input() disabled = false;
 
   @Output() modelChange = new EventEmitter<DatosDomicilioModel>();
-  @Output() codigoPostalChange = new EventEmitter<string>();
 
   tiposVia = signal<Array<{ label: string; value: string }>>([]);
   provincias = signal<Array<{ label: string; value: string }>>([]);
   localidades = signal<Array<{ label: string; value: string }>>([]);
+  tipoViaSearch = signal('');
 
   readonly internalModel = signal<DatosDomicilioModel>(EMPTY_DATOS_DOMICILIO);
+  readonly filteredTiposVia = computed(() => {
+    const search = this.tipoViaSearch().trim().toLocaleLowerCase();
+    if (!search) return [];
+    return this.tiposVia()
+      .filter((item) => item.label.toLocaleLowerCase().includes(search))
+      .slice(0, 10);
+  });
+  private lastLoadedPostalCode = '';
+  private readonly destroyRef = inject(DestroyRef);
+  private readonly tipoViaSearchInput$ = new Subject<string>();
 
   constructor(private readonly service: DatosDomicilioService) {
-    this.service.getTiposVia().subscribe(items => this.tiposVia.set(items));
-    this.service.getProvincias().subscribe(items => this.provincias.set(items));
+    this.service.getProvincias().subscribe((items: { label: string; value: string }[]) => this.provincias.set(items));
+    this.tipoViaSearchInput$
+      .pipe(
+        debounceTime(250),
+        distinctUntilChanged(),
+        switchMap(() => this.service.getTiposVia()),
+        takeUntilDestroyed(this.destroyRef),
+      )
+      .subscribe((items) => this.tiposVia.set(items));
   }
 
   ngOnChanges(_changes: SimpleChanges): void {
     this.internalModel.set({ ...this.model });
+    this.tipoViaSearch.set(this.internalModel().tipoVia);
 
     if (this.internalModel().codigoPostal) {
-      this.loadLocalidades(this.internalModel().codigoPostal);
+      this.loadAddressData(this.internalModel().codigoPostal);
     } else {
       this.localidades.set([]);
     }
   }
 
   setField(field: keyof DatosDomicilioModel, event: any): void {
-  const detail = event?.detail;
-  const normalizedValue =
-    detail?.value ??
-    detail ??
-    (event as any)?.value ??
-    event ??
-    '';
+    const detail = event?.detail;
+    const normalizedValue =
+      detail?.value ??
+      detail ??
+      (event as any)?.value ??
+      event ??
+      '';
 
-  const updated = { ...this.internalModel(), [field]: String(normalizedValue) };
+    const updated = { ...this.internalModel(), [field]: String(normalizedValue) };
 
-  if (field === 'codigoPostal') {
-    this.loadLocalidades(updated.codigoPostal);
-    const provincia = this.service.getProvinciaForCodigoPostal(updated.codigoPostal);
-    if (provincia && !updated.provincia) {
-      updated.provincia = provincia;
+    if (field === 'codigoPostal') {
+      const codigoPostal = updated.codigoPostal.slice(0, 5);
+      updated.codigoPostal = codigoPostal;
     }
-  }
 
-  this.internalModel.set(updated);
-  this.emitModel(updated);
-}
+    this.internalModel.set(updated);
+    if (field === 'codigoPostal') {
+      this.loadAddressData(updated.codigoPostal);
+    }
+    this.emitModel(updated);
+  }
 
 
   setCodigoPostal(value: string): void {
     const cp = value.toString().slice(0, 5);
     this.setField('codigoPostal', cp);
-    this.codigoPostalChange.emit(cp);
   }
 
   updateModel(model: DatosDomicilioModel): void {
     this.internalModel.set({ ...model });
-    this.loadLocalidades(model.codigoPostal);
+    this.tipoViaSearch.set(model.tipoVia);
+    this.loadAddressData(model.codigoPostal);
     this.emitModel(model);
   }
 
-  private loadLocalidades(codigoPostal: string): void {
-    this.service.getLocalidades(codigoPostal).subscribe(items => {
-      this.localidades.set(items);
+  onTipoViaInput(event: any): void {
+    const value = String(event?.detail?.value ?? event?.detail ?? event?.target?.value ?? '').trimStart();
+    this.tipoViaSearch.set(value);
+    this.setField('tipoVia', value);
+    this.tipoViaSearchInput$.next(value);
+  }
 
-      if (items.length === 1 && !this.internalModel().localidad) {
-        this.internalModel.set({ ...this.internalModel(), localidad: items[0].value });
-        this.emitModel(this.internalModel());
+  selectTipoVia(value: string): void {
+    this.tipoViaSearch.set(value);
+    this.setField('tipoVia', value);
+  }
+
+  private loadAddressData(codigoPostal: string): void {
+    const normalizedPostalCode = codigoPostal.slice(0, 5);
+    if (normalizedPostalCode.length < 5) {
+      this.lastLoadedPostalCode = '';
+      this.localidades.set([]);
+      return;
+    }
+
+    if (this.lastLoadedPostalCode === normalizedPostalCode) return;
+    this.lastLoadedPostalCode = normalizedPostalCode;
+
+    this.service.getAddressData(normalizedPostalCode).subscribe(({ localidades, provincias, provincia }) => {
+      this.localidades.set(localidades);
+      if (provincias.length > 0) {
+        this.provincias.set(provincias);
+      } else if (provincia) {
+        this.provincias.set([{ label: provincia, value: provincia }]);
+      }
+      const current = this.internalModel();
+      const matchingLocalidad = localidades.find(
+        (item) => item.value.trim().toLocaleLowerCase() === current.localidad.trim().toLocaleLowerCase(),
+      )?.value;
+      // Google puede devolver el municipio mientras BDI devuelve población;
+      // si no hay una coincidencia exacta, en modo Google usamos la primera
+      // localidad válida de BDI para que el select siempre tenga valor.
+      const localidad = matchingLocalidad
+        ?? ((this.disabled || localidades.length === 1) && localidades.length > 0
+          ? localidades[0].value
+          : current.localidad);
+      const updated = {
+        ...current,
+        provincia: provincia ?? current.provincia,
+        localidad,
+      };
+
+      if (updated.provincia !== current.provincia || updated.localidad !== current.localidad) {
+        this.internalModel.set(updated);
+        this.emitModel(updated);
       }
     });
   }

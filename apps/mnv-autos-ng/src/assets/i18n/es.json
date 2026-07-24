@@ -24,7 +24,25 @@
       "fechaObtuvoCarnet": "Fecha obtuvo carnet",
       "edadObtuvoCarnet": "Edad obtuvo el carnet"
     },
-     "address": {
+      "address": {
+        "tomador": {
+          "title": "Direccion de residencia del tomador",
+          "subtitle": "La direccion completa influye en el calculo de la prima",
+          "placeholder": "Buscar direccion",
+          "ariaLabel": "Buscar direccion del tomador"
+        },
+        "vehiculo": {
+          "title": "Direccion del vehiculo",
+          "subtitle": "La direccion completa influye en el calculo de la prima",
+          "placeholder": "Buscar direccion del vehiculo",
+          "ariaLabel": "Buscar direccion del vehiculo"
+        },
+        "propietario": {
+          "title": "Direccion de residencia del propietario",
+          "subtitle": "La direccion completa influye en el calculo de la prima",
+          "placeholder": "Buscar direccion del propietario",
+          "ariaLabel": "Buscar direccion del propietario"
+        },
         "title": "Dirección de residencia del tomador",
         "subtitle": "La dirección completa influye en el cálculo de la prima",
         "placeholder": "Buscar dirección",

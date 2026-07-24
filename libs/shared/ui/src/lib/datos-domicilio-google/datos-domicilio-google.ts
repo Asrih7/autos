@@ -1,8 +1,7 @@
-import { AfterViewInit,  Component, ElementRef, EventEmitter, Input, OnChanges, OnDestroy, Output, SimpleChanges, ViewChild, signal, inject } from '@angular/core';
+import { AfterViewInit,  Component, ElementRef, EventEmitter, Input, OnChanges, OnDestroy, Output, SimpleChanges, ViewChild, signal } from '@angular/core';
 import { BalHeading, BalInput } from '@baloise/ds-angular';
 import { TranslateModule } from '@ngx-translate/core';
 import { DatosDomicilioModel } from '../address.model';
-import { DatosDomicilioService } from '../datos-domicilio.service';
 
 @Component({
   selector: 'app-datos-domicilio-google',
@@ -15,24 +14,25 @@ export class DatosDomicilioGoogle implements OnChanges, AfterViewInit, OnDestroy
   autocompleteInput!: ElementRef<HTMLElement>;
 
   @Input() value = '';
+  @Input({ alias: 'placeholder' }) searchPlaceholder = 'Buscar direccion con Google';
+  @Input() ariaLabel = 'Buscar direccion';
   @Output() addressSelected = new EventEmitter<DatosDomicilioModel>();
   @Output() clearSelection = new EventEmitter<void>();
 
-  private readonly datosService = inject(DatosDomicilioService);
-
-  readonly placeholder = 'Busca una dirección con Google';
   readonly selectedText = signal('');
 
   private autocomplete: any;
+  private autocompleteInputElement?: HTMLInputElement;
   private googleMapsLoader?: Promise<void>;
-  private legacyDomicilioLoader?: Promise<void>;
+  private hasSelectedAddress = false;
 
   ngAfterViewInit(): void {
     this.setupAutocomplete();
   }
 
   ngOnDestroy(): void {
-    // No cleanup required when using a single injected script element.
+    this.autocompleteInputElement?.removeEventListener('focus', this.onSearchFocus);
+    this.autocomplete?.unbindAll?.();
   }
 
   ngOnChanges(changes: SimpleChanges): void {
@@ -43,6 +43,9 @@ export class DatosDomicilioGoogle implements OnChanges, AfterViewInit, OnDestroy
       if (!incoming) {
         this.clearSelection.emit();
       }
+
+      // BalInput puede recrear su input interno al volver al step.
+      queueMicrotask(() => this.setupAutocomplete());
     }
   }
 
@@ -53,6 +56,8 @@ export class DatosDomicilioGoogle implements OnChanges, AfterViewInit, OnDestroy
     if (!inputValue) {
       this.clearSelection.emit();
     }
+
+    this.setupAutocomplete();
   }
 
   private setupAutocomplete(): void {
@@ -74,17 +79,8 @@ export class DatosDomicilioGoogle implements OnChanges, AfterViewInit, OnDestroy
       return;
     }
 
-    Promise.all([this.loadGoogleMapsScript(), this.loadLegacyDomicilioScript()])
+    this.loadGoogleMapsScript()
       .then(() => {
-        const loader = (window as any).loadDomicilioGoogle;
-        if (typeof loader === 'function') {
-          loader(inputElement, (parsed: DatosDomicilioModel) => {
-            this.selectedText.set(this.formatAddress(parsed));
-            this.addressSelected.emit(parsed);
-          });
-          return;
-        }
-
         this.initializeAutocomplete(inputElement);
       })
       .catch(() => {
@@ -129,54 +125,14 @@ export class DatosDomicilioGoogle implements OnChanges, AfterViewInit, OnDestroy
     return this.googleMapsLoader;
   }
 
-  private loadLegacyDomicilioScript(): Promise<void> {
-    if (this.legacyDomicilioLoader) {
-      return this.legacyDomicilioLoader;
-    }
-
-    const legacyScript = document.querySelector<HTMLScriptElement>('script[data-legacy-domicilio]');
-    if (legacyScript) {
-      this.legacyDomicilioLoader = new Promise((resolve, reject) => {
-        if ((window as any).loadDomicilioGoogle) {
-          resolve();
-          return;
-        }
-        legacyScript.addEventListener('load', () => {
-          if ((window as any).loadDomicilioGoogle) {
-            resolve();
-            return;
-          }
-          reject(new Error('Legacy domicilio loader did not export loadDomicilioGoogle'));
-        });
-        legacyScript.addEventListener('error', () => reject(new Error('Failed to load legacy domicilio script')));
-      });
-      return this.legacyDomicilioLoader;
-    }
-
-    this.legacyDomicilioLoader = new Promise((resolve, reject) => {
-      const script = document.createElement('script');
-      script.src = 'assets/ftl/E_PRD_3014_TARIFICACION_PM.js';
-      script.async = true;
-      script.defer = true;
-      script.setAttribute('data-legacy-domicilio', 'true');
-      script.addEventListener('load', () => {
-        if ((window as any).loadDomicilioGoogle) {
-          resolve();
-          return;
-        }
-        reject(new Error('Legacy domicilio loader did not export loadDomicilioGoogle'));
-      });
-      script.addEventListener('error', () => reject(new Error('Failed to load legacy domicilio script')));
-      document.head.appendChild(script);
-    });
-
-    return this.legacyDomicilioLoader;
-  }
-
   private initializeAutocomplete(inputElement: HTMLInputElement): void {
-    if (this.autocomplete) {
+    if (this.autocomplete && this.autocompleteInputElement === inputElement) {
       return;
     }
+
+    this.autocompleteInputElement?.removeEventListener('focus', this.onSearchFocus);
+    this.autocomplete?.unbindAll?.();
+    this.autocomplete = undefined;
 
     const google = (window as any).google;
     if (!google?.maps?.places?.Autocomplete) {
@@ -188,8 +144,10 @@ export class DatosDomicilioGoogle implements OnChanges, AfterViewInit, OnDestroy
       componentRestrictions: { country: 'ES' },
     });
 
-    this.autocomplete.setFields(['address_component']);
+    this.autocomplete.setFields(['address_component', 'formatted_address', 'name']);
     this.autocomplete.addListener('place_changed', () => this.onPlaceChanged());
+    this.autocompleteInputElement = inputElement;
+    inputElement.addEventListener('focus', this.onSearchFocus);
   }
 
   private onPlaceChanged(): void {
@@ -204,8 +162,18 @@ export class DatosDomicilioGoogle implements OnChanges, AfterViewInit, OnDestroy
     }
 
     this.selectedText.set(this.formatAddress(parsed));
+    this.hasSelectedAddress = true;
     this.addressSelected.emit(parsed);
   }
+
+  private readonly onSearchFocus = (): void => {
+    if (!this.hasSelectedAddress) return;
+
+    // Al regresar a este step se permite buscar una dirección distinta sin
+    // tener que borrar manualmente la selección anterior.
+    this.hasSelectedAddress = false;
+    this.selectedText.set('');
+  };
 
   private parsePlace(place: any): DatosDomicilioModel | null {
     if (!place || !Array.isArray(place.address_components)) {
@@ -219,12 +187,15 @@ export class DatosDomicilioGoogle implements OnChanges, AfterViewInit, OnDestroy
       return component?.long_name ?? '';
     };
 
-    const route = getComponent('route') || '';
+    const formattedAddress = String(place.formatted_address ?? place.name ?? '');
+    const formattedParts = formattedAddress.split(',').map((part) => part.trim()).filter(Boolean);
+    const route = getComponent('route') || formattedParts[0] || '';
     let streetNumber =
       getComponent('street_number') ||
       getComponent('subpremise') ||
-      getComponent('premise');
-    const postalCode = getComponent('postal_code') || '';
+      getComponent('premise') ||
+      this.getStreetNumberFromText(formattedAddress);
+    const postalCode = getComponent('postal_code') || this.getPostalCodeFromText(formattedAddress);
     const locality =
       getComponent('locality') ||
       getComponent('postal_town') ||
@@ -232,13 +203,12 @@ export class DatosDomicilioGoogle implements OnChanges, AfterViewInit, OnDestroy
       getComponent('neighborhood') ||
       getComponent('administrative_area_level_3') ||
       getComponent('administrative_area_level_2') ||
-      '';
+      this.getLocalityFromText(formattedAddress);
     const province =
       getComponent('administrative_area_level_2') ||
       getComponent('administrative_area_level_1') ||
       getComponent('administrative_area_level_3') ||
-      this.datosService.getProvinciaForCodigoPostal(postalCode) ||
-      '';
+      this.getProvinceFromText(formattedParts);
 
     const normalizedRoute = route.trim();
     const routeTokens = normalizedRoute.split(' ').filter(Boolean);
@@ -248,8 +218,8 @@ export class DatosDomicilioGoogle implements OnChanges, AfterViewInit, OnDestroy
     const firstToken = routeTokens.length > 0 ? routeTokens[0] : '';
     const normalizedTipoVia = this.normalizeTipoVia(firstToken);
 
-    if (routeTokens.length > 1 && normalizedTipoVia) {
-      tipoVia = normalizedTipoVia;
+    if (routeTokens.length > 1) {
+      tipoVia = normalizedTipoVia || firstToken;
       nombreVia = routeTokens.slice(1).join(' ');
     } else if (routeTokens.length === 1) {
       nombreVia = normalizedRoute;
@@ -264,8 +234,8 @@ export class DatosDomicilioGoogle implements OnChanges, AfterViewInit, OnDestroy
         const routeWithoutNumber = match[1].trim();
         const tokens = routeWithoutNumber.split(' ').filter(Boolean);
         const normalizedPrefix = tokens.length > 0 ? this.normalizeTipoVia(tokens[0]) : '';
-        if (normalizedPrefix && tokens.length > 1) {
-          tipoVia = normalizedPrefix;
+        if (tokens.length > 1) {
+          tipoVia = normalizedPrefix || tokens[0];
           nombreVia = tokens.slice(1).join(' ');
         } else {
           nombreVia = routeWithoutNumber;
@@ -308,6 +278,26 @@ export class DatosDomicilioGoogle implements OnChanges, AfterViewInit, OnDestroy
 
     const normalized = rawTipoVia.toLowerCase().replace(/[\.]/g, '').trim();
     return lookup[normalized] ?? '';
+  }
+
+  private getStreetNumberFromText(value: string): string {
+    const match = value.match(/(?:,|\s)(\d+[A-Za-z]?)\b/);
+    return match?.[1] ?? '';
+  }
+
+  private getPostalCodeFromText(value: string): string {
+    return value.match(/\b\d{5}\b/)?.[0] ?? '';
+  }
+
+  private getLocalityFromText(value: string): string {
+    const match = value.match(/\b\d{5}\s+([^,]+)/);
+    return match?.[1]?.trim() ?? '';
+  }
+
+  private getProvinceFromText(parts: string[]): string {
+    if (parts.length < 2) return '';
+    // La última parte suele ser el país; la anterior es la provincia.
+    return parts[parts.length - 2] ?? '';
   }
 
   private formatAddress(address: DatosDomicilioModel): string {

@@ -8,7 +8,8 @@
     #autocompleteInput
     class="w-8"
     id="domicilio-google"
-    [placeholder]="placeholder"
+    [placeholder]="searchPlaceholder"
+    [attr.aria-label]="ariaLabel"
     [value]="selectedText()"
     autocomplete="street-address"
     (balInput)="onInput($event)"

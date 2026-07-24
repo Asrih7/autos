@@ -15,7 +15,7 @@ import {
   Injector, 
 } from "@angular/core";
 import { NavigationEnd, Router } from "@angular/router";
-import { filter } from "rxjs";
+import { filter, firstValueFrom } from "rxjs";
 import { BalButton , BalButtonGroup} from "@baloise/ds-angular";
 import { TranslateModule } from "@ngx-translate/core";
 
@@ -23,6 +23,8 @@ import { USO_CONDUCTORES_STEPS } from "./uso-conductores.steps";
 import { UsoConductoresStateService } from "./uso-conductores-state.service";
 import { PageNavigationService } from "@mnv-autos-ng/navigation";
 import { takeUntilDestroyed } from "@angular/core/rxjs-interop";
+import { DatosDomicilioModel } from "../../../../../libs/shared/ui/src/lib/address.model";
+import { DatosDomicilioService } from "../../../../../libs/shared/ui/src/lib/datos-domicilio.service";
 
 @Component({
   selector: "app-uso-conductores",
@@ -39,6 +41,7 @@ export class UsoConductoresComponent
   private readonly navService = inject(PageNavigationService);
   private readonly destroyRef = inject(DestroyRef);
   private readonly injector = inject(Injector); 
+  private readonly datosDomicilioService = inject(DatosDomicilioService);
   private navigating = false;
   private activeStepInstance: ParentNextStep | null = null;
   private readonly stepComponentRefs = new Map<string, ComponentRef<any>>();
@@ -70,7 +73,7 @@ export class UsoConductoresComponent
         );
       }
       case "direccion-tomador":
-        return this.state.canContinueFromDireccionTomador();
+        return this.isDireccionTomadorComplete();
       case "seguro-anterior":
         return this.state.canContinueFromSeguroAnterior();
       case "fecha-efecto-seguro":
@@ -250,7 +253,7 @@ export class UsoConductoresComponent
     }
   }
 
-  goNext(): void {
+  async goNext(): Promise<void> {
     if (!this.nextEnabled()) return;
     if (this.navigating) return;
 
@@ -261,6 +264,13 @@ export class UsoConductoresComponent
 
     if (this.activeStepInstance?.onParentNext?.()) {
       return;
+    }
+
+    if (currentStep.id === "direccion-tomador" && !this.state.direccionTomadorCompleted()) {
+      this.navigating = true;
+      const normalized = await this.normalizeDireccionTomador();
+      this.navigating = false;
+      if (!normalized) return;
     }
 
     const nextStep = currentSteps[index + 1];
@@ -282,6 +292,35 @@ export class UsoConductoresComponent
 
   private navigateTo(stepId: string, replaceUrl = false): void {
     this.router.navigate(["/uso-conductores", stepId], { replaceUrl });
+  }
+
+  private isDireccionTomadorComplete(): boolean {
+    const direccion = this.state.direccionTomador();
+    return [
+      direccion.tipoVia,
+      direccion.nombreVia,
+      direccion.numero,
+      direccion.codigoPostal,
+      direccion.provincia,
+      direccion.localidad,
+    ].every((value) => value.trim().length > 0);
+  }
+
+  private async normalizeDireccionTomador(): Promise<boolean> {
+    const step = this.activeStepInstance as DireccionTomadorStep | null;
+
+    try {
+      const normalized = await firstValueFrom(
+        this.datosDomicilioService.normalizeAddress(this.state.direccionTomador()),
+      );
+      this.state.updateDireccionTomador(normalized);
+      this.state.completeDireccionTomador();
+      step?.applyNormalizedAddress?.(normalized);
+      return true;
+    } catch {
+      step?.showNormalisationFailure?.();
+      return false;
+    }
   }
 
   onStepAreaInteraction(event: Event): void {
@@ -326,4 +365,9 @@ export interface StepDefinition {
 interface ParentNextStep {
   onParentNext?(): boolean;
   validate?(): void;
+}
+
+interface DireccionTomadorStep extends ParentNextStep {
+  applyNormalizedAddress?(address: DatosDomicilioModel): void;
+  showNormalisationFailure?(): void;
 }

@@ -6,7 +6,7 @@
     "logLevel": "debug"
   },
   "/mnv-seguridad-sb": {
-    "target": "https://mnv-seguridad-sb.rosa-inte-back.caser.local",
+    "target": "https://mnv-seguridad-sb.rosa-test-back.caser.local",
     "secure": false,
     "changeOrigin": true,
     "logLevel": "debug"

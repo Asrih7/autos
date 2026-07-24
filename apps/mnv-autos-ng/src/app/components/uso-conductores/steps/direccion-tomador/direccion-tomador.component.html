@@ -2,24 +2,25 @@
 
 <section class="w-6 flex flex-direction-column gap-normal bg-white mb-large">
   <bal-heading level="h3" visual-level="h4" class="mb-none text-blue">
-    {{ 'usoConductores.intervinientes.address.title' | translate }}
+    {{ titleKey | translate }}
   </bal-heading>
 
   <p class="text-body-small text-light mt-none text-blue">
-    {{ 'usoConductores.intervinientes.address.subtitle' | translate }}
+    {{ subtitleKey | translate }}
   </p>
 
  <app-datos-domicilio-google
-  [value]="formDisabled() ? model().domicilio : ''"
+  [value]="model().domicilio"
+  [placeholder]="placeholderKey | translate"
+  [ariaLabel]="ariaLabelKey | translate"
   (addressSelected)="onAddressSelected($event)">
 </app-datos-domicilio-google>
 
 
   <app-datos-domicilio-form
     [model]="direccion()"
-    [disabled]="formDisabled()"
     (modelChange)="onFormChanged($event)"
-    (codigoPostalChange)="onCodigoPostalChanged($event)">
+    [disabled]="formDisabled()">
   </app-datos-domicilio-form>
 
   @if (toastOpen()) {

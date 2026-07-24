@@ -9,15 +9,21 @@
       <bal-field>
         <bal-field-label class="text-body-small text-light mt-none text-blue">Tipo de vía*</bal-field-label>
         <bal-field-control>
-          <bal-select
-            [value]="internalModel().tipoVia"
+          <bal-input
+            [value]="tipoViaSearch()"
             [disabled]="disabled"
-            (balChange)="setField('tipoVia', $event)"
-          >
-            @for (item of tiposVia(); track item.value) {
-              <bal-select-option [value]="item.value" [label]="item.label"></bal-select-option>
-            }
-          </bal-select>
+            autocomplete="off"
+            (balInput)="onTipoViaInput($event)"
+          ></bal-input>
+          @if (!disabled && filteredTiposVia().length > 0) {
+            <div role="listbox" class="flex flex-direction-column bg-white">
+              @for (item of filteredTiposVia(); track item.value) {
+                <button type="button" role="option" (click)="selectTipoVia(item.value)">
+                  {{ item.label }}
+                </button>
+              }
+            </div>
+          }
         </bal-field-control>
       </bal-field>
     </div>
