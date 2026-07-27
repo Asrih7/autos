@@ -10,7 +10,7 @@
     [placeholder]="'usoConductores.address.placeholder' | translate"
     [ariaLabel]="'usoConductores.address.ariaLabel' | translate"
     (addressSelected)="onAddressSelected($event)"
-    (clearSelection)="onDireccionChange({ ...internalDireccion, tipoVia: '', nombreVia: '', numero: '', codigoPostal: '', provincia: '', localidad: '' })"
+    (clearSelection)="clearSelection()"
   ></app-datos-domicilio-google>
 
   <app-datos-domicilio-form

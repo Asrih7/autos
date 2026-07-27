@@ -19,7 +19,8 @@ export interface TarjetaClienteEncontradoData {
 @Component({
   selector: "app-tarjeta-cliente-encontrado",
   standalone: true,
-  schemas: [CUSTOM_ELEMENTS_SCHEMA, TranslateModule],
+  imports: [TranslateModule],
+  schemas: [CUSTOM_ELEMENTS_SCHEMA],
   templateUrl: "./tarjeta-cliente-encontrado.component.html",
   
 })

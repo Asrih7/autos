@@ -31,4 +31,16 @@ export class DireccionClienteComponent implements OnChanges {
   onAddressSelected(address: DatosDomicilioModel): void {
     this.onDireccionChange(address);
   }
+
+  clearSelection(): void {
+    this.onDireccionChange({
+      ...this.internalDireccion,
+      tipoVia: '',
+      nombreVia: '',
+      numero: '',
+      codigoPostal: '',
+      provincia: '',
+      localidad: '',
+    });
+  }
 }

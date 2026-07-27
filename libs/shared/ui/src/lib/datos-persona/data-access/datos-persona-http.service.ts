@@ -2,7 +2,8 @@ import { HttpClient } from '@angular/common/http';
 import { inject, Injectable, type Provider } from '@angular/core';
 import { map, type Observable } from 'rxjs';
 import { environment } from 'apps/mnv-autos-ng/src/environments/environment';
-import { DATOS_PERSONA_OPTIONS_API, type DatosPersonaOptionsApi, type DatosPersonaOptions } from './datos-persona-options.api';
+import { DATOS_PERSONA_OPTIONS_API, type DatosPersonaOptionsApi } from './datos-persona-options.api';
+import type { DatosPersonaOptions } from './datos-persona-options.model';
 
 const DOCUMENT_TYPES = [
   { value: 'dni', label: 'DNI' },

@@ -46,7 +46,10 @@ export class DatosPersona implements OnChanges {
   model: DatosPersonaModel = { ...this.initialModel };
   documentNumberTouched = false;
   nationalityTouched = false;
-  options: { documentTypes: { value: string; label: string }[]; nationalities: { value: string; label: string }[] } = {
+  options: {
+    documentTypes: readonly { value: string; label: string }[];
+    nationalities: readonly { value: string; label: string }[];
+  } = {
     documentTypes: [],
     nationalities: [],
   };

@@ -7,16 +7,17 @@
     (searchRequested)="searchCliente($event)"
   ></app-cliente-busqueda>
 
-  @if (clientResult() && !showPersonalDataStep()) {
+  @if (clientResult(); as clientResultData) {
+    @if (!showPersonalDataStep()) {
     <app-tarjeta-cliente-encontrado
       [person]="{
-        name: clientResult().name,
-        clientType: clientResult().clientType,
-        documentType: clientResult().documentType,
-        documentNumber: clientResult().documentNumber,
-        nationality: clientResult().nationality,
-        age: clientResult().age ?? 0,
-        address: clientResult().address ?? ''
+        name: clientResultData.name,
+        clientType: clientResultData.clientType,
+        documentType: clientResultData.documentType,
+        documentNumber: clientResultData.documentNumber,
+        nationality: clientResultData.nationality,
+        age: clientResultData.age ?? 0,
+        address: clientResultData.address ?? ''
       }"
       (edit)="handleEdit($event)"
     />
@@ -29,6 +30,7 @@
         {{ 'tuCliente.actions.precotizacion' | translate }}
       </bal-button>
     </div>
+    }
   }
 
   @if (!clientResult() && !showPersonalDataStep() && clientSearchQuery().trim()) {

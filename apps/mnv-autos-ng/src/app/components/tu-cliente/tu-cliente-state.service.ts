@@ -170,9 +170,9 @@ export class TuClienteStateService {
           name: this.getDisplayName(current.datosPersona),
           documentType: current.datosPersona.documentType
             ? current.datosPersona.documentType.toUpperCase()
-            : current.clientResult?.documentType,
+            : current.clientResult?.documentType ?? '',
           documentNumber: current.datosPersona.documentNumber,
-          nationality: current.datosPersona.nationality ?? current.clientResult?.nationality,
+          nationality: current.datosPersona.nationality ?? current.clientResult?.nationality ?? '',
         },
         editingClient: false,
         showPersonalDataStep: false,

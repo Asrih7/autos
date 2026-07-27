@@ -3,6 +3,7 @@ import { BalButton } from '@baloise/ds-angular';
 import { Component, inject, OnDestroy, OnInit } from "@angular/core";
 import { PageNavigationService } from '@mnv-autos-ng/navigation';
 import { ClienteBusquedaService, type DatosPersonaModel, DatosDomicilioModel } from '@mnv-autos-ng/ui';
+import { TranslateModule } from '@ngx-translate/core';
 import { TuClienteStateService } from './tu-cliente-state.service';
 import { DatosPersonaComponent } from './steps/datos-persona/datos-persona.component';
 import { FechaNacimientoComponent } from './steps/fecha-nacimiento/fecha-nacimiento.component';
@@ -26,6 +27,7 @@ type OperacionTipo = 'cotizacion' | 'precotizacion';
     DireccionClienteComponent,
     FechaNacimientoComponent,
     BalButton,
+    TranslateModule,
   ],
   templateUrl: './tu-cliente.component.html',
   styleUrls: ['./tu-cliente.component.scss'],
