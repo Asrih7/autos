@@ -1,7 +1,7 @@
 import { HttpClient } from '@angular/common/http';
 import { inject, Injectable, type Provider } from '@angular/core';
 import { map, type Observable } from 'rxjs';
-import { environment } from '../../../../../../apps/mnv-autos-ng/src/environments/environment';
+import { environment } from 'apps/mnv-autos-ng/src/environments/environment';
 import { DATOS_PERSONA_OPTIONS_API, type DatosPersonaOptionsApi, type DatosPersonaOptions } from './datos-persona-options.api';
 
 const DOCUMENT_TYPES = [

@@ -1,7 +1,7 @@
 import { HttpClient } from '@angular/common/http';
 import { inject, Injectable } from '@angular/core';
 import { map, Observable } from 'rxjs';
-import { environment } from '../../../../../../apps/mnv-autos-ng/src/environments/environment';
+import { environment } from 'apps/mnv-autos-ng/src/environments/environment';
 import {
   ApiClienteDatosPersonalesRequest,
   ApiDatosBusquedaCliente,

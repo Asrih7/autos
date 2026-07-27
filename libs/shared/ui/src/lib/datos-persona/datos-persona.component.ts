@@ -1,10 +1,10 @@
-import { CommonModule } from '@angular/common';
-import { Component, EventEmitter, Input, OnChanges, Output, SimpleChanges } from '@angular/core';
+import { Component, EventEmitter, inject, Input, OnChanges, Output, SimpleChanges } from '@angular/core';
 import {
   BalCheckbox,
   BalField,
   BalFieldControl,
   BalFieldLabel,
+  BalFieldMessage,
   BalHeading,
   BalInput,
   BalSelect,
@@ -17,7 +17,7 @@ import type { DatosPersonaModel } from './models/datos-persona.model';
 @Component({
   selector: 'lib-datos-persona',
   standalone: true,
-  imports: [CommonModule, BalHeading, BalField, BalFieldControl, BalFieldLabel, BalInput, BalSelect, BalSelectOption, BalCheckbox, TranslateModule],
+  imports: [ BalHeading, BalField, BalFieldControl, BalFieldLabel, BalInput, BalSelect, BalSelectOption, BalCheckbox, TranslateModule, BalFieldMessage],
   templateUrl: './datos-persona.component.html',
 })
 export class DatosPersona implements OnChanges {

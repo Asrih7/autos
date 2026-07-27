@@ -1,11 +1,11 @@
 import { CommonModule } from '@angular/common';
 import { Component, EventEmitter, Input, Output } from '@angular/core';
-import { BalField, BalFieldControl, BalFieldLabel, BalInputDate } from '@baloise/ds-angular';
+import { BalField, BalFieldControl, BalFieldLabel, BalFieldMessage, BalInputDate } from '@baloise/ds-angular';
 
 @Component({
   selector: 'lib-fecha-nacimiento',
   standalone: true,
-  imports: [CommonModule, BalField, BalFieldControl, BalFieldLabel, BalInputDate],
+  imports: [CommonModule, BalField, BalFieldControl, BalFieldLabel, BalInputDate, BalFieldMessage],
   templateUrl: './fecha-nacimiento.component.html',
 })
 export class FechaNacimiento {

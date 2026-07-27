@@ -1,12 +1,12 @@
 import { AfterViewInit, Component, EventEmitter, Input, OnChanges, Output, SimpleChanges } from '@angular/core';
 import { BalHeading } from '@baloise/ds-angular';
-import { CommonModule } from '@angular/common';
 import { DatosDomicilioForm, DatosDomicilioGoogle, DatosDomicilioModel, EMPTY_DATOS_DOMICILIO } from '@mnv-autos-ng/ui';
+import { TranslateModule } from '@ngx-translate/core';
 
 @Component({
   selector: 'app-direccion-cliente',
   standalone: true,
-  imports: [CommonModule, BalHeading, DatosDomicilioGoogle, DatosDomicilioForm],
+  imports: [ BalHeading, DatosDomicilioGoogle, DatosDomicilioForm,TranslateModule],
   templateUrl: './direccion-cliente.component.html',
   
 })
