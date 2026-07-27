@@ -18,7 +18,7 @@ export const VEHICULO_STEPS: VehiculoStepDefinition[] = [
     id: 'busqueda-manual',
     label: 'Búsqueda Manual',
     component: () =>
-      import('./steps/busqueda-manual/busqueda-manual')
+      import('./steps/busqueda-manual/busqueda-manual.component')
         .then(m => m.BusquedaManualComponent),
   },
   {
@@ -39,7 +39,7 @@ export const VEHICULO_STEPS: VehiculoStepDefinition[] = [
     id: 'accesorios',
     label: 'Accesorios',
     component: () =>
-      import('./steps/accesorios/accesorios')
+      import('./steps/accesorios/accesorios.component')
         .then(m => m.Accesorios),
   },
 ];

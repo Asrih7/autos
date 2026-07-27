@@ -10,10 +10,16 @@ export function mapToVehiculoDomain(dto: ApiVehiculoResponse): Vehiculo {
   const primaryNode = dto.versiones[0];
 
   return {
+    codigoActividad: dto.codigoActividad,
+    clasificacion: {
+      categoriaVehiculo: primaryNode.clasificacion.categoriaVehiculo,
+      tipoVehiculo: primaryNode.clasificacion.tipoVehiculo,
+      claseVehiculo: primaryNode.clasificacion.claseVehiculo,
+    },
     marca: {
       id: primaryNode.marca.id,
       nombre: primaryNode.marca.nombre,
-      logo: `assets/logos/${primaryNode.marca.id.toLowerCase()}.png`
+      // logo: `assets/logos/${primaryNode.marca.id.toLowerCase()}.png`
     },
     modelo: {
       id: primaryNode.modelo.id,
@@ -45,7 +51,7 @@ export function mapToMarcasDomain(dtoList: ApiMarcaResponse[]): Marca[] {
   return dtoList.map(dto => ({
     id: dto.codigo,
     nombre: dto.descripcion,
-    logo: `assets/logos/${dto.codigo.toLowerCase()}.png`
+    // logo: `assets/logos/${dto.codigo.toLowerCase()}.png`
   }));
 }
 

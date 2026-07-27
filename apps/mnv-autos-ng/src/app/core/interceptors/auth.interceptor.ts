@@ -40,7 +40,6 @@ export const authInterceptor: HttpInterceptorFn = (
           sessionStorage.setItem('mnv_autos_auth_token', newToken);
           if (newRefresh) sessionStorage.setItem('mnv_autos_refresh_token', newRefresh);
           
-          console.log('[Auth Interceptor] Silent technical token recovery successful. Sending original request.');
           return next(cloneWithToken(req, newToken));
         }
         
@@ -74,7 +73,6 @@ export const authInterceptor: HttpInterceptorFn = (
               sessionStorage.setItem('mnv_autos_auth_token', newToken);
               if (newRefresh) sessionStorage.setItem('mnv_autos_refresh_token', newRefresh);
               
-              console.log('[Auth Interceptor] Recovered from server 401. Retrying original request.');
               return next(cloneWithToken(req, newToken));
             }
             

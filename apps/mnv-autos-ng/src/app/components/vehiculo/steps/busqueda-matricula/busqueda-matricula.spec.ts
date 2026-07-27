@@ -5,7 +5,7 @@ import { TranslateModule } from "@ngx-translate/core";
 import { VehiculoGlobalState, VehiculoStateService } from "../../services/vehiculo-state.service";
 import { signal, WritableSignal, type Signal } from "@angular/core";
 import * as util from "@mnv-autos-ng/util";
-import { StepCompleteCallback } from "../../vehiculo";
+import { StepCompleteCallback } from "../../vehiculo.component";
 import { MetodoBusqueda } from "../../models/vehiculo.models";
 
 vi.mock("@mnv-autos-ng/util", () => ({

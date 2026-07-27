@@ -1,14 +1,14 @@
 import { Route } from '@angular/router';
 import { vehiculoProgressGuard } from '../core/guards/vehiculo-progress.guard';
 
-import { usoConductoresEntryGuard } from './uso-conductores-entry.guard';
+import { usoConductoresEntryGuard } from '../core/guards/uso-conductores-entry.guard';
 
 export const appRoutes: Route[] = [
 
   {
     path: 'tu-cliente',
     loadComponent: () =>
-      import('../components/tu-cliente/tu-cliente')
+      import('../components/tu-cliente/tu-cliente.component')
         .then(m => m.TuClienteComponent),
     data: { pageId: 'tu-cliente', label: 'Tu cliente', showInMenu: true },
   },
@@ -22,7 +22,7 @@ export const appRoutes: Route[] = [
     path: 'vehiculos/:step',
     canActivate: [vehiculoProgressGuard],
     loadComponent: () =>
-      import('../components/vehiculo/vehiculo')
+      import('../components/vehiculo/vehiculo.component')
         .then(m => m.VehiculoComponent),
     data: { pageId: 'vehiculos', label: 'Vehículos', showInMenu: true },
   },
@@ -44,7 +44,7 @@ export const appRoutes: Route[] = [
   {
     path: 'uso-conductores/:step',
     loadComponent: () =>
-      import('../components/uso-conductores/uso-conductores')
+      import('../components/uso-conductores/uso-conductores.component')
         .then(m => m.UsoConductoresComponent),
     data: { pageId: 'uso-conductores', label: 'Conductores', showInMenu: true },
   },
@@ -52,7 +52,7 @@ export const appRoutes: Route[] = [
   {
     path: 'precio-coberturas',
     loadComponent: () =>
-      import('../components/precio-coberturas/precio-coberturas')
+      import('../components/precio-coberturas/precio-coberturas.component')
         .then(m => m.PrecioCoberturasComponent),
     data: { pageId: 'precio-coberturas', label: 'Precio y coberturas', showInMenu: true },
   },
@@ -60,7 +60,7 @@ export const appRoutes: Route[] = [
   {
     path: 'contratacion',
     loadComponent: () =>
-      import('../components/contratacion/contratacion')
+      import('../components/contratacion/contratacion.component')
         .then(m => m.ContratacionComponent),
     data: { pageId: 'contratacion', label: 'Contratación', showInMenu: true },
   },

@@ -20,7 +20,7 @@ import {
   BalFieldMessage,
 } from "@baloise/ds-angular";
 import { TranslateModule } from "@ngx-translate/core";
-import { StepCompleteCallback } from "../../vehiculo";
+import { StepCompleteCallback } from "../../vehiculo.component";
 import { VehiculoStateService } from "../../services/vehiculo-state.service";
 import { useIsMobile } from '@mnv-autos-ng/util';
 import { MetodoBusqueda } from "../../models/vehiculo.models";

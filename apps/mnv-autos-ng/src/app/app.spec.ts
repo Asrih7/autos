@@ -3,7 +3,7 @@ import { TestBed } from '@angular/core/testing';
 import { provideRouter } from '@angular/router';
 import { TranslateModule } from '@ngx-translate/core';
 import { BalBreakpointsService } from '@baloise/ds-angular';
-import { App } from './app';
+import { App } from './app.component';
 
 class MockBalBreakpointsService {
   readonly mobile = signal<boolean>(false).asReadonly();

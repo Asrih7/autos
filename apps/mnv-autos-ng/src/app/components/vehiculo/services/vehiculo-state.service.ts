@@ -122,12 +122,27 @@ export class VehiculoStateService {
 
   loadMarcasCatalog(): void {
     if (this._state().marcasCatalog.length > 0) return;
-
-    this.httpService.getMarcas().subscribe({
-      next: (marcas) => this._state.update(s => ({ ...s, marcasCatalog: marcas })),
-      error: (err) => this._state.update(s => ({ ...s, error: err.message }))
+    this._state.update(s => ({ ...s, loading: true, error: null }));
+    const tipoVehiculoStr = this._state().vehiculoData?.clasificacion?.tipoVehiculo || '1';
+    const tipoVehiculoNum = parseInt(tipoVehiculoStr, 10) || 1;
+    this.httpService.getMarcas(tipoVehiculoNum).subscribe({
+      next: (marcas) => {
+        this._state.update(s => ({ 
+          ...s, 
+          marcasCatalog: marcas,
+          loading: false 
+        }));
+      },
+      error: (err: Error) => {
+        this._state.update(s => ({ 
+          ...s, 
+          error: err.message,
+          loading: false 
+        }));
+      }
     });
   }
+
 
   loadModelosCatalog(marcaId: string): void {
     this._state.update(s => ({ ...s, loadingModelos: true, modelosCatalog: [] }));
@@ -138,33 +153,79 @@ export class VehiculoStateService {
     });
   }
 
-  loadVersionesCatalog(marcaId: string, modeloId: string): void {
+  loadVersionesCatalog(modeloId: string): void {
     this._state.update(s => ({ ...s, loadingVersiones: true, versionesCatalog: [] }));
-
-    this.httpService.getVersionesPorModelo(marcaId, modeloId).subscribe({
-      next: (versiones) => this._state.update(s => ({ ...s, versionesCatalog: versiones, loadingVersiones: false })),
-      error: (err) => this._state.update(s => ({ ...s, error: err.message, loadingVersiones: false }))
+    const tipoVehiculoStr = this._state().vehiculoData?.clasificacion?.tipoVehiculo || '1';
+    const tipoVehiculoNum = parseInt(tipoVehiculoStr, 10) || 1;
+    this.httpService.getVersionesPorModelo(modeloId, tipoVehiculoNum).subscribe({
+      next: (versiones) => {
+        this._state.update(s => ({ 
+          ...s, 
+          versionesCatalog: versiones, 
+          loadingVersiones: false 
+        }));
+      },
+      error: (err: Error) => {
+        this._state.update(s => ({ 
+          ...s, 
+          error: err.message, 
+          loadingVersiones: false 
+        }));
+      }
     });
   }
 
   loadCarroceriasCatalog(): void {
     if (this._state().carroceriasCatalog.length > 0) return;
-
     this._state.update(s => ({ ...s, loadingCarrocerias: true }));
-    this.httpService.getOpcionesCarroceria().subscribe({
-      next: (carrocerias) => this._state.update(s => ({ ...s, carroceriasCatalog: carrocerias, loadingCarrocerias: false })),
-      error: (err) => this._state.update(s => ({ ...s, error: err.message, loadingCarrocerias: false }))
+
+    const vehiculoData = this._state().vehiculoData;
+    const tipoVehiculoStr = vehiculoData?.clasificacion?.tipoVehiculo || '1';
+    const codigoActividadStr = vehiculoData?.codigoActividad || '2000';
+    const tipoVehiculoNum = parseInt(tipoVehiculoStr, 10) || 1;
+    const codigoActividadNum = parseInt(codigoActividadStr, 10) || 2000;
+
+    this.httpService.getOpcionesCarroceria(tipoVehiculoNum, codigoActividadNum).subscribe({
+      next: (carrocerias) => {
+        this._state.update(s => ({ 
+          ...s, 
+          carroceriasCatalog: carrocerias, 
+          loadingCarrocerias: false 
+        }));
+      },
+      error: (err: Error) => {
+        this._state.update(s => ({ 
+          ...s, 
+          error: err.message, 
+          loadingCarrocerias: false 
+        }));
+      }
     });
   }
 
   loadAccesoriosCatalog(versionId: string): void {
+    if (!versionId || versionId.trim().length === 0) return;
+
     this._state.update(s => ({ ...s, loadingAccesorios: true, accesoriosCatalog: [] }));
 
     this.httpService.getAccesoriosPorVehiculo(versionId).subscribe({
-      next: (accesorios) => this._state.update(s => ({ ...s, accesoriosCatalog: accesorios, loadingAccesorios: false })),
-      error: (err) => this._state.update(s => ({ ...s, error: err.message, loadingAccesorios: false }))
+      next: (accesorios) => {
+        this._state.update(s => ({ 
+          ...s, 
+          accesoriosCatalog: accesorios, 
+          loadingAccesorios: false 
+        }));
+      },
+      error: (err: Error) => {
+        this._state.update(s => ({ 
+          ...s, 
+          error: err.message, 
+          loadingAccesorios: false 
+        }));
+      }
     });
   }
+
 
 
   // 6. LOCAL STATE MUTATIONS (SAVE ACTIONS)

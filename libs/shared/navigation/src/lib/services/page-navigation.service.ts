@@ -8,6 +8,7 @@ export interface PageBlueprint {
   previousPageUrl: string;
   previousPageLabel: string;
   nextPageUrl: string;
+  beforeNavigateNext?: () => boolean | Promise<boolean>;
 }
 
 @Injectable({ providedIn: "root" })
@@ -69,13 +70,13 @@ export class PageNavigationService {
     }
   }
 
-  navigateNext(): void {
+  async navigateNext(): Promise<void> {
   const config = this.activePageConfig();
 
   // ⭐ Si no hay configuración, fallback solo para el primer paso
   if (!config) {
     if (this.router.url.includes("/tu-cliente")) {
-      void this.router.navigate(["/vehiculos"]);
+      await this.router.navigate(["/vehiculos"]);
     }
     return;
   }
@@ -87,6 +88,10 @@ export class PageNavigationService {
   }
 
   // ⭐ Navegación normal
+  if (config.beforeNavigateNext && !(await config.beforeNavigateNext())) {
+    return;
+  }
+
   void this.router.navigateByUrl(config.nextPageUrl);
 }
 

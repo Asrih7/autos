@@ -1,5 +1,5 @@
 import { computed, effect, Injectable, signal } from "@angular/core";
-import { DatosDomicilioModel, EMPTY_DATOS_DOMICILIO } from "../../../../../../libs/shared/ui/src/lib/address.model";
+import { DatosDomicilioModel, EMPTY_DATOS_DOMICILIO } from "../../../../../../libs/shared/ui/src/lib/datos-domicilio/models/address.model";
 
 export interface PersonaState {
   documento: string;

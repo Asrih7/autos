@@ -1,9 +1,11 @@
 export interface Vehiculo {
+  codigoActividad: string;
   marca: Marca;
   modelo: Modelo;
   version: VersionVehiculo;
   tieneAccesoriosSeries: boolean;
   restoCampos: RestoCamposModel;
+  clasificacion: Clasificacion;
   accesoriosAdicionales: AccesoriosAdicionales[];
 }
 
@@ -27,7 +29,7 @@ export interface Modelo {
 export interface Marca {
   id: string;
   nombre: string;
-  logo: string;
+  // logo: string;
 }
 export interface VersionVehiculo {
   id: string;
@@ -59,3 +61,9 @@ export interface GroupedAccesorios {
 }
 
 export type MetodoBusqueda = 'matricula' | 'bastidor';
+
+export interface Clasificacion {
+  categoriaVehiculo: string;
+  tipoVehiculo: string;
+  claseVehiculo: string;
+};

@@ -40,7 +40,6 @@ describe('Vehiculo Mappers Suite', () => {
 
       expect(result.marca.id).toBe('KIA');
       expect(result.marca.nombre).toBe('Kia Motors');
-      expect(result.marca.logo).toBe('assets/logos/kia.png');
       expect(result.modelo.id).toBe('GOLF');
       expect(result.version.id).toBe('V_99');
       expect(result.version.combustible).toBe('Híbrido');
@@ -77,7 +76,6 @@ describe('Vehiculo Mappers Suite', () => {
       expect(result[0]).toMatchObject({
         id: 'AUD',
         nombre: 'Audi',
-        logo: 'assets/logos/aud.png'
       });
     });
 

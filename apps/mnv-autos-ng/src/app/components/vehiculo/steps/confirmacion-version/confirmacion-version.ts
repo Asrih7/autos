@@ -106,7 +106,7 @@ export class ConfirmacionVersion implements OnInit {
     const currentSummary = this.stateService.selectedBrandAndModel();
     
     if (currentSummary.marca?.id && currentSummary.modelo?.id) {
-      this.stateService.loadVersionesCatalog(currentSummary.marca.id, currentSummary.modelo.id);
+      this.stateService.loadVersionesCatalog(currentSummary.modelo.id);
     }
 
     const cachedVehicle = this.stateService.state().vehiculoData;
