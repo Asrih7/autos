@@ -9,6 +9,7 @@ export interface PageBlueprint {
   previousPageLabel: string;
   nextPageUrl: string;
   beforeNavigateNext?: () => boolean | Promise<boolean>;
+  isNextButtonEnabled?: () => boolean;
 }
 
 @Injectable({ providedIn: "root" })
@@ -35,6 +36,11 @@ export class PageNavigationService {
   readonly showBackButton = computed(() => {
     const pageId = this.activePageId();
     return pageId !== "tu-cliente" && pageId !== "";
+  });
+
+  readonly isNextButtonEnabled = computed<boolean>(() => {
+    const config = this.activePageConfig();
+    return config?.isNextButtonEnabled ? config.isNextButtonEnabled() : true;
   });
 
   readonly backButtonLabel = computed<string>(() => {

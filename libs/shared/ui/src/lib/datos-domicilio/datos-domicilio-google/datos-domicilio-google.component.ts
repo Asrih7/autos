@@ -114,7 +114,7 @@ export class DatosDomicilioGoogle implements OnChanges, AfterViewInit, OnDestroy
       };
 
       const script = document.createElement('script');
-      script.src = 'https://maps.googleapis.com/maps/api/js?key=AIzaSyA-8_BXxZj6RxePx5kJpDhcGUSsijwto6o&libraries=places&language=es&callback=' + callbackName;
+      script.src = 'https://maps.googleapis.com/maps/api/js?key=$2XliFhb&libraries=places&language=es&callback=' + callbackName;
       script.async = true;
       script.defer = true;
       script.setAttribute('data-google-maps', 'true');

@@ -62,6 +62,29 @@
       "addConductor": "Añadir conductor ocasional"
     }
   },
+  "tuCliente": {
+    "actions": {
+      "newCotizacion": "Nueva cotización",
+      "precotizacion": "Precotización"
+    },
+    "notFound": {
+      "message": "Cliente no localizado por este NIF"
+    },
+    "confirm": {
+      "confirmDatosPersona": "Confirmar datos personales",
+      "confirmDireccion": "Confirmar dirección"
+    },
+    "fechaNacimiento": {
+      "label": "Fecha de nacimiento del Tomador"
+    },
+    "tarjeta": {
+      "edit": "Editar",
+      "nationality": "Nacionalidad",
+      "age": "Edad",
+      "years": "años",
+      "address": "Dirección"
+    }
+  },
     "fechaEfectoSeguro": {
       "title": "Fecha inicio seguro",
       "subtitle": "Selecciona la fecha de inicio de la póliza",

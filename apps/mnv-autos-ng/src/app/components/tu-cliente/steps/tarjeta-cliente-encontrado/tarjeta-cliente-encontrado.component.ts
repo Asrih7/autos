@@ -20,7 +20,7 @@ export interface TarjetaClienteEncontradoData {
   standalone: true,
   schemas: [CUSTOM_ELEMENTS_SCHEMA],
   templateUrl: "./tarjeta-cliente-encontrado.component.html",
-  styleUrl: "./tarjeta-cliente-encontrado.component.scss",
+  
 })
 export class TarjetaClienteEncontrado {
   readonly person = input.required<TarjetaClienteEncontradoData>();

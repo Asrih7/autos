@@ -1,46 +1,40 @@
-<article class="tarjeta-cliente-encontrado">
-  <span
-    class="tarjeta-cliente-encontrado__status"
-    aria-label="Datos verificados"
-    title="Datos verificados"
-  >
-    <bal-icon
-      name="check"
-      size="small"
-      aria-hidden="true"
-      style="color: var(--bal-color-success-500, #178b7d)"
-    ></bal-icon>
-  </span>
+<bal-card class="w-full">
+  <bal-card-content>
+    <div class="flex align-items-center gap-normal">
+      <span class="bg-success p-small radius-full">
+        <bal-icon name="check" size="small" aria-hidden="true"></bal-icon>
+      </span>
 
-  <header class="tarjeta-cliente-encontrado__header">
-    <h2>{{ person().name }}</h2>
-    <p>{{ person().clientType }}</p>
-  </header>
+      <div class="flex-direction-column">
+        <h2 class="mb-none">{{ person().name }}</h2>
+        <p class="text-body-small text-blue mb-none">{{ person().clientType }}</p>
+      </div>
 
-  <button
-    class="tarjeta-cliente-encontrado__edit"
-    type="button"
-    (click)="requestEdit()"
-  >
-    Editar
-  </button>
+      <div class="ml-auto">
+        <bal-button variant="ghost" size="small" (click)="requestEdit()">{{ 'tuCliente.tarjeta.edit' | translate }}</bal-button>
+      </div>
+    </div>
 
-  <dl class="tarjeta-cliente-encontrado__details">
-    <div>
-      <dt>{{ person().documentType }}</dt>
-      <dd>{{ person().documentNumber }}</dd>
-    </div>
-    <div>
-      <dt>Nacionalidad</dt>
-      <dd>{{ person().nationality }}</dd>
-    </div>
-    <div>
-      <dt>Edad</dt>
-      <dd>{{ person().age }} a&ntilde;os</dd>
-    </div>
-    <div class="tarjeta-cliente-encontrado__address">
-      <dt class="visually-hidden">Direcci&oacute;n</dt>
-      <dd>{{ person().address }}</dd>
-    </div>
-  </dl>
-</article>
+    <dl class="mt-normal">
+      <div class="flex gap-normal">
+        <dt class="text-body-small text-medium">{{ person().documentType }}</dt>
+        <dd class="text-body-small">{{ person().documentNumber }}</dd>
+      </div>
+
+      <div class="flex gap-normal mt-small">
+        <dt class="text-body-small text-medium">{{ 'tuCliente.tarjeta.nationality' | translate }}</dt>
+        <dd class="text-body-small">{{ person().nationality }}</dd>
+      </div>
+
+      <div class="flex gap-normal mt-small">
+        <dt class="text-body-small text-medium">{{ 'tuCliente.tarjeta.age' | translate }}</dt>
+        <dd class="text-body-small">{{ person().age }} {{ 'tuCliente.tarjeta.years' | translate }}</dd>
+      </div>
+
+      <div class="mt-small">
+        <dt class="visually-hidden">{{ 'tuCliente.tarjeta.address' | translate }}</dt>
+        <dd class="text-body-small">{{ person().address }}</dd>
+      </div>
+    </dl>
+  </bal-card-content>
+</bal-card>

@@ -1,15 +1,6 @@
 import { InjectionToken } from '@angular/core';
 import type { Observable } from 'rxjs';
-
-export interface DatosPersonaOption {
-  readonly value: string;
-  readonly label: string;
-}
-
-export interface DatosPersonaOptions {
-  readonly documentTypes: readonly DatosPersonaOption[];
-  readonly nationalities: readonly DatosPersonaOption[];
-}
+import type { DatosPersonaOption, DatosPersonaOptions } from './datos-persona-options.model';
 
 export interface DatosPersonaOptionsApi {
   getOptions(): Observable<DatosPersonaOptions>;

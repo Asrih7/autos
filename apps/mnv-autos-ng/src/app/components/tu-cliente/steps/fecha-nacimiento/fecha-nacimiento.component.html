@@ -1,20 +1,5 @@
-<bal-field [required]="required()" [invalid]="invalid()">
-  <bal-field-label>{{ label() }}</bal-field-label>
-  <bal-field-control>
-    <bal-input-date
-      [name]="name()"
-      [placeholder]="placeholder()"
-      [required]="required()"
-      [invalid]="invalid()"
-      [allowInvalidValue]="true"
-      [value]="value()"
-      autocomplete="bday"
-      (balChange)="handleDateChange($event)"
-      (balBlur)="handleDateBlur()"
-    />
-  </bal-field-control>
-
-  @if (invalid()) {
-    <bal-field-message color="danger">{{ invalidMessage() }}</bal-field-message>
-  }
-</bal-field>
+<lib-fecha-nacimiento
+  [label]="label"
+  [value]="value"
+  (valueChange)="valueChange.emit($event)"
+></lib-fecha-nacimiento>
