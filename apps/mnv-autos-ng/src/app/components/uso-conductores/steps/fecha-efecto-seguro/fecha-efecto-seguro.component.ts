@@ -1,53 +1,84 @@
-import { DateFormat, FechaEfectoSeguroPayload, FechaEfectoSeguroValor } from "@mnv-autos-ng/ui";
-import { Component, Input, Output, EventEmitter, inject } from '@angular/core';
+import { Component, Output, EventEmitter, inject, computed, signal } from '@angular/core';
 import { UsoConductoresStateService } from '../../uso-conductores-state.service';
+
+import {
+  BalField,
+  BalFieldControl,
+  BalFieldMessage,
+  BalDate,
+  BalHeading,
+} from '@baloise/ds-angular';
+
+import { TranslateModule } from '@ngx-translate/core';
 
 @Component({
   selector: 'app-fecha-efecto-seguro',
   standalone: true,
-  imports: [DateFormat],
+  imports: [
+    BalField,
+    BalFieldControl,
+    BalFieldMessage,
+    BalDate,
+    BalHeading,
+    TranslateModule
+  ],
   templateUrl: './fecha-efecto-seguro.component.html',
   styleUrls: ['./fecha-efecto-seguro.component.scss'],
 })
 export class FechaEfectoSeguroComponent {
-@Output() stepSelected = new EventEmitter<string>();
+
+  @Output() stepSelected = new EventEmitter<string>();
+  private touched = signal(false);
   private readonly usoState = inject(UsoConductoresStateService);
 
-  @Input() valorInicial: Partial<FechaEfectoSeguroValor> | null = null;
+  // Fecha ISO guardada en el estado
+  readonly fechaISO = computed(() => this.usoState.fechaEfectoSeguro().fechaISO);
 
-  @Output() fechaChange = new EventEmitter<FechaEfectoSeguroPayload>();
-  @Output() fechaSubmit = new EventEmitter<FechaEfectoSeguroPayload>();
+  // Error visible en el template
+  fechaEfectoError() {
+  const state = this.usoState.fechaEfectoSeguro();
+
+  // Igual que intervinientes: solo mostrar error si el usuario ha tocado el campo
+  if (this.touched() && (!state.fechaISO || !state.completed)) {
+    return 'Introduce una fecha válida';
+  }
+
+  return null;
+}
+
 
   ngOnInit(): void {
-      this.stepSelected.emit('fecha-efecto-seguro');
-    const saved = this.usoState.fechaEfectoSeguro();
-
-    if (saved.completed) {
-      this.valorInicial = {
-        dia: Number(saved.dia),
-        mes: Number(saved.mes),
-        anio: Number(saved.anio),
-      };
-    }
+    this.stepSelected.emit('fecha-efecto-seguro');
   }
 
-  onFechaChange(payload: FechaEfectoSeguroPayload): void {
-    this.persist(payload);
-    this.fechaChange.emit(payload);
-  }
+  /**
+   * Maneja el cambio del bal-date
+   */
+  onFechaEfectoChange(event: any): void {
+  this.touched.set(true);
 
-  onFechaSubmit(payload: FechaEfectoSeguroPayload): void {
-    this.persist(payload);
-    this.fechaSubmit.emit(payload);
-  }
+  const iso = event?.detail ?? null;
 
-  private persist(payload: FechaEfectoSeguroPayload): void {
+  if (!iso) {
     this.usoState.updateFechaEfectoSeguroState({
-      dia: payload.dia.toString(),
-      mes: payload.mes.toString(),
-      anio: payload.anio.toString(),
-      fechaISO: payload.fechaISO,
-      completed: true,
+      fechaISO: null,
+      dia: '',
+      mes: '',
+      anio: '',
+      completed: false
     });
+    return;
   }
+
+  const [anio, mes, dia] = iso.split('-');
+
+  this.usoState.updateFechaEfectoSeguroState({
+    fechaISO: iso,
+    dia,
+    mes,
+    anio,
+    completed: true
+  });
+}
+
 }

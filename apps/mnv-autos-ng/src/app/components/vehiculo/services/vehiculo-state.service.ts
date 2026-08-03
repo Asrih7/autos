@@ -123,8 +123,9 @@ export class VehiculoStateService {
   loadMarcasCatalog(): void {
     if (this._state().marcasCatalog.length > 0) return;
     this._state.update(s => ({ ...s, loading: true, error: null }));
-    const tipoVehiculoStr = this._state().vehiculoData?.clasificacion?.tipoVehiculo || '1';
-    const tipoVehiculoNum = parseInt(tipoVehiculoStr, 10) || 1;
+    const tipoVehiculoStr = this._state().vehiculoData?.clasificacion?.tipoVehiculo || '100';
+    const tipoVehiculoNum = parseInt(tipoVehiculoStr, 10) || 100;
+
     this.httpService.getMarcas(tipoVehiculoNum).subscribe({
       next: (marcas) => {
         this._state.update(s => ({ 
@@ -155,8 +156,8 @@ export class VehiculoStateService {
 
   loadVersionesCatalog(modeloId: string): void {
     this._state.update(s => ({ ...s, loadingVersiones: true, versionesCatalog: [] }));
-    const tipoVehiculoStr = this._state().vehiculoData?.clasificacion?.tipoVehiculo || '1';
-    const tipoVehiculoNum = parseInt(tipoVehiculoStr, 10) || 1;
+    const tipoVehiculoStr = this._state().vehiculoData?.clasificacion?.tipoVehiculo || '100';
+    const tipoVehiculoNum = parseInt(tipoVehiculoStr, 10) || 100;
     this.httpService.getVersionesPorModelo(modeloId, tipoVehiculoNum).subscribe({
       next: (versiones) => {
         this._state.update(s => ({ 
@@ -180,9 +181,9 @@ export class VehiculoStateService {
     this._state.update(s => ({ ...s, loadingCarrocerias: true }));
 
     const vehiculoData = this._state().vehiculoData;
-    const tipoVehiculoStr = vehiculoData?.clasificacion?.tipoVehiculo || '1';
+    const tipoVehiculoStr = vehiculoData?.clasificacion?.tipoVehiculo || '100';
     const codigoActividadStr = vehiculoData?.codigoActividad || '2000';
-    const tipoVehiculoNum = parseInt(tipoVehiculoStr, 10) || 1;
+    const tipoVehiculoNum = parseInt(tipoVehiculoStr, 10) || 100;
     const codigoActividadNum = parseInt(codigoActividadStr, 10) || 2000;
 
     this.httpService.getOpcionesCarroceria(tipoVehiculoNum, codigoActividadNum).subscribe({

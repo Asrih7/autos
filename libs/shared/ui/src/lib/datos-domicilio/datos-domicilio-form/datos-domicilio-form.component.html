@@ -11,8 +11,8 @@
         <bal-field-control>
           <bal-input
             [value]="tipoViaSearch()"
-            [disabled]="disabled"
-            autocomplete="off"
+            [disabled]="disabled || fieldDisabled.tipoVia"
+              autocomplete="off"
             (balInput)="onTipoViaInput($event)"
           ></bal-input>
           @if (!disabled && filteredTiposVia().length > 0) {
@@ -34,7 +34,7 @@
         <bal-field-control>
           <bal-input
             [value]="internalModel().nombreVia"
-            [disabled]="disabled"
+            [disabled]="disabled || fieldDisabled.nombreVia"
             (balInput)="setField('nombreVia', $event.detail ?? '')">
           </bal-input>
         </bal-field-control>
@@ -47,7 +47,7 @@
         <bal-field-control>
           <bal-input
             [value]="internalModel().numero"
-            [disabled]="disabled"
+            [disabled]="disabled || fieldDisabled.numero"
             (balInput)="setField('numero', $event.detail ?? '')">
           </bal-input>
         </bal-field-control>
@@ -60,7 +60,7 @@
         <bal-field-control>
           <bal-input
             [value]="internalModel().codigoPostal"
-            [disabled]="disabled"
+            [disabled]="disabled || fieldDisabled.codigoPostal"
             (balInput)="setCodigoPostal($event.detail ?? '')">
           </bal-input>
         </bal-field-control>
@@ -72,8 +72,9 @@
         <bal-field-label class="text-body-small text-light mt-none text-blue">Provincia*</bal-field-label>
         <bal-field-control>
           <bal-select
+            #provinciaSelect
             [value]="internalModel().provincia"
-            [disabled]="disabled"
+            [disabled]="disabled || fieldDisabled.provincia"
             (balChange)="setField('provincia', $event)"
           >
             @for (item of provincias(); track item.value) {
@@ -90,8 +91,9 @@
         <bal-field-control>
           @if (localidades().length > 0) {
             <bal-select
+              #localidadSelect
               [value]="internalModel().localidad"
-              [disabled]="disabled"
+              [disabled]="disabled || fieldDisabled.localidad"
               (balChange)="setField('localidad', $event)"
             >
               @for (item of localidades(); track item.value) {
@@ -101,7 +103,7 @@
           } @else {
             <bal-input
               [value]="internalModel().localidad"
-              [disabled]="disabled"
+              [disabled]="disabled || fieldDisabled.localidad"
               (balInput)="setField('localidad', $event.detail ?? '')">
             </bal-input>
           }

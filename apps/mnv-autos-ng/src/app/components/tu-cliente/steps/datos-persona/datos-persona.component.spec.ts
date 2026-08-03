@@ -1,35 +1,12 @@
 import { TestBed } from '@angular/core/testing';
 import { DatosPersona } from './datos-persona.component';
-import { DATOS_PERSONA_OPTIONS_API } from '@mnv-autos-ng/ui';
-import { of } from 'rxjs';
+import { provideMockDatosPersonaOptionsApi } from './data-access/mock-datos-persona-options.api';
 
 describe('DatosPersona', () => {
   beforeEach(async () => {
-    const mockOptions = {
-      documentTypes: [
-        { value: 'dni', label: 'DNI' },
-        { value: 'nif', label: 'NIF' },
-        { value: 'cif', label: 'CIF' },
-        { value: 'passport', label: 'Pasaporte' },
-      ],
-      nationalities: [
-        { value: 'es', label: 'Española' },
-        { value: 'de', label: 'Alemana' },
-        { value: 'fr', label: 'Francesa' },
-        { value: 'it', label: 'Italiana' },
-        { value: 'pt', label: 'Portuguesa' },
-        { value: 'gb', label: 'Británica' },
-        { value: 'us', label: 'Estadounidense' },
-        { value: 'mx', label: 'Mexicana' },
-        { value: 'ar', label: 'Argentina' },
-        { value: 'co', label: 'Colombiana' },
-        { value: 'other', label: 'Otra' },
-      ],
-    };
-
     await TestBed.configureTestingModule({
       imports: [DatosPersona],
-      providers: [{ provide: DATOS_PERSONA_OPTIONS_API, useValue: { getOptions: () => of(mockOptions) } }],
+      providers: [provideMockDatosPersonaOptionsApi()],
     }).compileComponents();
   });
 

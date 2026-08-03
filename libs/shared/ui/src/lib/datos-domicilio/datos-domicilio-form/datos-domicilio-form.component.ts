@@ -1,5 +1,19 @@
 import { CommonModule } from '@angular/common';
-import { Component, DestroyRef, EventEmitter, Input, OnChanges, Output, SimpleChanges, computed, inject, signal } from '@angular/core';
+import {
+  Component,
+  DestroyRef,
+  ElementRef,
+  EventEmitter,
+  Input,
+  OnChanges,
+  Output,
+  SimpleChanges,
+  ViewChild,
+  computed,
+  effect,
+  inject,
+  signal,
+} from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormsModule } from '@angular/forms';
 import {
@@ -46,13 +60,22 @@ export class DatosDomicilioForm implements OnChanges {
   localidades = signal<Array<{ label: string; value: string }>>([]);
   tipoViaSearch = signal('');
 
-  // --- FIX provincia: dos fuentes, una sola verdad -------------------------
-  // Antes había una única signal `provincias` que escribían dos suscripciones
-  // async independientes (el catálogo general del constructor y el listado
-  // específico del CP en loadAddressData). Ganaba quien respondiera último,
-  // lo que provocaba que la provincia ya seleccionada desapareciese hasta
-  // recargar la página. Ahora cada fuente tiene su propia signal de solo
-  // lectura interna, y `provincias` es un computed determinista.
+  @Input() fieldDisabled: {
+    tipoVia: boolean;
+    nombreVia: boolean;
+    numero: boolean;
+    codigoPostal: boolean;
+    provincia: boolean;
+    localidad: boolean;
+  } = {
+    tipoVia: true,
+    nombreVia: true,
+    numero: true,
+    codigoPostal: true,
+    provincia: true,
+    localidad: true
+  };
+
   private readonly provinciasCatalogo = signal<Array<{ label: string; value: string }>>([]);
   private readonly provinciasPorCp = signal<Array<{ label: string; value: string }> | null>(null);
 
@@ -80,6 +103,12 @@ export class DatosDomicilioForm implements OnChanges {
   private readonly destroyRef = inject(DestroyRef);
   private readonly tipoViaSearchInput$ = new Subject<string>();
 
+  // FIX: referencias a los <bal-select> nativos (Stencil) de Provincia y
+  // Localidad, para poder reasignar su `value` de forma imperativa una vez
+  // que sus <bal-select-option> ya estén montadas en el DOM.
+  @ViewChild('provinciaSelect') provinciaSelectRef?: ElementRef<HTMLElement & { value: string }>;
+  @ViewChild('localidadSelect') localidadSelectRef?: ElementRef<HTMLElement & { value: string }>;
+
   constructor(private readonly service: DatosDomicilioService) {
     // FIX: solo alimenta el catálogo general. Ya NO pisa nunca el resultado
     // específico del CP (antes ambas escribían la misma signal `provincias`
@@ -95,6 +124,45 @@ export class DatosDomicilioForm implements OnChanges {
         takeUntilDestroyed(this.destroyRef),
       )
       .subscribe((items) => this.tiposVia.set(items));
+
+    // FIX: bal-select (Stencil) puede no reflejar el value si las
+    // <bal-select-option> se acaban de recrear en el mismo ciclo (p.ej. tras
+    // llegar la respuesta del CP). Forzamos la reasignación del value en un
+    // microtask posterior, cuando las opciones ya están conectadas al DOM.
+    effect(() => {
+      const provinciaValue = this.internalModel().provincia;
+      this.provincias();
+
+      const assign = () => {
+        const el = this.provinciaSelectRef?.nativeElement;
+        if (el && el.value !== provinciaValue) {
+          el.value = provinciaValue;
+        }
+      };
+
+      // FIX: esperamos a que bal-select esté realmente definido como custom
+      // element antes de asignar el value; un solo microtask no siempre es
+      // suficiente margen si el componente Stencil aún se está registrando.
+      customElements.whenDefined('bal-select').then(() => {
+        queueMicrotask(assign);
+      });
+    });
+
+    effect(() => {
+      const localidadValue = this.internalModel().localidad;
+      this.localidades();
+
+      const assign = () => {
+        const el = this.localidadSelectRef?.nativeElement;
+        if (el && el.value !== localidadValue) {
+          el.value = localidadValue;
+        }
+      };
+
+      customElements.whenDefined('bal-select').then(() => {
+        queueMicrotask(assign);
+      });
+    });
   }
 
   ngOnChanges(_changes: SimpleChanges): void {

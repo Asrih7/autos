@@ -64,6 +64,8 @@ import { useIsMobile } from '@mnv-autos-ng/util';
 })
 export class Accesorios implements OnInit {
   readonly onStepComplete = input<(stepOutputData: unknown) => void>();
+  readonly stepId = input<string>();
+
   private readonly stateService = inject(VehiculoStateService);
 
   readonly esMobile = useIsMobile();
@@ -123,6 +125,15 @@ export class Accesorios implements OnInit {
         });
       }
     });
+
+    effect(() => {
+    const seleccionados = this.listaAccesoriosCompleta().filter(i => i.checked);
+    const esDeSerie = this.tieneAccesoriosSeries();
+    untracked(() => {
+      this.stateService.saveAccesoriosData(esDeSerie, seleccionados);
+    });
+  });
+
   }
 
   ngOnInit(): void {
@@ -194,4 +205,9 @@ export class Accesorios implements OnInit {
     const callback = this.onStepComplete();
     if (callback) callback({ status: statusLabel });
   }
+  readonly isLastStep = computed(() => {
+  const steps = ['busqueda-matricula', 'busqueda-manual', 'confirmacion-version', 'resto-campos', 'accesorios'];
+  return this.stepId() === steps[steps.length - 1];
+});
+
 }

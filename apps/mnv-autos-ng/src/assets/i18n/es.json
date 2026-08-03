@@ -15,8 +15,8 @@
       "driver": "Tomador es conductor habitual"
     },
     "form": {
-      "documento": "Documento",
-      "numeroNif": "Número NIF",
+     "documento": "Tipo de Documento",
+      "numeroNif": "Número de Documento",
       "nifPlaceholder": "Número NIF / NIE",
       "pais": "País",
       "fechaNacimiento": "Fecha nacimiento",
@@ -60,29 +60,6 @@
       "propietario": "Propietario",
       "conductorOcasional": "Conductor ocasional",
       "addConductor": "Añadir conductor ocasional"
-    }
-  },
-  "tuCliente": {
-    "actions": {
-      "newCotizacion": "Nueva cotización",
-      "precotizacion": "Precotización"
-    },
-    "notFound": {
-      "message": "Cliente no localizado por este NIF"
-    },
-    "confirm": {
-      "confirmDatosPersona": "Confirmar datos personales",
-      "confirmDireccion": "Confirmar dirección"
-    },
-    "fechaNacimiento": {
-      "label": "Fecha de nacimiento del Tomador"
-    },
-    "tarjeta": {
-      "edit": "Editar",
-      "nationality": "Nacionalidad",
-      "age": "Edad",
-      "years": "años",
-      "address": "Dirección"
     }
   },
     "fechaEfectoSeguro": {

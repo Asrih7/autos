@@ -7,7 +7,6 @@ import {
   OnInit,
   Output,
   Signal,
-  signal,
   computed,
   ChangeDetectorRef,
 } from '@angular/core';
@@ -40,16 +39,22 @@ export class UsoVehiculoComponent implements OnInit {
   private readonly state = inject(UsoConductoresStateService);
   private readonly cdr = inject(ChangeDetectorRef);
 
-  usoSeleccionado = signal<string | null>(null);
-  otroUsoSeleccionado = signal<string | null>(null);
-  otroUsoLabelSeleccionado = signal<string | null>(null);
-
   opciones!: Signal<{ label: string; value: string }[]>;
   otrosUsos!: Signal<{ label: string; value: string }[]>;
 
   @Output() stepSelected = new EventEmitter<string>();
   @Output() selected = new EventEmitter<string>();
   @Output() ready = new EventEmitter<boolean>();
+
+ 
+  usoSeleccionado = computed(() => this.state.usoSelected());
+  otroUsoSeleccionado = computed(() => this.state.usoOtrosSelected());
+  otroUsoLabelSeleccionado = computed(() => {
+    const value = this.otroUsoSeleccionado();
+    if (!value) return null;
+    const found = this.otrosUsos().find((opt) => opt.value === value);
+    return found ? found.label : null;
+  });
 
   otherLabel = computed(() => {
     if (this.usoSeleccionado() !== 'otros') return null;
@@ -70,16 +75,6 @@ export class UsoVehiculoComponent implements OnInit {
 
   ngOnInit(): void {
     this.stepSelected.emit('uso-vehiculo');
-
-    const saved = this.state.state();
-    if (saved) {
-      this.usoSeleccionado.set(saved.usoSelected);
-      this.otroUsoSeleccionado.set(saved.usoOtrosSelected);
-
-      const found = this.otrosUsos().find(opt => opt.value === saved.usoOtrosSelected);
-      this.otroUsoLabelSeleccionado.set(found ? found.label : null);
-    }
-
     this.ready.emit(!this.isNextDisabled());
   }
 
@@ -92,15 +87,12 @@ export class UsoVehiculoComponent implements OnInit {
   selectUso(value: string): void {
     if (!value) return;
 
-    this.usoSeleccionado.set(value);
     this.state.selectUso(value);
     this.selected.emit(value);
 
     if (value === 'otros') {
       this.ready.emit(true);
     } else {
-      this.otroUsoSeleccionado.set(null);
-      this.otroUsoLabelSeleccionado.set(null);
       this.state.selectUsoOtro(null as any);
       this.ready.emit(true);
     }
@@ -119,13 +111,8 @@ export class UsoVehiculoComponent implements OnInit {
     if (!option || !option.selected) return;
 
     const finalValue = String(option.value);
-    const finalLabel = option.label ?? finalValue;
 
-    this.otroUsoSeleccionado.set(finalValue);
-    this.otroUsoLabelSeleccionado.set(finalLabel);
     this.state.selectUsoOtro(finalValue);
-
-    this.usoSeleccionado.set('otros');
     this.state.selectUso('otros');
 
     this.selected.emit(finalValue);

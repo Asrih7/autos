@@ -140,13 +140,16 @@
   }
 
   <div class="flex flex-direction-column align-items-end gap-normal mt-normal">
-    <bal-button color="primary" 
-      [disabled]="cargandoAccesorios()"
-      [loading]="cargandoAccesorios()"
-      (click)="guardarYAvanzar()" 
-      [expanded]="esMobile()">
-      {{ acc + '.buttons.confirm' | translate }}
-    </bal-button>
+   @if (!isLastStep()) {
+  <bal-button color="primary" 
+    [disabled]="cargandoAccesorios()"
+    [loading]="cargandoAccesorios()"
+    (click)="guardarYAvanzar()" 
+    [expanded]="esMobile()">
+    {{ acc + '.buttons.confirm' | translate }}
+  </bal-button>
+}
+
     
     @if (tieneAccesoriosSeries() && !cargandoAccesorios()) {
       <button type="button" class="p-none bg-transparent border-none pointer underline text-medium" (click)="saltarYNoDeclarar()">

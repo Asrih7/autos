@@ -53,7 +53,8 @@ export class SeguroAnteriorComponent implements OnChanges, OnInit {
   private readonly usoState = inject(UsoConductoresStateService);
   private readonly translate = inject(TranslateService);
   private readonly seguroAnteriorService = inject(SeguroAnteriorService);
-@Output() stepSelected = new EventEmitter<string>();
+
+  @Output() stepSelected = new EventEmitter<string>();
   @ViewChildren("digitoPolizaInput")
   private digitoPolizaInputs!: QueryList<BalInput>;
 
@@ -80,14 +81,8 @@ export class SeguroAnteriorComponent implements OnChanges, OnInit {
   protected readonly aniosAseguradoOpciones: SelectOpcion[] =
     this.seguroAnteriorService.getAniosAseguradoOpciones();
   protected readonly siniestroOpciones: SelectOpcion[] = [
-    {
-      label: "",
-      value: "si",
-    },
-    {
-      label: "",
-      value: "no",
-    },
+    { label: "", value: "si" },
+    { label: "", value: "no" },
   ];
 
   protected readonly esOtraCompania = computed(
@@ -109,8 +104,8 @@ export class SeguroAnteriorComponent implements OnChanges, OnInit {
   protected readonly polizaCompleta = computed(() =>
     this.ultimosDigitosPoliza().every((digito) => digito !== ""),
   );
-  protected readonly datosPolizaConfirmados = computed(() =>
-    this.polizaConfirmada(),
+  protected readonly datosPolizaConfirmados = computed(
+    () => this.polizaConfirmada(),
   );
   protected readonly mostrarAniosAsegurado = computed(
     () => this.mostrarPolizaActual() && this.datosPolizaConfirmados(),
@@ -126,13 +121,11 @@ export class SeguroAnteriorComponent implements OnChanges, OnInit {
   );
 
   protected readonly seguroAnteriorCompleto = computed(() => {
-    if (!this.seguroSeleccionadoKey()) {
-      return false;
-    }
+    if (!this.seguroSeleccionadoKey()) return false;
 
-    if (this.esFlujoCorto()) {
-      return true;
-    }
+    if (this.esFlujoCorto()) return true;
+
+    if (this.continuarSinPoliza()) return true;
 
     return (
       !!this.aseguradoraSeleccionadaId() &&
@@ -143,6 +136,42 @@ export class SeguroAnteriorComponent implements OnChanges, OnInit {
     );
   });
 
+  protected readonly mostrarContinuarSinPoliza = computed(() => {
+    if (this.polizaConfirmada()) return false;
+
+    const hayDigitos = this.ultimosDigitosPoliza().some(d => d !== "");
+    if (hayDigitos) return false;
+
+    if (!this.aseguradoraSeleccionadaId()) return false;
+    if (!this.aseguradoraConfirmada()) return false;
+
+    return true;
+  });
+
+  protected readonly ocultarBotonSiguienteEnEsteStep = computed(() => {
+    if (!this.mostrarPolizaActual()) return false;
+    if (this.polizaConfirmada()) return false;
+
+    const hayDigitos = this.ultimosDigitosPoliza().some(d => d !== "");
+    if (hayDigitos) return false;
+
+    return true;
+  });
+
+
+ validate() {
+  const completed =
+    this.seguroAnteriorCompleto() &&
+    (!this.mostrarAniosAsegurado() || this.aniosAseguradoSeleccionado() !== "") &&
+    (!this.mostrarSiniestro() || this.siniestroSeleccionado() !== "");
+
+  this.usoState.updateSeguroAnteriorState({
+    ...this.usoState.seguroAnterior(),
+    completed
+  });
+}
+
+
   public onParentNext(): boolean {
     if (!this.esOtraCompania()) {
       return false;
@@ -151,12 +180,18 @@ export class SeguroAnteriorComponent implements OnChanges, OnInit {
     if (this.aseguradoraSeleccionadaId() && !this.aseguradoraConfirmada()) {
       this.aseguradoraConfirmada.set(true);
       this.persistSeguroAnteriorState();
+      this.validate();
       return true;
     }
 
     if (!this.datosPolizaConfirmados() && this.polizaCompleta()) {
       this.confirmarPoliza();
+      this.validate();
       return true;
+    }
+
+    if (this.continuarSinPoliza()) {
+      return false;
     }
 
     return false;
@@ -183,19 +218,20 @@ export class SeguroAnteriorComponent implements OnChanges, OnInit {
     }
 
     this.persistSeguroAnteriorState();
+    this.validate();
   }
 
   ngOnChanges(changes: SimpleChanges): void {
     if (changes["valorInicial"] && !changes["valorInicial"].firstChange) {
       this.aplicarValorInicial();
       this.persistSeguroAnteriorState();
+      this.validate();
     }
   }
 
   protected onSeguroAnteriorChange(value: unknown): void {
     const siguienteValor = this.readInputValue(value);
 
-    // Always reset the flow when changing selection, even if same option clicked again
     this.seguroSeleccionadoKey.set(siguienteValor);
     this.resetSeguroAnteriorFlow();
 
@@ -208,10 +244,11 @@ export class SeguroAnteriorComponent implements OnChanges, OnInit {
     }
 
     this.persistSeguroAnteriorState();
+    this.validate();
   }
 
   protected seleccionarSeguro(key: string): void {
-      this.stepSelected.emit('seguro-anterior');
+    this.stepSelected.emit('seguro-anterior');
     this.onSeguroAnteriorChange(key);
   }
 
@@ -225,6 +262,7 @@ export class SeguroAnteriorComponent implements OnChanges, OnInit {
 
     this.aseguradoraSeleccionadaId.set(id);
     this.persistSeguroAnteriorState();
+    this.validate();
   }
 
   protected onDigitoPolizaInput(event: unknown, index: number): void {
@@ -244,6 +282,7 @@ export class SeguroAnteriorComponent implements OnChanges, OnInit {
     }
 
     this.persistSeguroAnteriorState();
+    this.validate();
 
     if (digito && index < this.ultimosDigitosPoliza().length - 1) {
       this.enfocarSiguienteDigito(index);
@@ -258,6 +297,7 @@ export class SeguroAnteriorComponent implements OnChanges, OnInit {
     this.polizaConfirmada.set(true);
     this.continuarSinPoliza.set(false);
     this.persistSeguroAnteriorState();
+    this.validate();
   }
 
   protected continuarSinNumeroPoliza(): void {
@@ -265,26 +305,30 @@ export class SeguroAnteriorComponent implements OnChanges, OnInit {
     this.continuarSinPoliza.set(false);
 
     this.persistSeguroAnteriorState();
+    this.validate();
   }
 
   protected onAniosAseguradoChange(event: unknown): void {
     this.aniosAseguradoSeleccionado.set(this.readInputValue(event));
     this.persistSeguroAnteriorState();
+    this.validate();
   }
 
   protected onSiniestroChange(event: unknown): void {
     this.siniestroSeleccionado.set(this.readInputValue(event));
     this.persistSeguroAnteriorState();
+    this.validate();
   }
 
   private aplicarValorInicial(): void {
     this.seguroSeleccionadoKey.set(
-      this.opciones.find((opcion) => opcion.key === this.valorInicial)?.key ??
-        "",
+      this.opciones.find((opcion) => opcion.key === this.valorInicial)?.key ?? "",
     );
   }
 
   private persistSeguroAnteriorState(): void {
+    const completed = this.seguroAnteriorCompleto();
+
     this.usoState.updateSeguroAnteriorState({
       seguroSeleccionadoKey: this.seguroSeleccionadoKey(),
       aseguradoraSeleccionadaId: this.aseguradoraSeleccionadaId(),
@@ -294,7 +338,7 @@ export class SeguroAnteriorComponent implements OnChanges, OnInit {
       continuarSinPoliza: this.continuarSinPoliza(),
       aniosAseguradoSeleccionado: this.aniosAseguradoSeleccionado(),
       siniestroSeleccionado: this.siniestroSeleccionado(),
-      completed: this.seguroAnteriorCompleto(),
+      completed
     });
   }
 
@@ -329,28 +373,28 @@ export class SeguroAnteriorComponent implements OnChanges, OnInit {
   }
 
   private resetSeguroAnteriorFlow(): void {
-  this.aseguradoraSeleccionadaId.set(null);
-  this.aseguradoraConfirmada.set(false);
-  this.ultimosDigitosPoliza.set(Array(5).fill(""));
-  this.polizaConfirmada.set(false);
-  this.continuarSinPoliza.set(false);
-  this.aniosAseguradoSeleccionado.set("");
-  this.siniestroSeleccionado.set("");
+    this.aseguradoraSeleccionadaId.set(null);
+    this.aseguradoraConfirmada.set(false);
+    this.ultimosDigitosPoliza.set(Array(5).fill(""));
+    this.polizaConfirmada.set(false);
+    this.continuarSinPoliza.set(false);
+    this.aniosAseguradoSeleccionado.set("");
+    this.siniestroSeleccionado.set("");
 
-  this.usoState.updateSeguroAnteriorState({
-    aseguradoraSeleccionadaId: null,
-    aseguradoraConfirmada: false,
-    ultimosDigitosPoliza: Array(5).fill(""),
-    polizaConfirmada: false,
-    continuarSinPoliza: false,
-    aniosAseguradoSeleccionado: "",
-    siniestroSeleccionado: "",
-    completed: this.seguroAnteriorCompleto(), 
-  });
+    this.usoState.updateSeguroAnteriorState({
+      aseguradoraSeleccionadaId: null,
+      aseguradoraConfirmada: false,
+      ultimosDigitosPoliza: Array(5).fill(""),
+      polizaConfirmada: false,
+      continuarSinPoliza: false,
+      aniosAseguradoSeleccionado: "",
+      siniestroSeleccionado: "",
+      completed: this.seguroAnteriorCompleto(),
+    });
 
-  this.usoState.setStepLoaded(3); 
-}
-
+    this.usoState.setStepLoaded(3);
+    this.validate();
+  }
 
   private applyTranslations(): void {
     const t = (key: string) => this.translate.instant(key);
@@ -393,5 +437,23 @@ export class SeguroAnteriorComponent implements OnChanges, OnInit {
     }
 
     setTimeout(() => void this.digitoPolizaInputs.get(index + 1)?.setFocus());
+  }
+
+  protected continuarSinNumeroPolizaYAvanzar(): void {
+    this.ultimosDigitosPoliza.set(Array(5).fill("0"));
+    this.polizaConfirmada.set(true);
+    this.continuarSinPoliza.set(true);
+
+    this.usoState.updateSeguroAnteriorState({
+      ...this.usoState.seguroAnterior(),
+      ultimosDigitosPoliza: Array(5).fill("0"),
+      polizaConfirmada: true,
+      continuarSinPoliza: true,
+      completed: true
+    });
+
+    this.stepSelected.emit('seguro-anterior');
+    this.onParentNext();
+    this.validate();
   }
 }

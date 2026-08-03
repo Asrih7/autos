@@ -1,0 +1,91 @@
+<h3 class="mx-normal mt-large text-x-large font-weight-regular">{{ titulo() | uppercase }}</h3>
+
+<bal-list accordionOneLevel="true">
+    @for (modalidad of modalidades(); track modalidad.codigo) {
+    <bal-list-item accordion="true" class="bg-white pl-normal border-grey">
+        <!-- Cabecera de la modalidad -->
+        <bal-list-item-accordion-head icon="" class="flex justify-content-space-between w-full">
+            <bal-list-item-icon class="ml-x-small">
+                <bal-icon name="caret-down"></bal-icon>
+            </bal-list-item-icon>
+
+            <bal-list-item-content>
+                <bal-list-item-title>{{ modalidad.descripcion }}</bal-list-item-title>
+            </bal-list-item-content>
+
+            <div class="w-fit">
+                <div>
+                    @if (modalidad.derogacion) {
+                    <p class="font-weight-bold text-x-large">Derogación</p>
+                    } @else {
+                    <p class="font-weight-bold text-x-large">
+                        {{ modalidad.primaTotal | currency:'EUR':'symbol':'1.2-2':'es-ES' }}
+                    </p>
+                    }
+                </div>
+
+                <div>
+                    <bal-button-group direction="column" position="right">
+                        <bal-button color="primary" class="w-10rem" (balClick)="modalidad.derogacion
+                            ? solicitar(modalidad)
+                            : contratar(modalidad)">
+                            {{ modalidad.derogacion ? 'Solicitar' : 'Contratar' }}
+                        </bal-button>
+                    </bal-button-group>
+                </div>
+            </div>
+        </bal-list-item-accordion-head>
+        <!-- Detalle de la modalidad -->
+        <bal-list-item-accordion-body accordion-group="modalidades">
+            <p>
+                Lorem ipsum dolor sit amet, consectetur adipiscing elit. Sed do eiusmod tempor incididunt ut labore et
+                dolore magna aliqua. Sed do eiusmod tempor incididunt ut labore et
+                dolore magna aliqua. Sed do eiusmod tempor incididunt ut labore et
+                dolore magna aliqua.
+            </p>
+            <!-- <div class="flex justify-content-space-between flex-direction-row w-full">
+                <div>
+                    <h5>Coberturas incluidas</h5>
+                    <ul class="list has-bullet-check has-bullet-green">
+                        @for (
+                        cobertura of modalidad.coberturasIncluidas;
+                        track cobertura.codigo
+                        ) {
+                        <li>
+                            {{ cobertura.codigo }}
+                            -
+                            {{ cobertura.descripcion }}
+                        </li>
+                        }
+                    </ul>
+                </div>
+
+                <div>
+                    <h5>Coberturas opcionales</h5>
+                    <bal-list>
+                        @for (
+                        cobertura of modalidad.coberturasOpcionales;
+                        track cobertura.codigo
+                        ) {
+                        <bal-list-item>
+                            <div class="cobertura-row">
+                                <span>
+                                    {{ cobertura.codigo }}
+                                    -
+                                    {{ cobertura.descripcion }}
+                                </span>
+
+                                <span>
+                                    Contratada:
+                                    {{ cobertura.contratada ? 'Sí' : 'No' }}
+                                </span>
+                            </div>
+                        </bal-list-item>
+                        }
+                    </bal-list>
+                </div>
+            </div> -->
+        </bal-list-item-accordion-body>
+    </bal-list-item>
+    }
+</bal-list>

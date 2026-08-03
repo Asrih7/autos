@@ -105,7 +105,7 @@ export class DatosDomicilioService {
       aplicacion: this.apiApplication,
     };
 
-    const request$ = this.authenticatedPost<ApiLocalidadCodigoPostal[]>('/clientes/buscarLocalidad', payload)
+   const request$ = this.authenticatedPost<ApiLocalidadCodigoPostal[]>('/clientes/buscarLocalidad', payload)
       .pipe(
         switchMap((items) => {
           const localidades = mapToLocalidadOptions(items);
@@ -151,7 +151,16 @@ export class DatosDomicilioService {
             })),
           );
         }),
-        catchError(() => of({ localidades: [], provincias: [] })),
+        catchError(() => {
+          // FIX: no cacheamos un fallo transitorio (token en curso, red,
+          // timeout...). Si lo dejamos en el Map, ese CP queda "vacío" para
+          // siempre en esta instancia del servicio, y solo se arregla
+          // recargando la app entera. Al borrarlo, la próxima vez que se
+          // pida este CP se vuelve a llamar al backend en vez de reusar el
+          // fallo cacheado.
+          this.addressDataByPostalCode.delete(normalizedPostalCode);
+          return of({ localidades: [], provincias: [] });
+        }),
         shareReplay({ bufferSize: 1, refCount: false }),
       );
 
@@ -159,47 +168,27 @@ export class DatosDomicilioService {
     return request$;
   }
 
-  normalizeAddress(address: DatosDomicilioModel): Observable<DatosDomicilioModel> {
-    const payload: ApiNormalizarDomicilioRequest = {
-      tipoVia: address.tipoVia,
-      via: address.nombreVia,
-      numero: address.numero,
-      restoDomicilio: '',
-      poblacion: address.localidad,
-      municipio: address.localidad,
-      codigoPostal: address.codigoPostal,
-      provincia: address.provincia,
-      infCatastro: '',
-      usuario: this.apiUser,
-      aplicacion: this.apiApplication,
-    };
+ normalizeAddress(address: DatosDomicilioModel): Observable<DatosDomicilioModel> {
+  const payload = this.mapToNormalizarPayload(address);
 
-    return this.authenticatedPost<ApiNormalizarDomicilioResponse>('/normalizar/domicilio', payload)
-      .pipe(
-        map((response: ApiNormalizarDomicilioResponse | null) => {
-          // A 200 response may legitimately contain only partial normalized
-          // fields. The mapper retains the submitted values in that case, so
-          // only an explicit backend business error is a failed normalization.
-          const businessError = response?.error;
-          // Some BDI deployments serialize numeric fields as strings, e.g.
-          // { error: "0" }. Treat both 0 and "0" as a successful response.
-          if (businessError !== undefined && String(businessError).trim() !== '' && Number(businessError) !== 0) {
-            throw new Error(`normalizar/domicilio returned error ${businessError}`);
-          }
+  return this.authenticatedPost<ApiNormalizarDomicilioResponse>('/normalizar/domicilio', payload)
+    .pipe(
+      map((response: ApiNormalizarDomicilioResponse | null) => {
+        const businessError = response?.error;
 
-          // BDI puede responder 200/error:0 aunque NO haya reconocido la vía
-          // introducida (p.ej. texto no existente en el callejero). Esto no
-          // se refleja en `error`, sino en que `codigoVia` vuelve vacío.
-          // Tratamos ese caso como fallo de normalización explícito, tanto si
-          // la dirección se introdujo a mano como si vino de Google.
-          if (!isDireccionNormalizadaFiable(response)) {
-            throw new Error('normalizar/domicilio: la via no ha sido reconocida/codificada por BDI');
-          }
+        if (businessError !== undefined && String(businessError).trim() !== '' && Number(businessError) !== 0) {
+          throw new Error(`normalizar/domicilio returned error ${businessError}`);
+        }
 
-          return mapNormalizedAddressResponse(response, address);
-        }),
-      );
-  }
+        if (!isDireccionNormalizadaFiable(response)) {
+          throw new Error('normalizar/domicilio: la via no ha sido reconocida/codificada por BDI');
+        }
+
+        return mapNormalizedAddressResponse(response, address);
+      }),
+    );
+}
+
 
   private authenticatedPost<T>(path: string, payload: unknown): Observable<T> {
     return this.ensureTechnicalToken().pipe(
@@ -241,4 +230,21 @@ export class DatosDomicilioService {
 
     return this.authenticationInFlight$!;
   }
+
+  private mapToNormalizarPayload(model: DatosDomicilioModel): ApiNormalizarDomicilioRequest {
+  return {
+    tipoVia: model.tipoVia,
+    via: model.nombreVia,                     // nombreVia → via
+    numero: model.numero,
+    restoDomicilio: "",
+    poblacion: model.localidad,               // localidad → poblacion
+    municipio: model.localidad,               // localidad → municipio
+    codigoPostal: model.codigoPostal,
+    provincia: model.provincia,
+    infCatastro: "",
+    usuario: "AC_ASIST_PYMES",
+    aplicacion: "front-desktop"
+  };
+}
+
 }

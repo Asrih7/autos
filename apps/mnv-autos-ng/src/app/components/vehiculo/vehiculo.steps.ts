@@ -11,7 +11,7 @@ export const VEHICULO_STEPS: VehiculoStepDefinition[] = [
     id: 'busqueda-matricula',
     label: 'Búsqueda por Matrícula',
     component: () =>
-      import('./steps/busqueda-matricula/busqueda-matricula')
+      import('./steps/busqueda-matricula/busqueda-matricula.component')
         .then(m => m.BusquedaMatricula),
   },
   {
@@ -25,14 +25,14 @@ export const VEHICULO_STEPS: VehiculoStepDefinition[] = [
     id: 'confirmacion-version',
     label: 'Confirmación de Versión',
     component: () =>
-      import('./steps/confirmacion-version/confirmacion-version')
+      import('./steps/confirmacion-version/confirmacion-version.component')
         .then(m => m.ConfirmacionVersion),
   },
   {
     id: 'resto-campos',
     label: 'Datos Adicionales',
     component: () =>
-      import('./steps/resto-campos/resto-campos')
+      import('./steps/resto-campos/resto-campos.component')
         .then(m => m.RestoCampos),
   },
   {

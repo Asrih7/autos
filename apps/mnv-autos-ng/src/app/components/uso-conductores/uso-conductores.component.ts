@@ -7,16 +7,19 @@ import {
   computed,
   inject,
   signal,
+  untracked,
   ViewChild,
   ViewContainerRef,
   OnInit,
   OnDestroy,
   DestroyRef,
-  Injector, 
+  Injector,
+  ElementRef,
+  Renderer2, 
 } from "@angular/core";
 import { NavigationEnd, Router } from "@angular/router";
 import { filter, firstValueFrom } from "rxjs";
-import { BalButton , BalButtonGroup} from "@baloise/ds-angular";
+import { BalButton , BalButtonGroup, BalToast} from "@baloise/ds-angular";
 import { TranslateModule } from "@ngx-translate/core";
 
 import { USO_CONDUCTORES_STEPS } from "./uso-conductores.steps";
@@ -28,7 +31,7 @@ import { DatosDomicilioModel, DatosDomicilioService } from "@mnv-autos-ng/ui";
 @Component({
   selector: "app-uso-conductores",
   standalone: true,
-  imports: [BalButton, BalButtonGroup, TranslateModule],
+  imports: [BalButton, BalButtonGroup, BalToast, TranslateModule],
   templateUrl: "./uso-conductores.component.html",
   styleUrl: "./uso-conductores.component.scss",
 })
@@ -44,10 +47,18 @@ export class UsoConductoresComponent
   private navigating = false;
   private activeStepInstance: ParentNextStep | null = null;
   private readonly stepComponentRefs = new Map<string, ComponentRef<any>>();
+  toastOpen = signal(false);
+toastMessage = signal('');
+toastType = signal<'success' | 'info' | 'warning' | 'danger'>('success');
+toastDurationMs = 3000;
 
   @ViewChild("stepOutlet", { read: ViewContainerRef, static: true })
   private stepOutlet!: ViewContainerRef;
 
+   private readonly renderer = inject(Renderer2);
+
+  @ViewChild("buttonAnchor", { static: true })
+  private buttonAnchor!: ElementRef<HTMLElement>;
   readonly steps = computed(() => {
     const inter = this.state.intervinientes();
     if (inter?.tomadorEsPropietario) {
@@ -76,12 +87,34 @@ export class UsoConductoresComponent
       case "seguro-anterior":
         return this.state.canContinueFromSeguroAnterior();
       case "fecha-efecto-seguro":
-        return this.state.canContinueFromFechaEfectoSeguro();
+         return true;
       default:
         return false;
     }
   });
+readonly isLastStep = computed(() => {
+  const steps = this.steps();
+  return this.activeStepId() === steps[steps.length - 1].id;
+});
 
+
+  readonly allStepsCompleted = computed(() => {
+    if (!this.state.canContinueFromUso()) return false;
+
+    const inter = this.state.intervinientes();
+    const tomadorEsPropietario = !!inter?.tomadorEsPropietario;
+
+    if (!this.state.canContinueFromIntervinientes()) return false;
+
+    if (!tomadorEsPropietario && !this.isDireccionTomadorComplete()) {
+      return false;
+    }
+
+    if (!this.state.canContinueFromSeguroAnterior()) return false;
+    if (!this.state.canContinueFromFechaEfectoSeguro()) return false;
+
+    return true;
+  });
   ngOnInit(): void {
     this.navService.activePageConfig.set({
       pageId: "uso-conductores",
@@ -89,6 +122,7 @@ export class UsoConductoresComponent
       previousPageLabel: "Vehículos",
       nextPageUrl: "/precio-coberturas",
       beforeNavigateNext: () => this.prepareToContinueToPricing(),
+      canContinueNext: () => this.allStepsCompleted(),
     });
   }
 
@@ -119,7 +153,22 @@ export class UsoConductoresComponent
             this.destroyStepComponent("direccion-tomador");
           }
 
-          // si el usuario estaba en la pantalla de direccion, forzamos navegación atrás
+          const hasStaleDireccionTomador = untracked(() => {
+            const direccion = this.state.direccionTomador();
+            const hasValues = Object.values(direccion).some(
+              (value) => value.trim().length > 0,
+            );
+            return (
+              hasValues ||
+              this.state.direccionTomadorCompleted() ||
+              this.state.direccionTomadorFromGoogle()
+            );
+          });
+
+          if (hasStaleDireccionTomador) {
+            this.state.clearDireccionTomador();
+          }
+
           if (current === "direccion-tomador") {
             this.state.setLastStep("intervinientes");
             this.navigateTo("intervinientes", true);
@@ -130,7 +179,6 @@ export class UsoConductoresComponent
     );
   }
 
-  /** Devuelve el id del step presente en la URL actual, o null si no hay segundo segmento. */
   private stepIdFromUrl(): string | null {
     const segments =
       this.router
@@ -160,12 +208,10 @@ export class UsoConductoresComponent
         (s) => s.id === stepId,
       );
 
-      // Marca este step como loaded
       if (originalIndex >= 0) {
         this.state.setStepLoaded(originalIndex);
       }
 
-      // Marca todos los steps anteriores como loaded
       for (let i = 0; i < originalIndex; i++) {
         this.state.setStepLoaded(i);
       }
@@ -175,6 +221,34 @@ export class UsoConductoresComponent
     this.state.setLastStep(stepId);
 
     await this.loadStep(stepId);
+    const steps = this.steps();
+    const currentIndex = this.activeIndex();
+    const nextStep = steps[currentIndex + 1];
+
+   this.navService.activePageConfig.set({
+  pageId: "uso-conductores",
+  previousPageUrl: "/vehiculos/accesorios",
+  previousPageLabel: "Vehículos",
+  nextPageUrl: "/precio-coberturas",
+  beforeNavigateNext: () => this.prepareToContinueToPricing(),
+  canContinueNext: () => this.allStepsCompleted(),
+});
+  }
+
+
+  private repositionNextButton(): void {
+    const activeId = this.activeStepId();
+    if (!activeId || !this.buttonAnchor) return;
+
+    const activeRef = this.stepComponentRefs.get(activeId);
+    if (!activeRef) return;
+
+    const activeEl = activeRef.location.nativeElement as HTMLElement;
+    const anchorEl = this.buttonAnchor.nativeElement;
+    const parent = activeEl.parentElement;
+    if (!parent) return;
+
+    this.renderer.insertBefore(parent, anchorEl, activeEl.nextSibling);
   }
 
   async loadStep(stepId: string): Promise<void> {
@@ -186,7 +260,6 @@ export class UsoConductoresComponent
 
     this.activeIndex.set(index);
 
-    // stepsLoaded se guarda según el orden original USO_CONDUCTORES_STEPS
     const loaded =
       this.state.stepsLoaded() ??
       new Array(USO_CONDUCTORES_STEPS.length).fill(false);
@@ -205,7 +278,6 @@ export class UsoConductoresComponent
 
       const existingRef = this.stepComponentRefs.get(step.id);
       if (existingRef) {
-        // Ya existe: lo dejamos tal cual, no lo tocamos.
         if (step.id === stepId) {
           this.activeStepInstance = existingRef.instance as ParentNextStep;
         }
@@ -222,8 +294,10 @@ export class UsoConductoresComponent
         continue;
       }
 
+      const insertIndex = this.computeInsertIndex(step.id, currentSteps);
       const componentRef = this.stepOutlet.createComponent(
         componentType as Type<any>,
+        { index: insertIndex },
       );
       this.stepComponentRefs.set(step.id, componentRef);
 
@@ -236,6 +310,8 @@ export class UsoConductoresComponent
       }
     }
 
+    this.repositionNextButton();
+
     if (this.activeStepInstance?.validate) {
       try {
         this.activeStepInstance.validate();
@@ -244,7 +320,21 @@ export class UsoConductoresComponent
     }
   }
 
-  /** Destruye el componente de un step específico y lo saca del tracking. */
+
+  private computeInsertIndex(
+    stepId: string,
+    currentSteps: StepDefinition[],
+  ): number {
+    const targetPos = currentSteps.findIndex((s) => s.id === stepId);
+    let index = 0;
+    for (let i = 0; i < targetPos; i++) {
+      if (this.stepComponentRefs.has(currentSteps[i].id)) {
+        index++;
+      }
+    }
+    return index;
+  }
+
   private destroyStepComponent(stepId: string): void {
     const ref = this.stepComponentRefs.get(stepId);
     if (ref) {
@@ -306,9 +396,7 @@ export class UsoConductoresComponent
       const normalizedAddress = await firstValueFrom(
         this.datosDomicilioService.normalizeAddress(this.state.direccionTomador()),
       );
-      // normalizar/domicilio may return a province code while the form select
-      // requires the description/value from buscarProvincia. Resolve it again
-      // from the normalized CP so it remains visible after navigating back.
+
       const addressData = await firstValueFrom(
         this.datosDomicilioService.getAddressData(normalizedAddress.codigoPostal),
       );
@@ -343,14 +431,9 @@ export class UsoConductoresComponent
       this.navigating = false;
       if (!normalized) return false;
 
-      // Let the address component render its success toast before the route is
-      // replaced by Precio y coberturas.
       await new Promise<void>((resolve) => setTimeout(resolve, 800));
     }
 
-    // The footer is the explicit action that closes Uso y conductores. Once
-    // the address is successfully normalized (or no address is required), it
-    // must proceed directly to Precio y coberturas.
     return true;
   }
 
@@ -378,9 +461,15 @@ export class UsoConductoresComponent
       (this.stepComponentRefs.get(stepId)?.instance as ParentNextStep) ??
       null;
     this.state.setLastStep(stepId);
+    this.repositionNextButton();
     this.navigateTo(stepId, true);
   }
 
+  showToast(message: string, type: 'success' | 'info' | 'warning' | 'danger') {
+  this.toastMessage.set(message);
+  this.toastType.set(type);
+  this.toastOpen.set(true);
+}
   ngOnDestroy(): void {
     this.navService.activePageConfig.set(null);
     this.stepComponentRefs.clear();

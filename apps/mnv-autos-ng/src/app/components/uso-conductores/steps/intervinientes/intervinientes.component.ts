@@ -115,6 +115,24 @@ export class IntervinientesComponent implements OnInit {
   private readonly CIF_NUMBER_ONLY = ['A', 'B', 'E', 'H'];
   private readonly CIF_CONTROL_LETTERS = 'JABCDEFGHI'; // index 0..9 maps D=0..9
 
+  private readonly touched = new WeakMap<Persona, Set<string>>();
+
+  private markTouched(model: Persona, field: string): void {
+    if (!model) return;
+    let set = this.touched.get(model);
+    if (!set) {
+      set = new Set<string>();
+      this.touched.set(model, set);
+    }
+    set.add(field);
+  }
+
+  private isTouched(model: Persona, field: string): boolean {
+    if (!model) return false;
+    const set = this.touched.get(model);
+    return !!set && set.has(field);
+  }
+
   constructor(private bdi: BdiService, private sisnet: SisnetService) {
     this.documentos$ = this.bdi.getDocumentTypes().pipe(catchError(() => of([])));
     this.paises$ = this.bdi.getCountries().pipe(catchError(() => of([])));
@@ -127,8 +145,8 @@ export class IntervinientesComponent implements OnInit {
   }
 
   ngOnInit(): void {
-      this.stepSelected.emit('intervinientes');
-      const saved = this.usoState.intervinientes();
+    this.stepSelected.emit('intervinientes');
+    const saved = this.usoState.intervinientes();
     if (saved) {
       this.tomadorEsPropietario.set(saved.tomadorEsPropietario);
       this.tomadorEsConductorHabitual.set(saved.tomadorEsConductorHabitual);
@@ -158,19 +176,16 @@ export class IntervinientesComponent implements OnInit {
   }
 
   private autofillRelatedPersons(): void {
-    // If propietario is a separate section and empty, prefill with tomador values
     if (!this.tomadorEsPropietario() && this.isEmptyPersonaModel(this.propietario)) {
       this.copyFromTomador(this.propietario as Persona);
     }
 
-    // If conductor habitual is a separate section and empty, prefill with tomador values
     if (!this.tomadorEsConductorHabitual() && this.isEmptyPersonaModel(this.conductorHabitual)) {
       this.copyFromTomador(this.conductorHabitual as Persona);
     }
 
-    // Prefill occasional drivers if none exist (do not overwrite existing ones)
     if (this.conductoresOcasionales().length === 0 && this.isEmptyPersonaModel(undefined)) {
-      // no-op: only prefill on add
+      // no-op
     }
   }
 
@@ -269,58 +284,53 @@ export class IntervinientesComponent implements OnInit {
     return !!event;
   }
 
-  /**
-   * Toggle handlers
-   * Accept either:
-   *  - boolean (native input change -> $event.target.checked)
-   *  - CustomEvent (bal-switch) where detail is boolean
-   *  - Angular Event where target.checked exists
-   */
   onTomadorEsPropietarioChange(event: any): void {
     const checked = this.getCheckedFromEvent(event);
     this.tomadorEsPropietario.set(checked);
 
     if (checked) {
-    this.usoState.resetDireccionTomador();
-    this.propietarioDireccion = null;
+      // El paso "Dirección tomador" deja de mostrarse: hay que borrar toda
+      // la dirección guardada (no solo el flag "completed"), si no la
+      // siguiente vez que se re-active el toggle el botón "Continuar" del
+      // footer se queda bloqueado intentando renormalizar una dirección
+      // antigua que ya no corresponde a ningún formulario visible.
+      this.usoState.clearDireccionTomador();
+      this.propietarioDireccion = null;
 
-    const originalIndex = USO_CONDUCTORES_STEPS.findIndex(s => s.id === 'direccion-tomador');
-    if (originalIndex >= 0) {
-      this.usoState.clearStepLoaded(originalIndex);
+      const originalIndex = USO_CONDUCTORES_STEPS.findIndex(s => s.id === 'direccion-tomador');
+      if (originalIndex >= 0) {
+        this.usoState.clearStepLoaded(originalIndex);
+      }
+
+      if (!checked && this.isEmptyPersonaModel(this.propietario)) {
+        this.copyFromTomador(this.propietario as Persona);
+      }
+
+      const segments = this.router.parseUrl(this.router.url)
+        .root.children['primary']?.segments.map(s => s.path) ?? [];
+
+      if (segments[1] === 'direccion-tomador') {
+        void this.router.navigate(['/uso-conductores', 'intervinientes'], { replaceUrl: true });
+      }
     }
 
-    // If the tomador is NOT propietario and propietario section is empty, prefill it from tomador
-    if (!checked && this.isEmptyPersonaModel(this.propietario)) {
-      this.copyFromTomador(this.propietario as Persona);
-    }
-
-    const segments = this.router.parseUrl(this.router.url)
-      .root.children['primary']?.segments.map(s => s.path) ?? [];
-
-    if (segments[1] === 'direccion-tomador') {
-      void this.router.navigate(['/uso-conductores', 'intervinientes'], { replaceUrl: true });
-    }
+    this.persistIntervinientesState();
+    this.checkCompletion();
+    this.cdr.detectChanges();
   }
 
-  this.persistIntervinientesState();
-  this.checkCompletion();
-  this.cdr.detectChanges();
-}
+  onTomadorEsConductorHabitualChange(event: any): void {
+    const checked = this.getCheckedFromEvent(event);
+    this.tomadorEsConductorHabitual.set(checked);
 
-onTomadorEsConductorHabitualChange(event: any): void {
-  const checked = this.getCheckedFromEvent(event);
-  this.tomadorEsConductorHabitual.set(checked);
+    if (!checked && this.isEmptyPersonaModel(this.conductorHabitual)) {
+      this.copyFromTomador(this.conductorHabitual as Persona);
+    }
 
-  // If the conductor habitual section is shown (toggle turned off), autofill with tomador values when empty
-  if (!checked && this.isEmptyPersonaModel(this.conductorHabitual)) {
-    this.copyFromTomador(this.conductorHabitual as Persona);
+    this.persistIntervinientesState();
+    this.checkCompletion();
+    this.cdr.detectChanges();
   }
-
-  this.persistIntervinientesState();
-  this.checkCompletion();
-  this.cdr.detectChanges();
-}
-
 
   addConductorOcasional(): void {
     if (this.maxConductoresOcasionales() && this.conductoresOcasionales().length >= this.maxConductoresOcasionales()) {
@@ -370,10 +380,6 @@ onTomadorEsConductorHabitualChange(event: any): void {
     this.checkCompletion();
   }
 
-  /**
-   * Generic select handler: supports bal-select (CustomEvent.detail),
-   * Angular event, or direct value.
-   */
   onSelectChange(eventOrValue: any, model: any, field: string): void {
     const v =
       eventOrValue?.detail?.value ??
@@ -396,6 +402,9 @@ onTomadorEsConductorHabitualChange(event: any): void {
     const iso =
       eventOrValue?.detail?.value ?? eventOrValue?.detail ?? eventOrValue?.target?.value ?? eventOrValue;
     model[field] = iso ? this.isoToDate(String(iso)) : null;
+
+    this.markTouched(model as Persona, field);
+
     this.persistIntervinientesState();
     this.checkCompletion();
   }
@@ -440,9 +449,9 @@ onTomadorEsConductorHabitualChange(event: any): void {
     if (!model.numeroDocumento || model.numeroDocumento.trim().length === 0) return false;
     if (!model.pais) return false;
 
-   if (model.documento === 'NIF' || model.documento === 'NIE') {
-  if (!this.isDocumentoValid(model.numeroDocumento, model.documento)) return false;
-}
+    if (model.documento === 'NIF' || model.documento === 'NIE') {
+      if (!this.isDocumentoValid(model.numeroDocumento, model.documento)) return false;
+    }
 
     if (model.documento === 'PASAPORTE') {
       if (!/^[A-Z0-9]{5,12}$/.test(String(model.numeroDocumento).toUpperCase())) return false;
@@ -477,14 +486,12 @@ onTomadorEsConductorHabitualChange(event: any): void {
 
     let propietarioOk = true;
     if (!this.tomadorEsPropietario()) {
-      // propietario shown separately: show carnet fields but they are not mandatory per spec
       propietarioOk = this.isPersonaComplete(this.propietario, { showCarnet: true, useEdad: false, requireCarnet: false });
     }
 
     let conductorOk = true;
     if (!this.tomadorEsConductorHabitual()) {
       const conductorUseEdad = this.tomadorEsPropietario();
-      // conductor habitual shown separately: carnet fields shown and required (useEdad controls fecha/edad requirement)
       conductorOk = this.isPersonaComplete(this.conductorHabitual, { showCarnet: true, useEdad: conductorUseEdad, requireCarnet: true });
     }
 
@@ -534,23 +541,23 @@ onTomadorEsConductorHabitualChange(event: any): void {
     this.checkCompletion();
   }
 
- isDocumentoValid(value: string, documento: string): boolean {
-  if (!value) return false;
-  const v = String(value).toUpperCase().trim();
+  isDocumentoValid(value: string, documento: string): boolean {
+    if (!value) return false;
+    const v = String(value).toUpperCase().trim();
 
-  switch (documento) {
-    case 'NIF':
-      return /^[0-9]{8}[A-Z]$/.test(v) && this.validateNifControl(v);
-    case 'NIE':
-      return /^[XYZ][0-9]{7}[A-Z]$/.test(v) && this.validateNieControl(v);
-    case 'CIF':
-      return /^[A-HJ-NP-SUVW][0-9]{7}[0-9A-J]$/i.test(v) && this.validateCifControl(v);
-    case 'PASAPORTE':
-      return /^[A-Z0-9]{5,12}$/.test(v);
-    default:
-      return false;
+    switch (documento) {
+      case 'NIF':
+        return /^[0-9]{8}[A-Z]$/.test(v) && this.validateNifControl(v);
+      case 'NIE':
+        return /^[XYZ][0-9]{7}[A-Z]$/.test(v) && this.validateNieControl(v);
+      case 'CIF':
+        return /^[A-HJ-NP-SUVW][0-9]{7}[0-9A-J]$/i.test(v) && this.validateCifControl(v);
+      case 'PASAPORTE':
+        return /^[A-Z0-9]{5,12}$/.test(v);
+      default:
+        return false;
+    }
   }
-}
 
   validateNifControl(nif: string): boolean {
     if (!nif || nif.length !== 9) return false;
@@ -589,17 +596,15 @@ onTomadorEsConductorHabitualChange(event: any): void {
 
     if (!/^[0-9]{7}$/.test(digits)) return false;
 
-    let pares = 0; // positions 2,4,6 (0-indexed: 1,3,5)
-    let impares = 0; // positions 1,3,5,7 (0-indexed: 0,2,4,6)
+    let pares = 0;
+    let impares = 0;
 
     for (let i = 0; i < 7; i++) {
       const digit = Number(digits[i]);
       if (i % 2 === 0) {
-        // odd position (1st,3rd,5th,7th): double it, sum the resulting digits
         const doubled = digit * 2;
         impares += doubled > 9 ? Math.floor(doubled / 10) + (doubled % 10) : doubled;
       } else {
-        // even position (2nd,4th,6th): sum directly
         pares += digit;
       }
     }
@@ -616,14 +621,13 @@ onTomadorEsConductorHabitualChange(event: any): void {
     if (this.CIF_NUMBER_ONLY.includes(entityLetter)) {
       return controlChar === expectedNumber;
     }
-    // Entity letters that accept either a number or a letter as control char
     return controlChar === expectedNumber || controlChar === expectedLetter;
   }
 
   numeroDocumentoError(model: Persona): string | null {
     if (!model.numeroDocumento || model.numeroDocumento.trim().length === 0) return 'Campo obligatorio';
-   if ((model.documento === 'NIF' || model.documento === 'NIE') && !this.isDocumentoValid(model.numeroDocumento, model.documento))
-  return 'Formato inválido';
+    if ((model.documento === 'NIF' || model.documento === 'NIE') && !this.isDocumentoValid(model.numeroDocumento, model.documento))
+      return 'Formato inválido';
     if (model.documento === 'CIF') {
       if (!/^[A-HJ-NP-SUVW][0-9]{7}[0-9A-J]$/i.test(String(model.numeroDocumento))) return 'Formato CIF inválido';
       if (!this.validateCifControl(String(model.numeroDocumento))) return 'Dígito de control CIF inválido';
@@ -654,7 +658,9 @@ onTomadorEsConductorHabitualChange(event: any): void {
 
   fechaNacimientoError(model: Persona): string | null {
     if (this.esCIF(model)) return null;
-    if (this.personaStarted(model) && !model.fechaNacimiento) return 'Campo obligatorio';
+    if (this.personaStarted(model) && !model.fechaNacimiento && this.isTouched(model, 'fechaNacimiento')) {
+      return 'Campo obligatorio';
+    }
     return null;
   }
 
@@ -668,7 +674,9 @@ onTomadorEsConductorHabitualChange(event: any): void {
   fechaObtencionCarnetError(model: Persona, showCarnet: boolean, requireCarnet: boolean, useEdad: boolean): string | null {
     if (this.esCIF(model)) return null;
     if (!showCarnet || !requireCarnet || useEdad) return null;
-    if (this.personaStarted(model) && !model.fechaObtencionCarnet) return 'Campo obligatorio';
+    if (this.personaStarted(model) && !model.fechaObtencionCarnet && this.isTouched(model, 'fechaObtencionCarnet')) {
+      return 'Campo obligatorio';
+    }
     return null;
   }
 

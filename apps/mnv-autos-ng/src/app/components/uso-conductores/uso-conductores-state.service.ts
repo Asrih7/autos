@@ -133,6 +133,15 @@ export class UsoConductoresStateService {
     }));
   }
 
+  clearDireccionTomador() {
+    this._state.update((current) => ({
+      ...current,
+      direccionTomador: { ...EMPTY_DATOS_DOMICILIO },
+      direccionTomadorCompleted: false,
+      direccionTomadorFromGoogle: false,
+    }));
+  }
+
   updateIntervinientesState(partial: Partial<IntervinientesState>) {
     this._state.update((current) => ({
       ...current,

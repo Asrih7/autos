@@ -1,4 +1,4 @@
-import { Component, inject, computed, input, Type, OnInit, OnDestroy } from '@angular/core';
+import { Component, inject, computed, input, Type, OnInit, OnDestroy, effect } from '@angular/core';
 import { Router } from '@angular/router';
 import { NgComponentOutlet } from '@angular/common';
 import { toObservable, toSignal } from '@angular/core/rxjs-interop';
@@ -8,10 +8,12 @@ import { ScrollOnRenderDirective } from '@mnv-autos-ng/util';
 import { PageNavigationService } from '@mnv-autos-ng/navigation';
 
 export type StepCompleteCallback = (stepOutputData: unknown) => void;
+
 export interface RenderedLayer {
   id: string;
   componentClass: Type<unknown>;
   inputs: {
+    stepId: string;
     onStepComplete: StepCompleteCallback;
   };
 }
@@ -26,16 +28,23 @@ export interface RenderedLayer {
 export class VehiculoComponent implements OnInit, OnDestroy {
   private readonly navService = inject(PageNavigationService);
   private readonly router = inject(Router);
-  
+
   step = input.required<string>();
   readonly steps: VehiculoStepDefinition[] = VEHICULO_STEPS;
+
+
+  readonly isOnLastStep = computed(() => {
+    const currentStep = this.step();
+    return this.steps.length > 0 && currentStep === this.steps[this.steps.length - 1].id;
+  });
 
   ngOnInit() {
     this.navService.activePageConfig.set({
       pageId: 'vehiculos',
       previousPageUrl: '/tu-cliente',
       previousPageLabel: 'Tu cliente',
-      nextPageUrl: '/uso-conductores'
+      nextPageUrl: '/uso-conductores',
+      canContinueNext: () => this.isOnLastStep()
     });
   }
 
@@ -63,10 +72,21 @@ export class VehiculoComponent implements OnInit, OnDestroy {
       id: stepDef.id,
       componentClass: components[idx],
       inputs: {
+        stepId: stepDef.id,
         onStepComplete: (data: unknown) => this.handleStepNavigation(stepDef.id, data)
       }
     }));
   });
+
+  constructor() {
+    effect(() => {
+      const steps = this.renderedSteps();
+      if (steps.length > 0) {
+        const last = steps[steps.length - 1];
+        this.navService.currentStepCallback.set(last.inputs.onStepComplete);
+      }
+    });
+  }
 
   handleStepNavigation(currentStepId: string, stepOutputData: unknown): void {
     const idx = this.steps.findIndex(s => s.id === currentStepId);

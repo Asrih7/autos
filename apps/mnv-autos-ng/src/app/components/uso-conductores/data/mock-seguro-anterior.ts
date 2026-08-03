@@ -17,28 +17,22 @@ export const SEGURO_ANTERIOR_OPCIONES: SeguroAnteriorOpcion[] = [
 ];
 
 export const CATALOGO_SEGUROS: GridItemSelector[] = [
-  { id: "ALZ", nombre: "Allianz", logo: "assets/logos/Allianz.png" },
-  { id: "AXA", nombre: "Axa", logo: "assets/logos/Axa.png" },
-  {
-    id: "CTO",
-    nombre: "CatalanaOccidente",
-    logo: "assets/logos/CatalanaOccidente.png",
-  },
-  { id: "GEN", nombre: "Generalli", logo: "assets/logos/Generalli.png" },
-  { id: "GNS", nombre: "Genesis", logo: "assets/logos/Genesis.png" },
-  {
-    id: "LIB",
-    nombre: "LibertySeguros",
-    logo: "assets/logos/LibertySeguros.png",
-  },
-  { id: "MAP", nombre: "Mapfre", logo: "assets/logos/Mapfre.png" },
-  {
-    id: "MMN",
-    nombre: "MutuaMadrileña",
-    logo: "assets/logos/MutuaMadrileña.png",
-  },
-  { id: "PLY", nombre: "Pelayo", logo: "assets/logos/Pelayo.png" },
+  { id: "ALZ", nombre: "Allianz", logo: "assets/logos/allianz.png" },
+  { id: "AXA", nombre: "Axa", logo: "assets/logos/axa.png" },
+  { id: "DIR", nombre: "Direct", logo: "assets/logos/direct.png" },
+  { id: "FEN", nombre: "Fenix", logo: "assets/logos/fenix.png" },
+  { id: "FIA", nombre: "Fiatc", logo: "assets/logos/fiatc.png" },
+  { id: "GNS", nombre: "Genesis", logo: "assets/logos/genesis.png" },
+  { id: "GRP", nombre: "Groupama", logo: "assets/logos/groupama.png" },
+  { id: "LIB", nombre: "Liberty", logo: "assets/logos/liberty.png" },
+  { id: "LDT", nombre: "Línea Directa", logo: "assets/logos/linea-directa.png" },
+  { id: "MAP", nombre: "Mapfre", logo: "assets/logos/mapfre.png" },
+  { id: "MMN", nombre: "Mutua Madrileña", logo: "assets/logos/mutua-madrilena.png" },
+  { id: "PLY", nombre: "Pelayo", logo: "assets/logos/pelayo.png" },
+  { id: "REA", nombre: "Reale", logo: "assets/logos/reale.png" },
+  { id: "ZUR", nombre: "Zurich", logo: "assets/logos/zurich.png" },
 ];
+
 
 export const ANIOS_ASEGURADO_OPCIONES: SelectOpcion[] = [
   {

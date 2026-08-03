@@ -8,6 +8,7 @@ import { UsoConductoresStateService } from '../../uso-conductores-state.service'
 import { DatosDomicilioGoogle,DatosDomicilioForm,DatosDomicilioService, DatosDomicilioModel, EMPTY_DATOS_DOMICILIO, formatDireccionToString } from "@mnv-autos-ng/ui";
 
 import { take } from 'rxjs';
+import { UsoConductoresComponent } from '../../uso-conductores.component';
 
 @Component({
   selector: 'app-direccion-tomador',
@@ -34,6 +35,17 @@ export class DireccionTomadorComponent implements OnInit {
 
   private readonly usoState = inject(UsoConductoresStateService);
   private readonly datosDomicilioService = inject(DatosDomicilioService);
+  private parent = inject(UsoConductoresComponent);
+
+fieldDisabled = signal({
+  tipoVia: false,
+  nombreVia: false,
+  numero: false,
+  codigoPostal: false,
+  provincia: false,
+  localidad: false
+});
+
 
   ngOnInit(): void {
     this.stepSelected.emit('direccion-tomador');
@@ -52,15 +64,30 @@ export class DireccionTomadorComponent implements OnInit {
   }
 
   onAddressSelected(address: DatosDomicilioModel): void {
-    this.usoState.setDireccionTomadorFromGoogle(true);
-    // A Google selection is the authoritative source for this form. The CP
-    // lookup enriches province/locality before the read-only fields render.
-    this.formDisabled.set(true);
-    this.normalized.set(false);
-    this.usoState.resetDireccionTomador();
-    this.updateAddress(address);
-    this.enrichGoogleAddressFromPostalCode(address);
-  }
+  this.usoState.setDireccionTomadorFromGoogle(true);
+  this.normalized.set(false);
+  this.usoState.resetDireccionTomador();
+
+  const flags = {
+  tipoVia: !!address.tipoVia?.trim(),        // Google lo rellenó → bloquear
+  nombreVia: !!address.nombreVia?.trim(),
+  numero: !!address.numero?.trim(),
+  codigoPostal: !!address.codigoPostal?.trim(),
+  provincia: !!address.provincia?.trim(),
+  localidad: !!address.localidad?.trim()
+};
+
+
+  this.fieldDisabled.set(flags);
+
+  const allFilled = Object.values(flags).every(v => v === true);
+  this.formDisabled.set(allFilled);
+
+  this.updateAddress(address);
+  this.enrichGoogleAddressFromPostalCode(address);
+}
+
+
 
   onFormChanged(updated: DatosDomicilioModel): void {
     // Component controls can emit an empty value while being re-created after
@@ -131,18 +158,25 @@ export class DireccionTomadorComponent implements OnInit {
   public applyNormalizedAddress(normalized: DatosDomicilioModel): void {
     this.updateAddress(normalized);
     this.normalized.set(true);
-    this.showToast('La direccion ha sido normalizada.', 'success');
+    this.parent.showToast('La direccion ha sido normalizada.', 'success');
     this.save.emit({ domicilio: formatDireccionToString(normalized) });
     this.direccionCompleted.emit();
   }
 
-  public showNormalisationFailure(): void {
-    this.showToast('No se ha podido normalizar la direccion. Intentalo de nuevo.', 'danger');
-  }
+ // direccion-tomador.component.ts
 
-  public showIncompleteAddress(): void {
-    this.showToast('Completa todos los campos de la direccion antes de continuar.', 'warning');
-  }
+public showNormalisationFailure(): void {
+  this.parent.showToast('No se ha podido normalizar la direccion. Intentalo de nuevo.', 'danger');
+}
+
+public showIncompleteAddress(): void {
+  this.parent.showToast('Completa todos los campos de la direccion antes de continuar.', 'warning');
+}
+
+// used by onParentNext()
+private showToast(message: string, type: 'success' | 'info' | 'warning' | 'danger'): void {
+  this.parent.showToast(message, type);
+}
 
   get titleKey(): string { return `usoConductores.intervinientes.address.${this.context}.title`; }
   get subtitleKey(): string { return `usoConductores.intervinientes.address.${this.context}.subtitle`; }
@@ -194,9 +228,5 @@ export class DireccionTomadorComponent implements OnInit {
       .every((value) => value.trim().length > 0);
   }
 
-  private showToast(message: string, type: 'success' | 'info' | 'warning' | 'danger'): void {
-    this.toastMessage.set(message);
-    this.toastType.set(type);
-    this.toastOpen.set(true);
-  }
+
 }

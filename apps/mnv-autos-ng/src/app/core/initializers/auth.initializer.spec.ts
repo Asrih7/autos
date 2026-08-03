@@ -14,8 +14,8 @@ vi.mock('../../../environments/environment', () => ({
       vehiculo: '/mnv-autos-sb/autos'
     },
     technicalCredentials: {
-      usuario: 'agentePM1Col',
-      password: 'Entra1234*'
+     usuario: 'AC_ASIST_PYMES',
+        password: 'Entra2026**'
     }
   }
 }));
@@ -50,8 +50,8 @@ describe('Authentication Initializer', () => {
     const req = httpMock.expectOne(loginUrl);
     expect(req.request.method).toBe('POST');
     expect(req.request.body).toEqual({
-      usuario: 'agentePM1Col',
-      password: 'Entra1234*'
+     usuario: 'AC_ASIST_PYMES',
+        password: 'Entra2026**'
     });
 
     const mockApiResponse: ApiAuthResponse = {

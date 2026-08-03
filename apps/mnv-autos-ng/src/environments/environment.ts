@@ -13,7 +13,7 @@ export const environment = {
     autos: '/mnv-autos-sb/autos'
   },
   technicalCredentials: {
-    usuario: 'agentePM1Col',
-    password: 'Entra1234*'
+    usuario: 'AC_ASIST_PYMES',
+    "password": "Entra2026**"
   }
 };

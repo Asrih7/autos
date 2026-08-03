@@ -4,7 +4,6 @@ import {
   input,
   output,
 } from "@angular/core";
-import { TranslateModule } from "@ngx-translate/core";
 
 export interface TarjetaClienteEncontradoData {
   name: string;
@@ -19,10 +18,9 @@ export interface TarjetaClienteEncontradoData {
 @Component({
   selector: "app-tarjeta-cliente-encontrado",
   standalone: true,
-  imports: [TranslateModule],
   schemas: [CUSTOM_ELEMENTS_SCHEMA],
   templateUrl: "./tarjeta-cliente-encontrado.component.html",
-  
+  styleUrl: "./tarjeta-cliente-encontrado.component.scss",
 })
 export class TarjetaClienteEncontrado {
   readonly person = input.required<TarjetaClienteEncontradoData>();

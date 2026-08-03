@@ -106,11 +106,14 @@
     }
   </div>
 
-<bal-button-group direction="auto" class="mt-large">
-    <bal-button class="w-full" elementType="button" (click)="continuarSinNumeroPoliza()">
+@if (mostrarContinuarSinPoliza()) {
+  <bal-button-group direction="auto" class="mt-large">
+    <bal-button class="w-full" elementType="button" (click)="continuarSinNumeroPolizaYAvanzar()">
       {{ 'usoConductores.seguroAnterior.polizaActual.continueWithout' | translate }}
     </bal-button>
   </bal-button-group>
+}
+
 
 </section>
 

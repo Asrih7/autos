@@ -1,5 +1,19 @@
-<lib-fecha-nacimiento
-  [label]="label"
-  [value]="value"
-  (valueChange)="valueChange.emit($event)"
-></lib-fecha-nacimiento>
+<section class="mt-large">
+
+
+<bal-field [required]="required()" [invalid]="invalid()">
+  <bal-field-label>{{ label() }}</bal-field-label>
+  <bal-date
+  [value]="value()"
+  (balChange)="handleDateChange($event)"
+  (balBlur)="handleDateBlur()"
+  [required]="required()"
+  [invalid]="invalid()"
+></bal-date>
+
+
+  @if (invalid()) {
+    <bal-field-message color="danger">{{ invalidMessage() }}</bal-field-message>
+  }
+</bal-field>
+</section>

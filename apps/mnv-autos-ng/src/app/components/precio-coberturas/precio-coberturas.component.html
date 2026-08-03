@@ -1,1 +1,4 @@
-<p>precio-coberturas works!</p>
+@for (grupo of modalidadesAgrupadas(); track grupo.titulo) {
+<app-grupo-modalidades [titulo]="grupo.titulo" [modalidades]="grupo.modalidades">
+</app-grupo-modalidades>
+}

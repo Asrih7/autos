@@ -17,18 +17,11 @@
 </app-datos-domicilio-google>
 
 
-  <app-datos-domicilio-form
-    [model]="direccion()"
-    (modelChange)="onFormChanged($event)"
-    [disabled]="formDisabled()">
-  </app-datos-domicilio-form>
+<app-datos-domicilio-form
+  [model]="direccion()"
+  [disabled]="formDisabled()"
+  [fieldDisabled]="fieldDisabled()"
+  (modelChange)="onFormChanged($event)">
+</app-datos-domicilio-form>
 
-  @if (toastOpen()) {
-    <bal-toast
-      [duration]="toastDurationMs"
-      [color]="toastType()"
-      (balClose)="toastOpen.set(false)">
-      {{ toastMessage() }}
-    </bal-toast>
-  }
 </section>

@@ -9,14 +9,13 @@ export interface PageBlueprint {
   previousPageLabel: string;
   nextPageUrl: string;
   beforeNavigateNext?: () => boolean | Promise<boolean>;
-  isNextButtonEnabled?: () => boolean;
+
+  canContinueNext?: () => boolean;
 }
 
 @Injectable({ providedIn: "root" })
 export class PageNavigationService {
   private readonly router = inject(Router);
-  //TODO: Continuar button enable logic
-  // private readonly globalState = inject(GlobalStateService);
 
   readonly currentUrl = toSignal(
     this.router.events.pipe(
@@ -27,6 +26,7 @@ export class PageNavigationService {
   );
 
   readonly activePageConfig = signal<PageBlueprint | null>(null);
+  readonly currentStepCallback = signal<((data: unknown) => void) | null>(null);
   readonly activePageId = computed(() => {
     const url = this.currentUrl();
     const segments = url.split("/").filter(Boolean);
@@ -38,37 +38,21 @@ export class PageNavigationService {
     return pageId !== "tu-cliente" && pageId !== "";
   });
 
-  readonly isNextButtonEnabled = computed<boolean>(() => {
-    const config = this.activePageConfig();
-    return config?.isNextButtonEnabled ? config.isNextButtonEnabled() : true;
-  });
-
   readonly backButtonLabel = computed<string>(() => {
     const config = this.activePageConfig();
-    if (!config?.previousPageLabel) return "Volver"; // Fallback text safety guard
-
+    if (!config?.previousPageLabel) return "Volver";
     return `Volver a ${config.previousPageLabel.toLowerCase()}`;
   });
 
-  //TODO: Continuar button enable logic
-  // readonly isNextButtonEnabled = computed<boolean>(() => {
-  //   const pageId = this.activePageId();
 
-  //   switch (pageId) {
-  //     case "tu-cliente":
-  //       return true; // always allowed to move forward
-  //     case "vehiculos":
-  //       return this.globalState.isVehiculoPageValid();
-  //     case "uso-conductores":
-  //       return this.globalState.isConductoresPageValid();
-  //     default:
-  //       return true; //fallback
-  //   }
-  // });
+  readonly canContinueNext = computed<boolean>(() => {
+    const config = this.activePageConfig();
+    if (!config?.canContinueNext) return true;
+    return config.canContinueNext();
+  });
 
   navigateBack(): void {
     const config = this.activePageConfig();
-
     if (config) {
       void this.router.navigateByUrl(config.previousPageUrl);
     } else {
@@ -77,29 +61,32 @@ export class PageNavigationService {
   }
 
   async navigateNext(): Promise<void> {
-  const config = this.activePageConfig();
+    const config = this.activePageConfig();
 
-  // ⭐ Si no hay configuración, fallback solo para el primer paso
-  if (!config) {
-    if (this.router.url.includes("/tu-cliente")) {
-      await this.router.navigate(["/vehiculos"]);
-    }
-    return;
+if (this.activePageId() === "vehiculos") {
+  const callback = this.currentStepCallback();
+  if (callback) {
+    callback({ status: "NEXT_CLICKED" });
   }
-
-  // ⭐ Si NO existe nextPageUrl → estamos en el último paso → NO navegar
-  if (!config.nextPageUrl || config.nextPageUrl.trim() === "") {
-    console.warn("Último paso alcanzado. No hay navegación siguiente.");
-    return;
-  }
-
-  // ⭐ Navegación normal
-  if (config.beforeNavigateNext && !(await config.beforeNavigateNext())) {
-    return;
-  }
-
-  void this.router.navigateByUrl(config.nextPageUrl);
 }
 
 
+    if (!config) {
+      if (this.router.url.includes("/tu-cliente")) {
+        await this.router.navigate(["/vehiculos"]);
+      }
+      return;
+    }
+
+    if (!config.nextPageUrl || config.nextPageUrl.trim() === "") {
+      console.warn("Último paso alcanzado. No hay navegación siguiente.");
+      return;
+    }
+
+    if (config.beforeNavigateNext && !(await config.beforeNavigateNext())) {
+      return;
+    }
+
+    void this.router.navigateByUrl(config.nextPageUrl);
+  }
 }

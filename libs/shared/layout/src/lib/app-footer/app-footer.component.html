@@ -1,3 +1,4 @@
+
 <footer>
   <div class="uso-actions">
     
@@ -7,7 +8,11 @@
       </bal-button>
     }
     
-    <bal-button color="green" [disabled]="!navService.isNextButtonEnabled()" (click)="navService.navigateNext()">
+    <bal-button
+      color="green"
+      [disabled]="!navService.canContinueNext()"
+      (click)="navService.navigateNext()"
+    >
       Continuar
     </bal-button>
 

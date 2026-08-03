@@ -91,36 +91,121 @@ export class VehiculoHttpService {
     );
   }
 
-  getOpcionesCarroceria(
-    tipoVehiculo: number,
-    codigoActividad: number
-  ): Observable<CarroceriaOption[]> {
-    
-    // FIXED: Clean object initialization literal syntax mapping
-    const headers = new HttpHeaders({
-      'tipoVehiculo': tipoVehiculo.toString(),
-      'codigoActividad': codigoActividad.toString()
-    });
+ getOpcionesCarroceria(
+  tipoVehiculo: number,
+  codigoActividad: number
+): Observable<CarroceriaOption[]> {
 
-    return this.http.get<ApiCarroceriaResponse[]>(`${this.apiUrl}/catalogo/carroceria`, { headers }).pipe(
-      map(apiCarrocerias => mapToCarroceriasDomain(apiCarrocerias))
-    );
-  }
+  const mockCarroceria: CarroceriaOption[] = [
+    { codigo: "BERLINA", descripcion: "Vehículo tipo berlina" },
+    { codigo: "SUV", descripcion: "Vehículo deportivo utilitario" },
+    { codigo: "COUPE", descripcion: "Vehículo coupé de dos puertas" },
+    { codigo: "CABRIO", descripcion: "Vehículo descapotable" },
+    { codigo: "FAMILIAR", descripcion: "Vehículo familiar / station wagon" },
+    { codigo: "PICKUP", descripcion: "Vehículo pickup con caja trasera" },
+    { codigo: "HATCHBACK", descripcion: "Vehículo compacto hatchback" },
+    { codigo: "MONOVOLUMEN", descripcion: "Vehículo monovolumen / MPV" },
+    { codigo: "ROADSTER", descripcion: "Vehículo roadster deportivo" },
+    { codigo: "VAN", descripcion: "Vehículo tipo furgoneta" }
+  ];
 
-  getAccesoriosPorVehiculo(
-    versionId: string,
-  ): Observable<AccesoriosAdicionales[]> {
-    // 1. Convert string token safely to base-10 integer, falling back to 98765 if blank
-    const numericalVersionId = parseInt(versionId, 10) || 98765;
+  return of(mockCarroceria);
 
-    // 2. Set strict header key matching your lowercase Swagger criteria parameter name
-    const headers = new HttpHeaders({
-      'version': numericalVersionId.toString(),
-    });
+  /*
+  // Cuando Java esté implementado, descomentas esto:
+  const headers = new HttpHeaders({
+    'tipoVehiculo': tipoVehiculo.toString(),
+    'codigoActividad': codigoActividad.toString()
+  });
 
-    return this.http.get<ApiAccesorioResponse[]>(`${this.apiUrl}/catalogo/accesorios`, { headers }).pipe(
-      map(apiAccesorios => mapToAccesoriosDomain(apiAccesorios))
-    );
-  }
+  return this.http.get<ApiCarroceriaResponse[]>(
+    `${this.apiUrl}/catalogo/carroceria`,
+    { headers }
+  ).pipe(
+    map(apiCarrocerias => mapToCarroceriasDomain(apiCarrocerias))
+  );
+  */
+}
+
+
+ getAccesoriosPorVehiculo(versionId: string): Observable<AccesoriosAdicionales[]> {
+
+  // --- MOCK REALISTA MIENTRAS EL BACKEND NO ESTÁ LISTO ---
+  const mockAccesorios: AccesoriosAdicionales[] = [
+    {
+      checked: false,
+      idAccesorio: 101,
+      idModeloVehiculo: 2001,
+      codigoAccesorio: "CLIMATIZADOR_BIZONA",
+      anyoAccesorio: "2024",
+      mesAccesorio: 6,
+      importeAccesorio: 450.75,
+      descripcionAccesorio: "Climatizador automático bizona",
+      tipoAccesorio: "CONFORT"
+    },
+    {
+      checked: false,
+      idAccesorio: 102,
+      idModeloVehiculo: 2001,
+      codigoAccesorio: "LLANTAS_18",
+      anyoAccesorio: "2024",
+      mesAccesorio: 6,
+      importeAccesorio: 820.00,
+      descripcionAccesorio: "Llantas de aleación de 18 pulgadas",
+      tipoAccesorio: "ESTÉTICO"
+    },
+    {
+      checked: false,
+      idAccesorio: 103,
+      idModeloVehiculo: 2001,
+      codigoAccesorio: "SENSOR_APARCAMIENTO",
+      anyoAccesorio: "2023",
+      mesAccesorio: 11,
+      importeAccesorio: 300.50,
+      descripcionAccesorio: "Sensores de aparcamiento delanteros y traseros",
+      tipoAccesorio: "SEGURIDAD"
+    },
+    {
+      checked: false,
+      idAccesorio: 104,
+      idModeloVehiculo: 2001,
+      codigoAccesorio: "CAMARA_TRASERA",
+      anyoAccesorio: "2023",
+      mesAccesorio: 11,
+      importeAccesorio: 410.00,
+      descripcionAccesorio: "Cámara de visión trasera HD",
+      tipoAccesorio: "SEGURIDAD"
+    },
+    {
+      checked: false,
+      idAccesorio: 105,
+      idModeloVehiculo: 2001,
+      codigoAccesorio: "NAVEGADOR_GPS",
+      anyoAccesorio: "2024",
+      mesAccesorio: 1,
+      importeAccesorio: 650.00,
+      descripcionAccesorio: "Sistema de navegación GPS integrado",
+      tipoAccesorio: "TECNOLOGÍA"
+    }
+  ];
+
+  return of(mockAccesorios);
+
+  // --- LLAMADA REAL (DESCOMENTAR CUANDO JAVA FUNCIONE) ---
+  /*
+  const numericalVersionId = parseInt(versionId, 10) || 98765;
+
+  const headers = new HttpHeaders({
+    version: numericalVersionId.toString()
+  });
+
+  return this.http.get<ApiAccesorioResponse[]>(
+    `${this.apiUrl}/catalogo/accesorios`,
+    { headers }
+  ).pipe(
+    map(apiAccesorios => mapToAccesoriosDomain(apiAccesorios))
+  );
+  */
+}
 
 }
