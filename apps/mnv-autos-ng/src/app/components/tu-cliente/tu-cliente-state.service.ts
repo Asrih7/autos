@@ -12,6 +12,9 @@ export interface TuClienteGlobalState {
   clientSearchQuery: string;
   clientSearchError: string | null;
   searching: boolean;
+  normalizingAddress: boolean;
+  addressError: string | null;
+  searchAttempted: boolean;
   clientResult: ClienteBusquedaResult | null;
   operationType: OperacionTipo | null;
   editingClient: boolean;
@@ -33,6 +36,9 @@ export class TuClienteStateService {
   readonly clientSearchQuery = computed(() => this._state().clientSearchQuery);
   readonly clientSearchError = computed(() => this._state().clientSearchError);
   readonly searching = computed(() => this._state().searching);
+  readonly normalizingAddress = computed(() => this._state().normalizingAddress);
+  readonly addressError = computed(() => this._state().addressError);
+  readonly searchAttempted = computed(() => this._state().searchAttempted);
   readonly clientResult = computed(() => this._state().clientResult);
   readonly operationType = computed(() => this._state().operationType);
   readonly editingClient = computed(() => this._state().editingClient);
@@ -44,7 +50,11 @@ export class TuClienteStateService {
   readonly birthDate = computed(() => this._state().birthDate);
 
   readonly clientNotFound = computed(
-    () => !this.clientResult() && this.clientSearchQuery().trim().length > 0,
+    () =>
+      !this.clientResult() &&
+      !this.clientSearchError() &&
+      this.searchAttempted() &&
+      this.clientSearchQuery().trim().length > 0,
   );
 
   readonly canContinue = computed(() => {
@@ -60,10 +70,15 @@ export class TuClienteStateService {
       persona.documentType && persona.documentNumber?.trim(),
     );
 
-    const hasName =
+    const hasPersonalData =
       persona.documentType === 'cif'
-        ? Boolean(persona.businessName?.trim())
-        : Boolean(persona.firstName?.trim() && persona.firstSurname?.trim());
+        ? Boolean(persona.businessName?.trim() && persona.nationality)
+        : Boolean(
+            persona.nationality &&
+              persona.firstName?.trim() &&
+              persona.firstSurname?.trim() &&
+              persona.secondSurname?.trim(),
+          );
 
     const hasAddress = Boolean(
       direccion.tipoVia?.trim() &&
@@ -74,7 +89,7 @@ export class TuClienteStateService {
         direccion.localidad?.trim(),
     );
 
-    return Boolean(state.birthDate) && hasDocument && hasName && hasAddress;
+    return Boolean(state.birthDate) && hasDocument && hasPersonalData && hasAddress;
   });
 
   constructor() {
@@ -91,6 +106,25 @@ export class TuClienteStateService {
     this._state.update((current: TuClienteGlobalState) => ({
       ...current,
       clientSearchQuery: value,
+      clientSearchError: null,
+      searchAttempted: false,
+      clientResult: null,
+      operationType: null,
+      editingClient: false,
+      showPersonalDataStep: false,
+      showAddressStep: false,
+      showBirthdateStep: false,
+      datosPersona: this.emptyDatosPersona(),
+      direccion: { ...EMPTY_DATOS_DOMICILIO },
+      birthDate: undefined,
+      addressError: null,
+    }));
+  }
+
+  setSearchAttempted(value: boolean): void {
+    this._state.update((current: TuClienteGlobalState) => ({
+      ...current,
+      searchAttempted: value,
     }));
   }
 
@@ -142,15 +176,15 @@ export class TuClienteStateService {
   }
 
   handleEdit(): void {
-    this._state.update((current: TuClienteGlobalState) => ({
-      ...current,
-      editingClient: true,
-      showPersonalDataStep: true,
-      showAddressStep: false,
-      showBirthdateStep: false,
-      operationType: current.operationType ?? 'cotizacion',
-    }));
-  }
+  this._state.update((current: TuClienteGlobalState) => ({
+    ...current,
+    editingClient: true,
+    showPersonalDataStep: true,
+    showAddressStep: true,
+    showBirthdateStep: true,
+  }));
+}
+
 
   setDatosPersona(model: DatosPersonaModel): void {
     this._state.update((current: TuClienteGlobalState) => ({
@@ -184,6 +218,7 @@ export class TuClienteStateService {
 
     this._state.update((current: TuClienteGlobalState) => ({
       ...current,
+      showPersonalDataStep: false,
       showAddressStep: true,
       showBirthdateStep: false,
     }));
@@ -193,6 +228,7 @@ export class TuClienteStateService {
     this._state.update((current: TuClienteGlobalState) => ({
       ...current,
       direccion: value,
+      addressError: null,
     }));
   }
 
@@ -203,6 +239,14 @@ export class TuClienteStateService {
     }));
   }
 
+  setNormalizingAddress(value: boolean): void {
+    this._state.update((current) => ({ ...current, normalizingAddress: value }));
+  }
+
+  setAddressError(value: string | null): void {
+    this._state.update((current) => ({ ...current, addressError: value }));
+  }
+
   setBirthDate(value: string | undefined): void {
     this._state.update((current: TuClienteGlobalState) => ({
       ...current,
@@ -211,34 +255,55 @@ export class TuClienteStateService {
   }
 
   private fillDatosPersonaFromClient(client: ClienteBusquedaResult): void {
+    const { firstName, firstSurname, secondSurname, businessName } = this.parseClientName(client.name);
+
     this._state.update((current: TuClienteGlobalState) => ({
       ...current,
       datosPersona: {
         documentType: client.documentType.toLowerCase() as DatosPersonaModel['documentType'],
         documentNumber: client.documentNumber,
         nationality: client.nationality,
-        firstName: client.name,
-        firstSurname: '',
-        secondSurname: '',
-        businessName: '',
+        firstName,
+        firstSurname,
+        secondSurname,
+        businessName,
         sameBeneficiary: true,
       },
     }));
   }
 
+  private parseClientName(fullName: string): {
+    firstName: string;
+    firstSurname: string;
+    secondSurname: string;
+    businessName: string;
+  } {
+    const trimmed = fullName.trim();
+    if (!trimmed) {
+      return { firstName: '', firstSurname: '', secondSurname: '', businessName: '' };
+    }
+
+    const parts = trimmed.split(/\s+/);
+    if (parts.length === 1) {
+      return { firstName: parts[0], firstSurname: '', secondSurname: '', businessName: '' };
+    }
+
+    if (parts.length === 2) {
+      return { firstName: parts[0], firstSurname: parts[1], secondSurname: '', businessName: '' };
+    }
+
+    return {
+      firstName: parts[0],
+      firstSurname: parts[1],
+      secondSurname: parts.slice(2).join(' '),
+      businessName: '',
+    };
+  }
+
   private resetDatosPersona(): void {
     this._state.update((current: TuClienteGlobalState) => ({
       ...current,
-      datosPersona: {
-        documentType: undefined,
-        documentNumber: '',
-        nationality: undefined,
-        firstName: '',
-        firstSurname: '',
-        secondSurname: '',
-        businessName: '',
-        sameBeneficiary: true,
-      },
+      datosPersona: this.emptyDatosPersona(),
     }));
   }
 
@@ -256,22 +321,16 @@ export class TuClienteStateService {
       clientSearchQuery: '',
       clientSearchError: null,
       searching: false,
+      normalizingAddress: false,
+      addressError: null,
+      searchAttempted: false,
       clientResult: null,
       operationType: null,
       editingClient: false,
       showPersonalDataStep: false,
       showAddressStep: false,
       showBirthdateStep: false,
-      datosPersona: {
-        documentType: undefined,
-        documentNumber: '',
-        nationality: undefined,
-        firstName: '',
-        firstSurname: '',
-        secondSurname: '',
-        businessName: '',
-        sameBeneficiary: true,
-      },
+      datosPersona: this.emptyDatosPersona(),
       direccion: { ...EMPTY_DATOS_DOMICILIO },
       birthDate: undefined,
     };
@@ -298,5 +357,18 @@ export class TuClienteStateService {
     }
 
     return defaultState;
+  }
+
+  private emptyDatosPersona(): DatosPersonaModel {
+    return {
+      documentType: undefined,
+      documentNumber: '',
+      nationality: undefined,
+      firstName: '',
+      firstSurname: '',
+      secondSurname: '',
+      businessName: '',
+      sameBeneficiary: true,
+    };
   }
 }

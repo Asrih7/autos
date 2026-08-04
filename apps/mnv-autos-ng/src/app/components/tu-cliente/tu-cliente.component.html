@@ -1,142 +1,174 @@
-<div>
-  <!-- Step 1: Client Search -->
-  <section class="mb-large">
-    <bal-heading space="large" level="3">¿Cuál es el DNI, NIE o CIF del cliente?</bal-heading>
-    <p class="text-muted text-small">Identifique a su cliente para comprobar si el cliente ya existe en el sistema</p>
-    
-    <div class="mt-large">
+<div class="flex justify-content-center">
+  <div class="w-full tablet:w-12 desktop:w-12 flex flex-direction-column gap-small">
+    <section class="w-full mb-normal">
+      <bal-heading space="large" level="2" visual-level="h3" class="mb-none text-blue">
+        {{ 'tuCliente.title' | translate }}
+      </bal-heading>
+    </section>
+
+    <section class="w-full bg-white border border-grey border-radius-normal p-normal mb-normal">
+      <bal-heading level="3" visual-level="h4" class="mb-small text-blue">
+        {{ 'tuCliente.search.title' | translate }}
+      </bal-heading>
+      <p class="text-body-small text-light mt-none text-blue mb-small">
+        {{ 'tuCliente.search.subtitle' | translate }}
+      </p>
+
       <app-cliente-busqueda
         [value]="state.clientSearchQuery()"
         [error]="state.clientSearchError()"
         [searching]="state.searching()"
         (valueChange)="handleClientQueryChange($event)"
-        (searchRequested)="handleClientSearch($event)"
-      ></app-cliente-busqueda>
-    </div>
-  </section>
-
-  <!-- Step 2: Client NOT Found - Operation Type Selection -->
-  @if (state.clientNotFound()) {
-    <section class="mb-large">
-      <p class="text-bold mb-medium">Cliente no localizado por este NIF</p>
-      <p class="text-muted mb-large">¿Quieres iniciar una nueva cotización o precotización en este NIF?</p>
-
-      <div class="flex flex-gap-medium">
-        <bal-button 
-          color="primary" 
-          expand="full"
-          (click)="handleOperacionStart('cotizacion')"
-        >
-          Nueva cotización
-        </bal-button>
-        <bal-button 
-          variant="secondary" 
-          expand="full"
-          (click)="handleOperacionStart('precotizacion')"
-        >
-          Precotización
-        </bal-button>
-      </div>
+        (searchRequested)="handleClientSearch($event)">
+      </app-cliente-busqueda>
     </section>
-  }
 
-  <!-- Step 3: Client FOUND - Show Card -->
-  @if (state.clientResult()) {
-    <section class="mb-large">
-      <app-tarjeta-cliente-encontrado 
-        [person]="{
-          name: state.clientResult()!.name,
-          clientType: state.clientResult()!.clientType,
-          documentType: state.clientResult()!.documentType,
-          documentNumber: state.clientResult()!.documentNumber,
-          nationality: state.clientResult()!.nationality,
-          age: state.clientResult()!.age ?? 0,
-          address: state.clientResult()!.address ?? ''
-        }"
-        (edit)="handleEdit()"
-      ></app-tarjeta-cliente-encontrado>
+    @if (state.clientNotFound()) {
+      <section class="w-full bg-level-2 border-radius-normal p-normal mb-normal">
+        <p class="text-bold mb-none">{{ 'tuCliente.notFound.title' | translate }}</p>
+        <p class="text-body-small text-light mt-none text-blue mb-small">
+          {{ 'tuCliente.notFound.subtitle' | translate }}
+        </p>
 
-      <!-- Operation Type Selection for Found Client -->
-      @if (!state.operationType()) {
-        <div class="flex flex-gap-medium mt-large">
-          <bal-button 
-            color="primary" 
+        <div class="w-full flex gap-normal mt-normal mobile:flex-direction-column tablet:flex-direction-row">
+          <div class="flex-1 min-w-0 w-full">
+            <bal-button
+              class="w-full"
+              color="success"
+              expand="full"
+              (click)="handleOperacionStart('cotizacion')"
+            >
+              {{ 'tuCliente.actions.newQuote' | translate }}
+            </bal-button>
+          </div>
+          <div class="flex-1 min-w-0 w-full">
+            <bal-button
+              class="w-full"
+              color="success"
+              variant="outline"
+              expand="full"
+              (click)="handleOperacionStart('precotizacion')"
+            >
+              {{ 'tuCliente.actions.preQuote' | translate }}
+            </bal-button>
+          </div>
+        </div>
+      </section>
+    }
+
+    @if (state.clientResult()) {
+      <section class="w-full mb-large mobile:mb-normal tablet:mb-large">
+        <div class="mb-normal">
+          <bal-heading level="3" visual-level="h4" class="mb-small text-blue">Cliente localizado en Caser</bal-heading >
+          <p class="text-body-small text-light mt-none text-blue">
+            Confirme los datos antes de continuar. Si no corresponde a su cliente, puede editar los datos o iniciar el proceso con un cliente nuevo.
+          </p>
+        </div>
+
+        <app-tarjeta-cliente-encontrado
+          [person]="{
+            name: state.clientResult()!.name,
+            clientType: state.clientResult()!.clientType,
+            documentType: state.clientResult()!.documentType,
+            documentNumber: state.clientResult()!.documentNumber,
+            nationality: state.clientResult()!.nationality,
+            age: state.clientResult()!.age ?? 0,
+            address: state.clientResult()!.address ?? ''
+          }"
+          (edit)="handleEdit()"
+        ></app-tarjeta-cliente-encontrado>
+
+        @if (!state.operationType() && !state.editingClient()) {
+          <div class="w-full flex gap-normal mt-large mobile:flex-direction-column tablet:flex-direction-row">
+            <div class="flex-1 min-w-0 w-full">
+              <bal-button
+                class="w-full"
+                color="primary"
+                expand="full"
+                (click)="handleOperacionStart('cotizacion')"
+              >
+                {{ 'tuCliente.actions.newQuote' | translate }}
+              </bal-button>
+            </div>
+            <div class="flex-1 min-w-0 w-full">
+              <bal-button
+                class="w-full"
+                variant="secondary"
+                expand="full"
+                (click)="handleOperacionStart('precotizacion')"
+              >
+                {{ 'tuCliente.actions.preQuote' | translate }}
+              </bal-button>
+            </div>
+          </div>
+        }
+      </section>
+    }
+
+    @if (state.showPersonalDataStep()) {
+      <section class="w-full flex flex-direction-column gap-small bg-white p-normal mb-large mobile:mb-normal tablet:mb-large">
+
+        <div class="mb-normal">
+          <app-datos-persona
+            [model]="state.datosPersona()"
+            (modelChange)="handleDatosPersonaChange($event)"
+          ></app-datos-persona>
+        </div>
+
+        <div class="flex">
+          <bal-button
             expand="full"
-            (click)="handleOperacionStart('cotizacion')"
+            color="primary"
+            (click)="handleConfirmDatosPersona()"
           >
-            Nueva cotización
-          </bal-button>
-          <bal-button 
-            variant="secondary" 
-            expand="full"
-            (click)="handleOperacionStart('precotizacion')"
-          >
-            Precotización
+            {{ 'tuCliente.actions.confirm' | translate }}
           </bal-button>
         </div>
-      }
-    </section>
-  }
+      </section>
+    }
 
-  <!-- Step 4: Personal Data Section -->
-  @if (state.showPersonalDataStep()) {
-    <section class="mb-large p-large bg-level-2">
-      <p class="text-bold mb-large">Datos personales</p>
-      
-      <div class="mb-large">
-        <lib-datos-persona 
-          [initialModel]="state.datosPersona()"
-          (modelChange)="handleDatosPersonaChange($event)"
-        ></lib-datos-persona>
-      </div>
+    @if (state.showAddressStep()) {
+      <section class="w-full flex flex-direction-column gap-small bg-white p-normal mb-large mobile:mb-normal tablet:mb-large">
+        <p class="text-bold mb-none">{{ 'tuCliente.address.title' | translate }}</p>
+        <p class="text-body-small text-light mt-none text-blue mb-normal">
+          {{ 'tuCliente.address.subtitle' | translate }}
+        </p>
 
-      <div class="flex">
-        <bal-button 
-          expand="full"
-          color="primary"
-          (click)="handleConfirmDatosPersona()"
-        >
-          Confirmar
-        </bal-button>
-      </div>
-    </section>
-  }
+        <div class="mb-normal">
+          <app-direccion-cliente
+            [direccion]="state.direccion()"
+            (direccionChange)="handleDireccionChange($event)"
+          ></app-direccion-cliente>
+        </div>
 
-  <!-- Step 5: Address Section -->
-  @if (state.showAddressStep()) {
-    <section class="mb-large p-large bg-level-2">
-      <p class="text-bold mb-large">Dirección de residencia del tomador del vehículo</p>
-      <p class="text-muted text-small mb-large">La dirección completa influirá en el cálculo de la prima</p>
-      
-      <div class="mb-large">
-        <app-direccion-cliente
-          [direccion]="state.direccion()"
-          (direccionChange)="handleDireccionChange($event)"
-        ></app-direccion-cliente>
-      </div>
+        <div class="flex">
+          <bal-button
+            expand="full"
+            color="primary"
+            [disabled]="state.normalizingAddress()"
+            (click)="handleConfirmDireccion()"
+          >
+            {{ 'tuCliente.actions.confirm' | translate }}
+          </bal-button>
+        </div>
+        @if (state.addressError()) {
+          <p class="text-danger mb-none">{{ state.addressError() }}</p>
+        }
+      </section>
+    }
 
-      <div class="flex">
-        <bal-button 
-          expand="full"
-          color="primary"
-          (click)="handleConfirmDireccion()"
-        >
-          Confirmar
-        </bal-button>
-      </div>
-    </section>
-  }
+    @if (state.showBirthdateStep()) {
+      <section class="w-full flex flex-direction-column gap-small bg-white p-normal mb-normal mobile:mb-normal tablet:mb-large">
+        <p class="text-bold mb-none">{{ 'tuCliente.birthDate.title' | translate }}</p>
 
-  <!-- Step 6: Birth Date Section (Last Step) -->
-  @if (state.showBirthdateStep()) {
-    <section class="mb-large p-large bg-level-2">
-      <p class="text-bold mb-large">Fecha de Nacimiento del Tomador</p>
-      
-    <app-fecha-nacimiento
-  label="Fecha de nacimiento del Tomador"
-  [value]="state.birthDate()"              
-(valueChange)="state.setBirthDate($event)">
-</app-fecha-nacimiento>
-    </section>
-  }
+        <app-fecha-nacimiento
+          [label]="'tuCliente.birthDate.label' | translate"
+          [placeholder]="'tuCliente.birthDate.placeholder' | translate"
+          [invalidMessage]="'tuCliente.birthDate.invalid' | translate"
+          [value]="state.birthDate()"
+          (valueChange)="state.setBirthDate($event)"
+        ></app-fecha-nacimiento>
+      </section>
+    }
+  </div>
 </div>

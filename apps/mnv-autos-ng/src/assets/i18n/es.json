@@ -118,6 +118,74 @@
       }
     }
   },
+  "tuCliente": {
+    "title": "Empezamos con el cliente",
+    "search": {
+      "title": "¿Cuál es el DNI, NIE o CIF del cliente?",
+      "subtitle": "Identifique a su cliente para comprobar si el cliente ya existe en el sistema",
+      "documentLabel": "DNI, NIE o CIF*",
+      "documentPlaceholder": "Ej. 11843928V",
+      "search": "Buscar cliente",
+      "searching": "Buscando..."
+    },
+    "notFound": {
+      "title": "Cliente no localizado por este NIF",
+      "subtitle": "¿Quieres iniciar una nueva cotización o precotización en este NIF?"
+    },
+    "actions": {
+      "newQuote": "Nueva cotización",
+      "preQuote": "Precotización",
+      "confirm": "Confirmar",
+      "edit": "Editar"
+    },
+    "personalData": {
+      "title": "Datos personales",
+      "documentType": "Tipo de documento*",
+      "documentNumber": "Número de documento*",
+      "nationality": "Nacionalidad*",
+      "firstName": "Nombre*",
+      "firstSurname": "Primer apellido*",
+      "secondSurname": "Segundo apellido*",
+      "businessName": "Razón social*",
+      "sameBeneficiary": "El beneficiario de los daños y de la garantía de ocupantes sea el mismo",
+      "errors": {
+        "documentTypeRequired": "Selecciona primero el tipo de documento",
+        "required": "Introduce el número de documento",
+        "invalidDni": "Introduce un DNI válido con ocho números y su letra de control",
+        "invalidNif": "Introduce un NIF de persona jurídica válido",
+        "invalidCif": "Introduce un CIF válido",
+        "invalidPassport": "Introduce un pasaporte válido de entre seis y nueve caracteres",
+        "nationalityRequired": "Selecciona una nacionalidad de la lista"
+      }
+    },
+    "address": {
+      "title": "Dirección de residencia del tomador del vehículo",
+      "subtitle": "La dirección completa influirá en el cálculo de la prima",
+      "placeholder": "Buscar dirección",
+      "ariaLabel": "Buscar dirección del tomador",
+      "formTitle": "Dirección domiciliaria",
+      "googleTitle": "Buscar dirección con Google",
+      "viaType": "Tipo de vía*",
+      "viaName": "Nombre vía*",
+      "number": "Número*",
+      "postalCode": "Código Postal*",
+      "province": "Provincia*",
+      "locality": "Localidad*"
+    },
+    "birthDate": {
+      "title": "Fecha de nacimiento del tomador",
+      "label": "Fecha de nacimiento del tomador",
+      "placeholder": "DD/MM/AAAA*",
+      "invalid": "Introduce una fecha válida"
+    },
+    "found": {
+      "verified": "Datos verificados",
+      "nationality": "Nacionalidad",
+      "age": "Edad",
+      "years": "años",
+      "address": "Dirección"
+    }
+  },
   "vehiculo": {
     "busquedaMatricula": {
       "title": "Matrícula del vehículo",

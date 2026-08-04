@@ -1,44 +1,55 @@
-<section class="p-large bg-level-2 mb-large">
-  <div class="flex flex-gap-medium mb-large">
-    <div>
-      <bal-icon
-        name="check"
-        size="medium"
-        color="success"
-        aria-label="Datos verificados"
-      ></bal-icon>
-    </div>
-    <div style="flex: 1;">
-      <h3 class="text-bold mb-none">{{ person().name }}</h3>
-      <p class="text-muted text-small">{{ person().clientType }}</p>
-    </div>
-    <div>
-      <bal-button 
-        size="small" 
-        variant="tertiary"
+<bal-card class="mb-large">
+  <bal-card-content>
+    <div class="flex align-items-center justify-content-space-between gap-normal mb-large">
+      <div class="flex align-items-center gap-small">
+        <bal-icon
+          name="check"
+          size="medium"
+          color="success"
+          [attr.aria-label]="'tuCliente.found.verified' | translate"
+        ></bal-icon>
+        <div>
+          <h3 class="text-bold mb-none">{{ person().name }}</h3>
+          <bal-tag
+            size="small"
+            color="info"
+            class="mt-x-small"
+          >
+            {{ person().clientType }}
+          </bal-tag>
+        </div>
+      </div>
+
+      <bal-button
+        size="small"
+        variant="primary"
         (click)="requestEdit()"
       >
-        Editar
+        {{ 'tuCliente.actions.edit' | translate }}
       </bal-button>
     </div>
-  </div>
 
-  <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1.5rem;">
-    <div>
-      <p class="text-muted text-small mb-none">{{ person().documentType }}</p>
-      <p class="text-bold">{{ person().documentNumber }}</p>
-    </div>
-    <div>
-      <p class="text-muted text-small mb-none">Nacionalidad</p>
-      <p class="text-bold">{{ person().nationality }}</p>
-    </div>
-    <div>
-      <p class="text-muted text-small mb-none">Edad</p>
-      <p class="text-bold">{{ person().age }} años</p>
-    </div>
-    <div>
-      <p class="text-muted text-small mb-none">Dirección</p>
-      <p class="text-bold">{{ person().address }}</p>
-    </div>
-  </div>
-</section>
+    <div class="flex direction-column gap-small mt-normal">
+      <p class="text-body mt-none mb-none">
+        {{ person().documentType }} {{ person().documentNumber }}
+      </p>
+      </div>
+      <div class="flex direction-column gap-small mt-normal">
+      <p class="text-body mt-none mb-none">
+        {{ 'tuCliente.found.nationality' | translate }} {{ person().nationality }}
+      </p>
+      </div>
+            <div class="flex direction-column gap-small mt-normal">
+
+      <p class="text-body mt-none mb-none">
+        {{ 'tuCliente.found.age' | translate }} {{ person().age }} {{ 'tuCliente.found.years' | translate }}
+      </p>
+      </div>
+                  <div class="flex direction-column gap-small">
+
+      <p class="text-body mt-none mb-none" *ngIf="person().address">
+        {{ person().address }}
+      </p>
+      </div>
+  </bal-card-content>
+</bal-card>

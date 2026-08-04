@@ -1,130 +1,145 @@
-<section class="datos-persona" [attr.aria-label]="title">
+<section class="flex flex-direction-column gap-normal" [attr.aria-label]="title">
   <bal-heading level="h3" visual-level="h4" class="mb-none text-blue">
-    {{ title }}
+    {{ title | translate }}
   </bal-heading>
-  <div class="datos-persona__fields">
-    <bal-field [required]="true">
-      <bal-field-label>{{ documentTypeLabel }}</bal-field-label>
-      <bal-field-control>
-        <bal-select
-          name="documentType"
-          placeholder="Selecciona una opción"
-          [required]="true"
-          [value]="selectedDocumentType"
-          (balChange)="handleDocumentTypeChange($event)"
-        >
-          @for (option of options.documentTypes; track option.value) {
-          <bal-select-option [value]="option.value" [label]="option.label">
-            {{ option.label }}
-          </bal-select-option>
-          }
-        </bal-select>
-      </bal-field-control>
-    </bal-field>
 
-    <bal-field [required]="true" [invalid]="documentNumberInvalid">
-      <bal-field-label>{{ documentNumberLabel }}</bal-field-label>
-      <bal-field-control>
-        <bal-input
-          name="documentNumber"
-          autocomplete="off"
-          [required]="true"
-          [invalid]="documentNumberInvalid"
-          [value]="model.documentNumber"
-          (balInput)="handleDocumentNumberInput($event)"
-          (balBlur)="handleDocumentNumberBlur()"
-        />
-      </bal-field-control>
+  <div class="grid is-multiline">
+    <div class="col mobile:is-full tablet:is-one-half desktop:is-one-third">
+      <bal-field [required]="true">
+        <bal-field-label>{{ documentTypeLabel | translate }}</bal-field-label>
+        <bal-field-control>
+          <bal-select
+            name="documentType"
+            placeholder="Selecciona una opción"
+            [required]="true"
+            [value]="selectedDocumentType"
+            (balChange)="handleDocumentTypeChange($event)"
+          >
+            @for (option of options.documentTypes; track option.value) {
+            <bal-select-option [value]="option.value" [label]="option.label">
+              {{ option.label }}
+            </bal-select-option>
+            }
+          </bal-select>
+        </bal-field-control>
+      </bal-field>
+    </div>
 
-      @if (documentNumberInvalid) {
-      <bal-field-message color="danger">
-        {{ documentNumberErrorMessage }}
-      </bal-field-message>
-      }
-    </bal-field>
+    <div class="col mobile:is-full tablet:is-one-half desktop:is-one-third">
+      <bal-field [required]="true" [invalid]="documentNumberInvalid">
+        <bal-field-label>{{ documentNumberLabel | translate }}</bal-field-label>
+        <bal-field-control>
+          <bal-input
+            name="documentNumber"
+            autocomplete="off"
+            [required]="true"
+            [invalid]="documentNumberInvalid"
+            [value]="model.documentNumber"
+            (balInput)="handleDocumentNumberInput($event)"
+            (balBlur)="handleDocumentNumberBlur()"
+          />
+        </bal-field-control>
+
+        @if (documentNumberInvalid) {
+        <bal-field-message color="danger">
+          {{ documentNumberErrorMessage | translate }}
+        </bal-field-message>
+        }
+      </bal-field>
+    </div>
+
+    <div class="col mobile:is-full tablet:is-one-half desktop:is-one-third">
+      <bal-field [required]="true" [invalid]="nationalityInvalid">
+        <bal-field-label>{{ nationalityLabel | translate }}</bal-field-label>
+        <bal-field-control>
+          <bal-select
+            name="nationality"
+            placeholder="Selecciona una opción"
+            typeahead="true"
+            [freeSolo]="false"
+            [required]="true"
+            [invalid]="nationalityInvalid"
+            [value]="selectedNationality"
+            (balInput)="handleNationalityInput()"
+            (balChange)="handleNationalityChange($event)"
+            (balBlur)="handleNationalityBlur()"
+          >
+            @for (option of options.nationalities; track option.value) {
+            <bal-select-option [value]="option.value" [label]="option.label">
+              {{ option.label }}
+            </bal-select-option>
+            }
+          </bal-select>
+        </bal-field-control>
+
+        @if (nationalityInvalid) {
+        <bal-field-message color="danger">
+          {{ 'tuCliente.personalData.errors.nationalityRequired' | translate }}
+        </bal-field-message>
+        }
+      </bal-field>
+    </div>
 
     @if (isCifSelected) {
-    <bal-field [required]="true">
-      <bal-field-label>{{ businessNameLabel }}</bal-field-label>
-      <bal-field-control>
-        <bal-input
-          name="businessName"
-          autocomplete="organization"
-          [required]="true"
-          [value]="model.businessName"
-          (balInput)="setField('businessName', $event.detail ?? '')"
-        />
-      </bal-field-control>
-    </bal-field>
+    <div class="col mobile:is-full tablet:is-one-half desktop:is-one-third">
+      <bal-field [required]="true">
+        <bal-field-label>{{ businessNameLabel | translate }}</bal-field-label>
+        <bal-field-control>
+          <bal-input
+            name="businessName"
+            autocomplete="organization"
+            [required]="true"
+            [value]="model.businessName"
+            (balInput)="setField('businessName', $event.detail ?? '')"
+          />
+        </bal-field-control>
+      </bal-field>
+    </div>
     } @else {
-    <bal-field [required]="true" [invalid]="nationalityInvalid">
-      <bal-field-label>{{ nationalityLabel }}</bal-field-label>
-      <bal-field-control>
-        <bal-select
-          name="nationality"
-          placeholder="Selecciona una opción"
-          typeahead="true"
-          [freeSolo]="false"
-          [required]="true"
-          [invalid]="nationalityInvalid"
-          [value]="selectedNationality"
-          (balInput)="handleNationalityInput()"
-          (balChange)="handleNationalityChange($event)"
-          (balBlur)="handleNationalityBlur()"
-        >
-          @for (option of options.nationalities; track option.value) {
-          <bal-select-option [value]="option.value" [label]="option.label">
-            {{ option.label }}
-          </bal-select-option>
-          }
-        </bal-select>
-      </bal-field-control>
+    <div class="col mobile:is-full tablet:is-one-half desktop:is-one-third">
+      <bal-field [required]="true">
+        <bal-field-label>{{ firstNameLabel | translate }}</bal-field-label>
+        <bal-field-control>
+          <bal-input
+            name="firstName"
+            autocomplete="given-name"
+            [required]="true"
+            [value]="model.firstName"
+            (balInput)="setField('firstName', $event.detail ?? '')"
+          />
+        </bal-field-control>
+      </bal-field>
+    </div>
 
-      @if (nationalityInvalid) {
-      <bal-field-message color="danger">
-        Selecciona una nacionalidad de la lista
-      </bal-field-message>
-      }
-    </bal-field>
+    <div class="col mobile:is-full tablet:is-one-half desktop:is-one-third">
+      <bal-field [required]="true">
+        <bal-field-label>{{ firstSurnameLabel | translate }}</bal-field-label>
+        <bal-field-control>
+          <bal-input
+            name="firstSurname"
+            autocomplete="family-name"
+            [required]="true"
+            [value]="model.firstSurname"
+            (balInput)="setField('firstSurname', $event.detail ?? '')"
+          />
+        </bal-field-control>
+      </bal-field>
+    </div>
 
-    <bal-field [required]="true">
-      <bal-field-label>{{ firstNameLabel }}</bal-field-label>
-      <bal-field-control>
-        <bal-input
-          name="firstName"
-          autocomplete="given-name"
-          [required]="true"
-          [value]="model.firstName"
-          (balInput)="setField('firstName', $event.detail ?? '')"
-        />
-      </bal-field-control>
-    </bal-field>
-
-    <bal-field [required]="true">
-      <bal-field-label>{{ firstSurnameLabel }}</bal-field-label>
-      <bal-field-control>
-        <bal-input
-          name="firstSurname"
-          autocomplete="family-name"
-          [required]="true"
-          [value]="model.firstSurname"
-          (balInput)="setField('firstSurname', $event.detail ?? '')"
-        />
-      </bal-field-control>
-    </bal-field>
-
-    <bal-field [required]="true">
-      <bal-field-label>{{ secondSurnameLabel }}</bal-field-label>
-      <bal-field-control>
-        <bal-input
-          name="secondSurname"
-          autocomplete="additional-name"
-          [required]="true"
-          [value]="model.secondSurname"
-          (balInput)="setField('secondSurname', $event.detail ?? '')"
-        />
-      </bal-field-control>
-    </bal-field>
+    <div class="col mobile:is-full tablet:is-one-half desktop:is-one-third">
+      <bal-field [required]="true">
+        <bal-field-label>{{ secondSurnameLabel | translate }}</bal-field-label>
+        <bal-field-control>
+          <bal-input
+            name="secondSurname"
+            autocomplete="additional-name"
+            [required]="true"
+            [value]="model.secondSurname"
+            (balInput)="setField('secondSurname', $event.detail ?? '')"
+          />
+        </bal-field-control>
+      </bal-field>
+    </div>
     }
   </div>
 
@@ -134,6 +149,6 @@
     [checked]="model.sameBeneficiary"
     (balChange)="setField('sameBeneficiary', $event.detail)"
   >
-    {{ beneficiaryLabel }}
+    {{ beneficiaryLabel | translate }}
   </bal-checkbox>
 </section>

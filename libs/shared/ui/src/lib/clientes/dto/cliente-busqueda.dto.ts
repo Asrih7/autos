@@ -22,3 +22,35 @@ export interface ApiDatosBusquedaCliente {
   readonly clientes?: readonly ApiCliente[];
   readonly prospectoClientes?: readonly ApiCliente[];
 }
+
+export interface ApiNormalizarDocumentoRequest {
+  readonly tipoDocumento: string;
+  readonly letra: string;
+  readonly numero: string;
+  readonly usuario: string;
+  readonly aplicacion: string;
+}
+
+export interface ApiNormalizarDocumentoResponse {
+  readonly numeroNormalizado?: string;
+  readonly letraNormalizado?: string;
+  readonly codigoError?: number;
+  readonly desError?: string;
+  readonly tipoDocumento?: string;
+}
+
+export interface ApiNormalizarNombreRequest {
+  readonly nombre: string;
+  readonly apellido1: string;
+  readonly apellido2: string;
+  readonly sexo: string;
+  readonly usuario: string;
+  readonly aplicacion: string;
+}
+
+export interface ApiNormalizarNombreResponse {
+  readonly nombre?: string;
+  readonly apellido1?: string;
+  readonly apellido2?: string;
+  readonly error?: number;
+}

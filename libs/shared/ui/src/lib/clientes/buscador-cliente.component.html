@@ -1,10 +1,10 @@
 <section class="w-12 mobile:w-8 flex flex-direction-column gap-small bg-white mb-large">
   <bal-field [invalid]="error !== null">
-    <bal-field-label>DNI, NIE o CIF*</bal-field-label>
+    <bal-field-label>{{ 'tuCliente.search.documentLabel' | translate }}</bal-field-label>
 
     <bal-field-control>
       <!-- Reducimos el gap aquí -->
-      <div class="buttons bal-flex--gap-small w-12">
+      <div class="buttons bal-flex--gap-small w-12 ">
 
         <!-- INPUT (ocupa más espacio) -->
         <div class="bal-flex-grow w-10 mt-normal">
@@ -23,7 +23,7 @@
             [disabled]="documento.trim().length === 0 || searching"
             (click)="search()"
           >
-            {{ searching ? 'Buscando...' : 'Buscar cliente' }}
+            {{ (searching ? 'tuCliente.search.searching' : 'tuCliente.search.search') | translate }}
           </bal-button>
         </div>
 
@@ -31,7 +31,8 @@
     </bal-field-control>
 
     @if (error) {
-      <bal-field-message color="danger">{{ error }}</bal-field-message>
+      <bal-field-message class="mt-normal" color="danger">{{ error }}</bal-field-message>
     }
   </bal-field>
 </section>
+

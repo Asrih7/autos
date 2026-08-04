@@ -1,16 +1,11 @@
 import { HttpClient } from '@angular/common/http';
 import { inject, Injectable, type Provider } from '@angular/core';
-import { map, type Observable } from 'rxjs';
 import { environment } from 'apps/mnv-autos-ng/src/environments/environment';
 import { DATOS_PERSONA_OPTIONS_API, type DatosPersonaOptionsApi } from './datos-persona-options.api';
 import type { DatosPersonaOptions } from './datos-persona-options.model';
+import { catchError, map, of, type Observable } from 'rxjs';
 
-const DOCUMENT_TYPES = [
-  { value: 'dni', label: 'DNI' },
-  { value: 'nif', label: 'NIF' },
-  { value: 'cif', label: 'CIF' },
-  { value: 'passport', label: 'Pasaporte' },
-] as const;
+import { DOCUMENT_TYPES } from './mock-datos-persona-options';
 
 @Injectable({ providedIn: 'root' })
 export class DatosPersonaHttpService implements DatosPersonaOptionsApi {
@@ -23,6 +18,12 @@ export class DatosPersonaHttpService implements DatosPersonaOptionsApi {
         documentTypes: DOCUMENT_TYPES,
         nationalities: apiPaises.map(({ codigo, descripcion }) => ({ value: codigo, label: descripcion })),
       })),
+      catchError(() =>
+        of({
+          documentTypes: DOCUMENT_TYPES,
+          nationalities: [],
+        }),
+      ),
     );
   }
 }

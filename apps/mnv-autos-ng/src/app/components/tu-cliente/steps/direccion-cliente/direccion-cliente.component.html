@@ -1,13 +1,13 @@
 <div class="mb-large">
   <bal-heading level="h3" visual-level="h4" class="text-bold mb-large">
-    {{ 'usoConductores.address.title' | translate }}
+    {{ 'tuCliente.address.title' | translate }}
   </bal-heading>
-  <p class="text-muted text-small mb-large">{{ 'usoConductores.address.subtitle' | translate }}</p>
+  <p class="text-muted text-small mb-large">{{ 'tuCliente.address.subtitle' | translate }}</p>
 
   <app-datos-domicilio-google
     [value]="internalDireccion.tipoVia || internalDireccion.nombreVia"
-    [placeholder]="'usoConductores.address.placeholder' | translate"
-    [ariaLabel]="'usoConductores.address.ariaLabel' | translate"
+    [placeholder]="'tuCliente.address.placeholder' | translate"
+    [ariaLabel]="'tuCliente.address.ariaLabel' | translate"
     (addressSelected)="onAddressSelected($event)"
     (clearSelection)="clearSelection()"
   ></app-datos-domicilio-google>

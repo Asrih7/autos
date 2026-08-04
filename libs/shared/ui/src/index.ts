@@ -9,3 +9,7 @@ export * from "./lib/clientes/dto/cliente-busqueda.dto";
 export * from "./lib/clientes/services/cliente-busqueda.service";
 export * from "./lib/datos-persona/datos-persona.component";
 export * from "./lib/datos-persona/models/datos-persona.model";
+export * from "./lib/datos-persona/data-access/datos-persona-options.api";
+export * from "./lib/datos-persona/data-access/datos-persona-options.model";
+export * from "./lib/datos-persona/data-access/datos-persona-http.service";
+export * from "./lib/datos-persona/data-access/mock-datos-persona-options"

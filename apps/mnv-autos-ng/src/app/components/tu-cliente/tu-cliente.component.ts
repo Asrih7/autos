@@ -1,17 +1,24 @@
-import { Component, inject, OnDestroy, OnInit, signal } from "@angular/core";
-import { Router } from "@angular/router";
+import { Component, inject, OnDestroy, OnInit } from "@angular/core";
 import { PageNavigationService } from '@mnv-autos-ng/navigation';
-import { ClienteBusquedaService, DatosPersona, type DatosPersonaModel } from '@mnv-autos-ng/ui';
-import { provideDatosPersonaOptionsApi } from './steps/datos-persona/data-access/datos-persona-http.service';
+import {
+  ClienteBusquedaService,
+  DatosDomicilioService,
+  provideDatosPersonaOptionsApi,
+  type ClienteBusquedaResult,
+  type DatosDomicilioModel,
+  type DatosPersonaModel,
+} from '@mnv-autos-ng/ui';
 import { FechaNacimiento } from "./steps/fecha-nacimiento/fecha-nacimiento.component";
 import {
   TarjetaClienteEncontrado,
-  type TarjetaClienteEncontradoData,
 } from "./steps/tarjeta-cliente-encontrado/tarjeta-cliente-encontrado.component";
 import { ClienteBusquedaComponent } from "./steps/cliente-busqueda/cliente-busqueda.component";
 import { DireccionClienteComponent } from "./steps/direccion-cliente/direccion-cliente.component";
+import { DatosPersonaStepComponent } from './steps/datos-persona/datos-persona.component';
 import { TuClienteStateService } from "./tu-cliente-state.service";
 import { BalButton, BalHeading } from "@baloise/ds-angular";
+import { TranslateModule } from '@ngx-translate/core';
+import { switchMap, finalize } from 'rxjs';
 
 @Component({
   selector: 'app-tu-cliente',
@@ -19,11 +26,12 @@ import { BalButton, BalHeading } from "@baloise/ds-angular";
   imports: [
     TarjetaClienteEncontrado,
     FechaNacimiento,
-    DatosPersona,
+    DatosPersonaStepComponent,
     ClienteBusquedaComponent,
     DireccionClienteComponent,
     BalButton,
     BalHeading,
+    TranslateModule,
   ],
   providers: [provideDatosPersonaOptionsApi()],
   templateUrl: './tu-cliente.component.html',
@@ -32,11 +40,8 @@ import { BalButton, BalHeading } from "@baloise/ds-angular";
 export class TuClienteComponent implements OnInit, OnDestroy {
   private readonly navService = inject(PageNavigationService);
   private readonly clienteService = inject(ClienteBusquedaService);
-  private readonly router = inject(Router);
+  private readonly domicilioService = inject(DatosDomicilioService);
   protected readonly state = inject(TuClienteStateService);
-  birthDate = signal<string | undefined>(undefined);
-
-  
   ngOnInit(): void {
     this.navService.activePageConfig.set({
       pageId: 'tu-cliente',
@@ -55,20 +60,23 @@ export class TuClienteComponent implements OnInit, OnDestroy {
 
     this.state.setSearching(true);
     this.state.setClientSearchError(null);
+    this.state.setSearchAttempted(true);
 
-    this.clienteService.buscarCliente(query).subscribe({
-      next: (result: any) => {
+    this.clienteService.normalizarDocumento(query).pipe(
+      switchMap((normalizedDocument) => this.clienteService.buscarCliente(normalizedDocument)),
+    ).subscribe({
+      next: (result: ClienteBusquedaResult | null) => {
         this.state.setSearching(false);
         if (result) {
           this.state.setClientResult(result);
         } else {
-          this.state.setClientSearchError('Cliente no encontrado');
+          this.state.setClientResult(null);
         }
       },
-      error: (error: any) => {
+      error: () => {
         this.state.setSearching(false);
-        this.state.setClientSearchError('Error al buscar el cliente');
-        console.error('Client search error:', error);
+        this.state.setClientResult(null);
+        this.state.setClientSearchError('No se ha podido consultar el cliente. Inténtalo de nuevo.');
       },
     });
   }
@@ -80,11 +88,9 @@ export class TuClienteComponent implements OnInit, OnDestroy {
   protected handleOperacionStart(type: 'cotizacion' | 'precotizacion'): void {
     const clientFound = this.state.startOperacion(type);
     
-    // If client was found, navigate to next page immediately
     if (clientFound) {
       this.navService.navigateNext();
     }
-    // Otherwise, show personal data form for new client
   }
 
   protected handleEdit(): void {
@@ -96,19 +102,30 @@ export class TuClienteComponent implements OnInit, OnDestroy {
   }
 
   protected handleConfirmDatosPersona(): void {
-    this.state.confirmDatosPersona();
+    this.clienteService.normalizarNombre(this.state.datosPersona()).subscribe({
+      next: (persona) => {
+        this.state.setDatosPersona(persona);
+        this.state.confirmDatosPersona();
+      },
+      error: () => this.state.setClientSearchError('No se han podido validar los datos personales. Revísalos e inténtalo de nuevo.'),
+    });
   }
 
-  protected handleDireccionChange(model: any): void {
+  protected handleDireccionChange(model: DatosDomicilioModel): void {
     this.state.setDireccion(model);
   }
 
   protected handleConfirmDireccion(): void {
-    this.state.confirmDireccion();
-  }
-
-  protected handleBirthDateChange(value: string | undefined): void {
-    this.state.setBirthDate(value);
+    this.state.setNormalizingAddress(true);
+    this.domicilioService.normalizeAddress(this.state.direccion()).pipe(
+      finalize(() => this.state.setNormalizingAddress(false)),
+    ).subscribe({
+      next: (direccion) => {
+        this.state.setDireccion(direccion);
+        this.state.confirmDireccion();
+      },
+      error: () => this.state.setAddressError('No se ha podido validar la dirección. Revísala e inténtalo de nuevo.'),
+    });
   }
 
   ngOnDestroy(): void {

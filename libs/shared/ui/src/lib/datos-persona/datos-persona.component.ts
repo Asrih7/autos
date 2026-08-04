@@ -12,6 +12,7 @@ import {
 } from '@baloise/ds-angular';
 import { TranslateModule } from '@ngx-translate/core';
 import { DATOS_PERSONA_OPTIONS_API, type DatosPersonaOptionsApi } from './data-access/datos-persona-options.api';
+import { DOCUMENT_TYPES } from './data-access/mock-datos-persona-options';
 import type { DatosPersonaModel } from './models/datos-persona.model';
 
 @Component({
@@ -33,15 +34,15 @@ export class DatosPersona implements OnChanges {
   };
   @Output() modelChange = new EventEmitter<DatosPersonaModel>();
 
-  @Input() title = 'Datos personales';
-  @Input() firstNameLabel = 'Nombre*';
-  @Input() firstSurnameLabel = 'Primer apellido*';
-  @Input() secondSurnameLabel = 'Segundo apellido*';
-  @Input() businessNameLabel = 'Razón social*';
-  @Input() documentTypeLabel = 'Tipo de documento*';
-  @Input() documentNumberLabel = 'Número de documento*';
-  @Input() nationalityLabel = 'Nacionalidad*';
-  @Input() beneficiaryLabel = 'El beneficiario de los daños y de la garantía de ocupantes sea el mismo';
+  @Input() title = 'tuCliente.personalData.title';
+  @Input() firstNameLabel = 'tuCliente.personalData.firstName';
+  @Input() firstSurnameLabel = 'tuCliente.personalData.firstSurname';
+  @Input() secondSurnameLabel = 'tuCliente.personalData.secondSurname';
+  @Input() businessNameLabel = 'tuCliente.personalData.businessName';
+  @Input() documentTypeLabel = 'tuCliente.personalData.documentType';
+  @Input() documentNumberLabel = 'tuCliente.personalData.documentNumber';
+  @Input() nationalityLabel = 'tuCliente.personalData.nationality';
+  @Input() beneficiaryLabel = 'tuCliente.personalData.sameBeneficiary';
 
   model: DatosPersonaModel = { ...this.initialModel };
   documentNumberTouched = false;
@@ -50,7 +51,7 @@ export class DatosPersona implements OnChanges {
     documentTypes: readonly { value: string; label: string }[];
     nationalities: readonly { value: string; label: string }[];
   } = {
-    documentTypes: [],
+    documentTypes: DOCUMENT_TYPES,
     nationalities: [],
   };
 
@@ -61,14 +62,29 @@ export class DatosPersona implements OnChanges {
       this.model = { ...this.initialModel };
       this.documentNumberTouched = false;
       this.nationalityTouched = false;
-      this.optionsApi.getOptions().subscribe((options) => {
-        this.options = options;
+      this.options = {
+        documentTypes: DOCUMENT_TYPES,
+        nationalities: [],
+      };
+      this.optionsApi.getOptions().subscribe({
+        next: (options) => {
+          this.options = {
+            documentTypes: options.documentTypes.length > 0 ? options.documentTypes : DOCUMENT_TYPES,
+            nationalities: options.nationalities,
+          };
+        },
+        error: () => {
+          this.options = {
+            documentTypes: DOCUMENT_TYPES,
+            nationalities: [],
+          };
+        },
       });
     }
   }
 
   get selectedDocumentType(): string | undefined {
-    return this.model.documentType;
+    return this.model.documentType?.toUpperCase();
   }
 
   get selectedNationality(): string | undefined {
@@ -155,12 +171,12 @@ export class DatosPersona implements OnChanges {
 
   private getErrorMessage(error: string): string {
     const messages: Record<string, string> = {
-      documentTypeRequired: 'Selecciona primero el tipo de documento',
-      required: 'Introduce el número de documento',
-      invalidDni: 'Introduce un DNI válido con ocho números y su letra de control',
-      invalidNif: 'Introduce un NIF de persona jurídica válido',
-      invalidCif: 'Introduce un CIF válido',
-      invalidPassport: 'Introduce un pasaporte válido de entre seis y nueve caracteres',
+      documentTypeRequired: 'tuCliente.personalData.errors.documentTypeRequired',
+      required: 'tuCliente.personalData.errors.required',
+      invalidDni: 'tuCliente.personalData.errors.invalidDni',
+      invalidNif: 'tuCliente.personalData.errors.invalidNif',
+      invalidCif: 'tuCliente.personalData.errors.invalidCif',
+      invalidPassport: 'tuCliente.personalData.errors.invalidPassport',
     };
 
     return messages[error] ?? '';
@@ -171,7 +187,11 @@ export class DatosPersona implements OnChanges {
       return undefined;
     }
 
-    const normalized = value.toLowerCase().trim();
+    const normalized = value.trim().toLowerCase();
+    if (normalized === 'pas') {
+      return 'passport';
+    }
+
     return normalized === 'dni' || normalized === 'nif' || normalized === 'cif' || normalized === 'passport'
       ? normalized
       : undefined;

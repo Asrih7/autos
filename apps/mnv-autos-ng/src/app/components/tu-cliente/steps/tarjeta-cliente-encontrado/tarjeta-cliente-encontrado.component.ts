@@ -4,8 +4,9 @@ import {
   input,
   output,
 } from "@angular/core";
-import { BalIcon, BalButton } from "@baloise/ds-angular";
+import { BalIcon, BalButton, BalCard, BalCardContent } from "@baloise/ds-angular";
 import { CommonModule } from "@angular/common";
+import { TranslateModule } from '@ngx-translate/core';
 
 export interface TarjetaClienteEncontradoData {
   name: string;
@@ -20,10 +21,10 @@ export interface TarjetaClienteEncontradoData {
 @Component({
   selector: "app-tarjeta-cliente-encontrado",
   standalone: true,
-  imports: [CommonModule, BalIcon, BalButton],
+  imports: [CommonModule, TranslateModule, BalIcon, BalButton, BalCard, BalCardContent],
   schemas: [CUSTOM_ELEMENTS_SCHEMA],
   templateUrl: "./tarjeta-cliente-encontrado.component.html",
-  styleUrl: "./tarjeta-cliente-encontrado.component.scss",
+  styleUrls: ["./tarjeta-cliente-encontrado.component.scss"],
 })
 export class TarjetaClienteEncontrado {
   readonly person = input.required<TarjetaClienteEncontradoData>();
@@ -32,4 +33,5 @@ export class TarjetaClienteEncontrado {
   protected requestEdit(): void {
     this.edit.emit(this.person());
   }
+  
 }

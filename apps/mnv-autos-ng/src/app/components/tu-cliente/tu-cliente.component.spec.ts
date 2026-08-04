@@ -1,5 +1,6 @@
 import { ComponentFixture, TestBed } from "@angular/core/testing";
-import { provideMockDatosPersonaOptionsApi } from "./steps/datos-persona/data-access/mock-datos-persona-options.api";
+import { DATOS_PERSONA_OPTIONS_API } from '@mnv-autos-ng/ui';
+import { of } from 'rxjs';
 import { TuClienteComponent } from "./tu-cliente.component";
 
 describe("TuCliente", () => {
@@ -12,7 +13,14 @@ describe("TuCliente", () => {
     })
       .overrideComponent(TuClienteComponent, {
         set: {
-          providers: [provideMockDatosPersonaOptionsApi()],
+          providers: [
+            {
+              provide: DATOS_PERSONA_OPTIONS_API,
+              useValue: {
+                getOptions: () => of({ documentTypes: [], nationalities: [] }),
+              },
+            },
+          ],
         },
       })
       .compileComponents();

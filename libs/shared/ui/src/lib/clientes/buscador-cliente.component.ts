@@ -1,11 +1,12 @@
 import { Component, EventEmitter, Input, Output } from '@angular/core';
 import { CommonModule } from '@angular/common';
+import { TranslateModule } from '@ngx-translate/core';
 import { BalButton, BalField, BalFieldControl, BalFieldLabel, BalFieldMessage, BalInput } from '@baloise/ds-angular';
 
 @Component({
   selector: 'lib-buscador-cliente',
   standalone: true,
-  imports: [CommonModule, BalField, BalFieldControl, BalFieldLabel, BalInput, BalButton, BalFieldMessage],
+  imports: [CommonModule, TranslateModule, BalField, BalFieldControl, BalFieldLabel, BalInput, BalButton, BalFieldMessage],
   templateUrl: './buscador-cliente.component.html',
   styleUrls: ['./buscador-cliente.component.scss'],
 })
