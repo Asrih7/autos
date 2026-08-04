@@ -1,0 +1,125 @@
+<bal-card>
+    <bal-card-content>
+        <div class="mb-small">
+            <bal-heading level="h4">
+                {{ baseLangKey + '.pago.titulo' | translate }}
+            </bal-heading>
+
+            <bal-field>
+                <bal-field-control>
+                    <bal-select [placeholder]="baseLangKey + '.pago.placeholder' | translate"
+                        [value]="medioSeleccionado()" (balChange)="cambioMedio($event)">
+
+                        @for (medio of listaMediosDePago(); track medio.id) {
+                        <bal-select-option [value]="medio.id" [label]="medio.name">
+                            {{ medio.name }}
+                        </bal-select-option>
+                        }
+                    </bal-select>
+                </bal-field-control>
+            </bal-field>
+        </div>
+
+        @switch (medioSeleccionado()) {
+        @case (ibanKey) {
+        <div class="mb-small">
+            <bal-heading level="h4">
+                {{ baseLangKey + '.recibo.iban.titulo' | translate }}
+            </bal-heading>
+            <bal-field [invalid]="textoIban() !== '' && esIbanInvalido()">
+                <bal-field-control>
+                    <bal-input [placeholder]="baseLangKey + '.recibo.iban.placeholder' | translate"
+                        [value]="textoIban()" (balInput)="onInputIban($event)" [maxLength]="34">
+                    </bal-input>
+                </bal-field-control>
+
+                @if (textoIban() !== '' && esIbanInvalido()) {
+                <bal-field-message invalid="true">
+                    {{ baseLangKey + '.recibo.iban.error' | translate }}
+                </bal-field-message>
+                }
+            </bal-field>
+        </div>
+        }
+        @case (cardKey) {
+        <div class="mb-small">
+            <bal-heading level="h4">
+                {{ baseLangKey + '.recibo.tarjeta.titulo' | translate }}
+            </bal-heading>
+            <div class="flex gap-x-small">
+                <bal-field [invalid]="numeroTarjeta() !== '' && esTarjetaInvalida()" class="w-4">
+                    <bal-field-control>
+                        <bal-input allowed-key-press="[0-9 ]" inputmode="numeric" max-length="24"
+                            [placeholder]="baseLangKey + '.recibo.tarjeta.placeholderNumero' | translate"
+                            [value]="numeroTarjeta()" (balInput)="onInputNumeroTarjeta($event)">
+                        </bal-input>
+                    </bal-field-control>
+
+                    @if(numeroTarjeta() !== '' && esTarjetaInvalida()) {
+                    <bal-field-message invalid="true">
+                        {{ baseLangKey + '.recibo.tarjeta.errorNumero' | translate }}
+                    </bal-field-message>
+                    }
+                </bal-field>
+
+                <bal-field [invalid]="fechaCaducidad() !== '' && esFechaInvalida()" class="w-4">
+                    <bal-field-control>
+                        <bal-input allowed-key-press="[0-9/]" inputmode="numeric" maxLength="5" placeholder="MM/AA"
+                            [value]="fechaCaducidad()" (balInput)="onInputFecha($event)">
+                        </bal-input>
+                    </bal-field-control>
+
+                    @if(fechaCaducidad() !== '' && esFechaInvalida()) {
+                    <bal-field-message invalid="true">
+                        {{ baseLangKey + '.recibo.tarjeta.errorFecha' | translate }}
+                    </bal-field-message>
+                    }
+                </bal-field>
+
+                <bal-field [invalid]="cvc() !== '' && esCvcInvalido()" class="w-4">
+                    <bal-field-control>
+                        <bal-input allowed-key-press="[0-9]" inputmode="numeric" max-length="4" placeholder="CVC"
+                            [value]="cvc()" (balInput)="onInputCvc($event)">
+                        </bal-input>
+                    </bal-field-control>
+                </bal-field>
+            </div>
+        </div>
+        }
+        @case (bizumKey) {
+        <div class="mb-small">
+            <bal-heading level="h4">
+                {{ baseLangKey + '.recibo.bizum.titulo' | translate }}
+            </bal-heading>
+            <bal-field [invalid]="telefono() !== '' && esTelefonoInvalido()">
+                <bal-field-control>
+                    <bal-input allowed-key-press="[0-9]" inputmode="numeric" max-length="9"
+                        [placeholder]="baseLangKey + '.recibo.bizum.placeholder' | translate" [value]="telefono()"
+                        (balInput)="onInputTelefono($event)">
+                    </bal-input>
+                </bal-field-control>
+            </bal-field>
+        </div>
+        }
+        }
+
+        <div class="mb-small">
+            <bal-heading level="h4">
+                {{ baseLangKey + '.titular.titulo' | translate }}
+            </bal-heading>
+            <bal-field>
+                <bal-field-control>
+                    <bal-input inputmode="text" maxLength="20" [value]="" (balInput)="onInputTitular($event, 'name')"
+                        [placeholder]="baseLangKey + '.titular.placeholderNombre' | translate">
+                    </bal-input>
+                    <bal-input inputmode="text" maxLength="20" [value]="" (balInput)="onInputTitular($event, 'first')"
+                        [placeholder]="baseLangKey + '.titular.placeholderPrimerApellido' | translate">
+                    </bal-input>
+                    <bal-input inputmode="text" maxLength="20" [value]="" (balInput)="onInputTitular($event, 'second')"
+                        [placeholder]="baseLangKey + '.titular.placeholderSegundoApellido' | translate">
+                    </bal-input>
+                </bal-field-control>
+            </bal-field>
+        </div>
+    </bal-card-content>
+</bal-card>

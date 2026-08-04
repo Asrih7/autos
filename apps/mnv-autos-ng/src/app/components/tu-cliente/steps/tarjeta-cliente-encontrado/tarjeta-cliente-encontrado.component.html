@@ -1,0 +1,44 @@
+<section class="p-large bg-level-2 mb-large">
+  <div class="flex flex-gap-medium mb-large">
+    <div>
+      <bal-icon
+        name="check"
+        size="medium"
+        color="success"
+        aria-label="Datos verificados"
+      ></bal-icon>
+    </div>
+    <div style="flex: 1;">
+      <h3 class="text-bold mb-none">{{ person().name }}</h3>
+      <p class="text-muted text-small">{{ person().clientType }}</p>
+    </div>
+    <div>
+      <bal-button 
+        size="small" 
+        variant="tertiary"
+        (click)="requestEdit()"
+      >
+        Editar
+      </bal-button>
+    </div>
+  </div>
+
+  <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1.5rem;">
+    <div>
+      <p class="text-muted text-small mb-none">{{ person().documentType }}</p>
+      <p class="text-bold">{{ person().documentNumber }}</p>
+    </div>
+    <div>
+      <p class="text-muted text-small mb-none">Nacionalidad</p>
+      <p class="text-bold">{{ person().nationality }}</p>
+    </div>
+    <div>
+      <p class="text-muted text-small mb-none">Edad</p>
+      <p class="text-bold">{{ person().age }} años</p>
+    </div>
+    <div>
+      <p class="text-muted text-small mb-none">Dirección</p>
+      <p class="text-bold">{{ person().address }}</p>
+    </div>
+  </div>
+</section>

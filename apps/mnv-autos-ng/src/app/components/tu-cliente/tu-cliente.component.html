@@ -1,0 +1,142 @@
+<div>
+  <!-- Step 1: Client Search -->
+  <section class="mb-large">
+    <bal-heading space="large" level="3">¿Cuál es el DNI, NIE o CIF del cliente?</bal-heading>
+    <p class="text-muted text-small">Identifique a su cliente para comprobar si el cliente ya existe en el sistema</p>
+    
+    <div class="mt-large">
+      <app-cliente-busqueda
+        [value]="state.clientSearchQuery()"
+        [error]="state.clientSearchError()"
+        [searching]="state.searching()"
+        (valueChange)="handleClientQueryChange($event)"
+        (searchRequested)="handleClientSearch($event)"
+      ></app-cliente-busqueda>
+    </div>
+  </section>
+
+  <!-- Step 2: Client NOT Found - Operation Type Selection -->
+  @if (state.clientNotFound()) {
+    <section class="mb-large">
+      <p class="text-bold mb-medium">Cliente no localizado por este NIF</p>
+      <p class="text-muted mb-large">¿Quieres iniciar una nueva cotización o precotización en este NIF?</p>
+
+      <div class="flex flex-gap-medium">
+        <bal-button 
+          color="primary" 
+          expand="full"
+          (click)="handleOperacionStart('cotizacion')"
+        >
+          Nueva cotización
+        </bal-button>
+        <bal-button 
+          variant="secondary" 
+          expand="full"
+          (click)="handleOperacionStart('precotizacion')"
+        >
+          Precotización
+        </bal-button>
+      </div>
+    </section>
+  }
+
+  <!-- Step 3: Client FOUND - Show Card -->
+  @if (state.clientResult()) {
+    <section class="mb-large">
+      <app-tarjeta-cliente-encontrado 
+        [person]="{
+          name: state.clientResult()!.name,
+          clientType: state.clientResult()!.clientType,
+          documentType: state.clientResult()!.documentType,
+          documentNumber: state.clientResult()!.documentNumber,
+          nationality: state.clientResult()!.nationality,
+          age: state.clientResult()!.age ?? 0,
+          address: state.clientResult()!.address ?? ''
+        }"
+        (edit)="handleEdit()"
+      ></app-tarjeta-cliente-encontrado>
+
+      <!-- Operation Type Selection for Found Client -->
+      @if (!state.operationType()) {
+        <div class="flex flex-gap-medium mt-large">
+          <bal-button 
+            color="primary" 
+            expand="full"
+            (click)="handleOperacionStart('cotizacion')"
+          >
+            Nueva cotización
+          </bal-button>
+          <bal-button 
+            variant="secondary" 
+            expand="full"
+            (click)="handleOperacionStart('precotizacion')"
+          >
+            Precotización
+          </bal-button>
+        </div>
+      }
+    </section>
+  }
+
+  <!-- Step 4: Personal Data Section -->
+  @if (state.showPersonalDataStep()) {
+    <section class="mb-large p-large bg-level-2">
+      <p class="text-bold mb-large">Datos personales</p>
+      
+      <div class="mb-large">
+        <lib-datos-persona 
+          [initialModel]="state.datosPersona()"
+          (modelChange)="handleDatosPersonaChange($event)"
+        ></lib-datos-persona>
+      </div>
+
+      <div class="flex">
+        <bal-button 
+          expand="full"
+          color="primary"
+          (click)="handleConfirmDatosPersona()"
+        >
+          Confirmar
+        </bal-button>
+      </div>
+    </section>
+  }
+
+  <!-- Step 5: Address Section -->
+  @if (state.showAddressStep()) {
+    <section class="mb-large p-large bg-level-2">
+      <p class="text-bold mb-large">Dirección de residencia del tomador del vehículo</p>
+      <p class="text-muted text-small mb-large">La dirección completa influirá en el cálculo de la prima</p>
+      
+      <div class="mb-large">
+        <app-direccion-cliente
+          [direccion]="state.direccion()"
+          (direccionChange)="handleDireccionChange($event)"
+        ></app-direccion-cliente>
+      </div>
+
+      <div class="flex">
+        <bal-button 
+          expand="full"
+          color="primary"
+          (click)="handleConfirmDireccion()"
+        >
+          Confirmar
+        </bal-button>
+      </div>
+    </section>
+  }
+
+  <!-- Step 6: Birth Date Section (Last Step) -->
+  @if (state.showBirthdateStep()) {
+    <section class="mb-large p-large bg-level-2">
+      <p class="text-bold mb-large">Fecha de Nacimiento del Tomador</p>
+      
+    <app-fecha-nacimiento
+  label="Fecha de nacimiento del Tomador"
+  [value]="state.birthDate()"              
+(valueChange)="state.setBirthDate($event)">
+</app-fecha-nacimiento>
+    </section>
+  }
+</div>

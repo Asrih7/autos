@@ -1,0 +1,139 @@
+<section class="datos-persona" [attr.aria-label]="title">
+  <bal-heading level="h3" visual-level="h4" class="mb-none text-blue">
+    {{ title }}
+  </bal-heading>
+  <div class="datos-persona__fields">
+    <bal-field [required]="true">
+      <bal-field-label>{{ documentTypeLabel }}</bal-field-label>
+      <bal-field-control>
+        <bal-select
+          name="documentType"
+          placeholder="Selecciona una opción"
+          [required]="true"
+          [value]="selectedDocumentType"
+          (balChange)="handleDocumentTypeChange($event)"
+        >
+          @for (option of options.documentTypes; track option.value) {
+          <bal-select-option [value]="option.value" [label]="option.label">
+            {{ option.label }}
+          </bal-select-option>
+          }
+        </bal-select>
+      </bal-field-control>
+    </bal-field>
+
+    <bal-field [required]="true" [invalid]="documentNumberInvalid">
+      <bal-field-label>{{ documentNumberLabel }}</bal-field-label>
+      <bal-field-control>
+        <bal-input
+          name="documentNumber"
+          autocomplete="off"
+          [required]="true"
+          [invalid]="documentNumberInvalid"
+          [value]="model.documentNumber"
+          (balInput)="handleDocumentNumberInput($event)"
+          (balBlur)="handleDocumentNumberBlur()"
+        />
+      </bal-field-control>
+
+      @if (documentNumberInvalid) {
+      <bal-field-message color="danger">
+        {{ documentNumberErrorMessage }}
+      </bal-field-message>
+      }
+    </bal-field>
+
+    @if (isCifSelected) {
+    <bal-field [required]="true">
+      <bal-field-label>{{ businessNameLabel }}</bal-field-label>
+      <bal-field-control>
+        <bal-input
+          name="businessName"
+          autocomplete="organization"
+          [required]="true"
+          [value]="model.businessName"
+          (balInput)="setField('businessName', $event.detail ?? '')"
+        />
+      </bal-field-control>
+    </bal-field>
+    } @else {
+    <bal-field [required]="true" [invalid]="nationalityInvalid">
+      <bal-field-label>{{ nationalityLabel }}</bal-field-label>
+      <bal-field-control>
+        <bal-select
+          name="nationality"
+          placeholder="Selecciona una opción"
+          typeahead="true"
+          [freeSolo]="false"
+          [required]="true"
+          [invalid]="nationalityInvalid"
+          [value]="selectedNationality"
+          (balInput)="handleNationalityInput()"
+          (balChange)="handleNationalityChange($event)"
+          (balBlur)="handleNationalityBlur()"
+        >
+          @for (option of options.nationalities; track option.value) {
+          <bal-select-option [value]="option.value" [label]="option.label">
+            {{ option.label }}
+          </bal-select-option>
+          }
+        </bal-select>
+      </bal-field-control>
+
+      @if (nationalityInvalid) {
+      <bal-field-message color="danger">
+        Selecciona una nacionalidad de la lista
+      </bal-field-message>
+      }
+    </bal-field>
+
+    <bal-field [required]="true">
+      <bal-field-label>{{ firstNameLabel }}</bal-field-label>
+      <bal-field-control>
+        <bal-input
+          name="firstName"
+          autocomplete="given-name"
+          [required]="true"
+          [value]="model.firstName"
+          (balInput)="setField('firstName', $event.detail ?? '')"
+        />
+      </bal-field-control>
+    </bal-field>
+
+    <bal-field [required]="true">
+      <bal-field-label>{{ firstSurnameLabel }}</bal-field-label>
+      <bal-field-control>
+        <bal-input
+          name="firstSurname"
+          autocomplete="family-name"
+          [required]="true"
+          [value]="model.firstSurname"
+          (balInput)="setField('firstSurname', $event.detail ?? '')"
+        />
+      </bal-field-control>
+    </bal-field>
+
+    <bal-field [required]="true">
+      <bal-field-label>{{ secondSurnameLabel }}</bal-field-label>
+      <bal-field-control>
+        <bal-input
+          name="secondSurname"
+          autocomplete="additional-name"
+          [required]="true"
+          [value]="model.secondSurname"
+          (balInput)="setField('secondSurname', $event.detail ?? '')"
+        />
+      </bal-field-control>
+    </bal-field>
+    }
+  </div>
+
+  <bal-checkbox
+    interface="switch"
+    name="sameBeneficiary"
+    [checked]="model.sameBeneficiary"
+    (balChange)="setField('sameBeneficiary', $event.detail)"
+  >
+    {{ beneficiaryLabel }}
+  </bal-checkbox>
+</section>

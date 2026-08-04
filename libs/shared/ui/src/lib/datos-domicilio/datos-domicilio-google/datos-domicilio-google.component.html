@@ -1,0 +1,17 @@
+
+<section class="flex flex-direction-column gap-normal bg-white mb-large">
+  <bal-heading level="h4" visual-level="h5" class="mb-none text-blue">
+    Buscar dirección con Google
+  </bal-heading>
+
+  <bal-input
+    #autocompleteInput
+    class="w-8"
+    id="domicilio-google"
+    [placeholder]="searchPlaceholder"
+    [attr.aria-label]="ariaLabel"
+    [value]="selectedText()"
+    autocomplete="street-address"
+    (balInput)="onInput($event)"
+  ></bal-input>
+</section>

@@ -1,0 +1,28 @@
+<app-header (menuClick)="sidebarLayout.openMenu()"></app-header>
+
+<div class="contenedor h-full">
+
+  @if (!isMobileOrTablet()) {
+    <app-menu></app-menu>
+
+    <main class="principal" role="main">
+      <router-outlet></router-outlet>
+      <app-footer></app-footer>
+    </main>
+  }
+
+  @if (isMobileOrTablet()) {
+
+    @if (sidebarLayout.isOpen()) {
+      <app-menu class="mobile-overlay"></app-menu>
+    } @else {
+      <main class="principal" role="main">
+        <router-outlet></router-outlet>
+        <app-footer></app-footer>
+      </main>
+
+   
+    }
+  }
+
+</div>

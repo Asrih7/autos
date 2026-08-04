@@ -1,0 +1,115 @@
+<section class="w-12 mobile:w-8 flex flex-direction-column gap-normal bg-white mb-large">
+  <bal-heading level="h4" visual-level="h5" class="mb-none text-blue">
+    Dirección domiciliaria
+  </bal-heading>
+
+  <div class="grid is-multiline">
+
+    <div class="col mobile:is-full tablet:is-one-half desktop:is-one-third">
+      <bal-field>
+        <bal-field-label class="text-body-small text-light mt-none text-blue">Tipo de vía*</bal-field-label>
+        <bal-field-control>
+          <bal-input
+            [value]="tipoViaSearch()"
+            [disabled]="disabled || fieldDisabled.tipoVia"
+              autocomplete="off"
+            (balInput)="onTipoViaInput($event)"
+          ></bal-input>
+          @if (!disabled && filteredTiposVia().length > 0) {
+            <div role="listbox" class="flex flex-direction-column bg-white">
+              @for (item of filteredTiposVia(); track item.value) {
+                <button type="button" role="option" (click)="selectTipoVia(item.value)">
+                  {{ item.label }}
+                </button>
+              }
+            </div>
+          }
+        </bal-field-control>
+      </bal-field>
+    </div>
+
+    <div class="col mobile:is-full tablet:is-one-half desktop:is-one-third">
+      <bal-field>
+        <bal-field-label class="text-body-small text-light mt-none text-blue">Nombre vía*</bal-field-label>
+        <bal-field-control>
+          <bal-input
+            [value]="internalModel().nombreVia"
+            [disabled]="disabled || fieldDisabled.nombreVia"
+            (balInput)="setField('nombreVia', $event.detail ?? '')">
+          </bal-input>
+        </bal-field-control>
+      </bal-field>
+    </div>
+
+    <div class="col mobile:is-full tablet:is-one-half desktop:is-one-third">
+      <bal-field>
+        <bal-field-label class="text-body-small text-light mt-none text-blue">Número*</bal-field-label>
+        <bal-field-control>
+          <bal-input
+            [value]="internalModel().numero"
+            [disabled]="disabled || fieldDisabled.numero"
+            (balInput)="setField('numero', $event.detail ?? '')">
+          </bal-input>
+        </bal-field-control>
+      </bal-field>
+    </div>
+
+    <div class="col mobile:is-full tablet:is-one-half desktop:is-one-third">
+      <bal-field>
+        <bal-field-label class="text-body-small text-light mt-none text-blue">Código Postal*</bal-field-label>
+        <bal-field-control>
+          <bal-input
+            [value]="internalModel().codigoPostal"
+            [disabled]="disabled || fieldDisabled.codigoPostal"
+            (balInput)="setCodigoPostal($event.detail ?? '')">
+          </bal-input>
+        </bal-field-control>
+      </bal-field>
+    </div>
+
+    <div class="col mobile:is-full tablet:is-one-half desktop:is-one-third">
+      <bal-field>
+        <bal-field-label class="text-body-small text-light mt-none text-blue">Provincia*</bal-field-label>
+        <bal-field-control>
+          <bal-select
+            #provinciaSelect
+            [value]="internalModel().provincia"
+            [disabled]="disabled || fieldDisabled.provincia"
+            (balChange)="setField('provincia', $event)"
+          >
+            @for (item of provincias(); track item.value) {
+              <bal-select-option [value]="item.value" [label]="item.label"></bal-select-option>
+            }
+          </bal-select>
+        </bal-field-control>
+      </bal-field>
+    </div>
+
+    <div class="col mobile:is-full tablet:is-one-half desktop:is-one-third">
+      <bal-field>
+        <bal-field-label class="text-body-small text-light mt-none text-blue">Localidad*</bal-field-label>
+        <bal-field-control>
+          @if (localidades().length > 0) {
+            <bal-select
+              #localidadSelect
+              [value]="internalModel().localidad"
+              [disabled]="disabled || fieldDisabled.localidad"
+              (balChange)="setField('localidad', $event)"
+            >
+              @for (item of localidades(); track item.value) {
+                <bal-select-option [value]="item.value" [label]="item.label"></bal-select-option>
+              }
+            </bal-select>
+          } @else {
+            <bal-input
+              [value]="internalModel().localidad"
+              [disabled]="disabled || fieldDisabled.localidad"
+              (balInput)="setField('localidad', $event.detail ?? '')">
+            </bal-input>
+          }
+        </bal-field-control>
+      </bal-field>
+    </div>
+
+  </div>
+</section>
