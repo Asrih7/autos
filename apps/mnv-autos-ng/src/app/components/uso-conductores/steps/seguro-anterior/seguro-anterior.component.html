@@ -1,0 +1,178 @@
+<section class="w-full tablet:w-10 desktop:w-6 flex flex-direction-column gap-normal bg-white mb-large mobile:mb-normal tablet:mb-large">
+
+  <bal-heading level="h3" visual-level="h4" class="mb-none text-blue">
+    {{ 'usoConductores.seguroAnterior.title' | translate }}
+  </bal-heading>
+
+  <p class="text-body-small text-light mt-none text-blue">
+    {{ 'usoConductores.seguroAnterior.subtitle' | translate }}
+  </p>
+
+  <bal-radio-group
+  name="seguroAnterior"
+  class="flex-direction-column gap-small w-full"
+  [vertical]="true"
+  [value]="seguroSeleccionadoKey()"
+  (balChange)="onSeguroAnteriorChange($event.detail)"
+>
+  <div class="flex flex-direction-column gap-small w-full">
+
+    @for (opcion of opciones; track opcion.key) {
+      <div
+        class="pointer-events-auto border-grey flex flex-direction-column bg-white w-full cursor-pointer"
+        [class.seguro-card-selected]="seguroSeleccionadoKey() === opcion.key"
+        role="button"
+        tabindex="0"
+        (click)="seleccionarSeguro(opcion.key)"
+        (keydown.enter)="seleccionarSeguro(opcion.key)"
+        (keydown.space)="seleccionarSeguro(opcion.key)"
+      >
+        <div class="align-center gap-normal p-normal">
+          <bal-radio
+            [id]="opcion.key"
+            name="seguroAnterior"
+            [value]="opcion.key"
+            [label]="opcion.label"
+            [labelHidden]="true"
+            class="m-none"
+          ></bal-radio>
+
+          <span class="m-normal text-body-small text-light mt-none text-blue">
+            {{ opcion.label }}
+          </span>
+        </div>
+      </div>
+    }
+
+  </div>
+</bal-radio-group>
+
+
+</section>
+
+
+
+@if (mostrarSeccionIntermedia()) {
+<section class="w-full tablet:w-10 desktop:w-6 flex flex-direction-column gap-normal bg-white mb-large mobile:mb-normal tablet:mb-large">
+
+  <bal-heading level="h3" visual-level="h4" class="mb-none text-blue">
+    {{ 'usoConductores.seguroAnterior.intermedia.title' | translate }}
+  </bal-heading>
+
+  <p class="w-full text-body-small text-light mt-none text-blue">
+    {{ 'usoConductores.seguroAnterior.intermedia.subtitle' | translate }}
+  </p>
+
+  <lib-data-grid-selector
+    class="mt-normal"
+    [items]="catalogoSeguros()"
+    [placeholderBusqueda]="'usoConductores.seguroAnterior.intermedia.searchPlaceholder' | translate"
+    [sinResultadosTexto]="'usoConductores.seguroAnterior.intermedia.noResults' | translate"
+    [idSeleccionado]="aseguradoraSeleccionadaId()"
+    (idSeleccionadoChange)="onAseguradoraChange($event)"
+  />
+
+</section>
+}
+
+
+@if (mostrarPolizaActual()) {
+<section class="w-full tablet:w-10 desktop:w-6 flex flex-direction-column gap-normal bg-white mb-large mobile:mb-normal tablet:mb-large">
+
+  <bal-heading level="h3" visual-level="h4" class="mb-none text-blue">
+    {{ 'usoConductores.seguroAnterior.polizaActual.title' | translate }}
+  </bal-heading>
+
+  <p class="w-full text-body-small text-light mt-none text-blue">
+    {{ 'usoConductores.seguroAnterior.polizaActual.subtitle' | translate }}
+  </p>
+
+  <div class="flex w-full mobile:flex-direction-column mobile:gap-small tablet:flex-direction-row tablet:gap-normal tablet:w-8 align-center gap-normal">
+    @for (digito of digitosPoliza; track digito) {
+      <bal-input
+        #digitoPolizaInput
+        class=""
+        [id]="'digito-poliza-' + digito"
+        type="text"
+        inputmode="numeric"
+        textAlign="center"
+        [maxLength]="1"
+        allowedKeyPress="^[0-9]$"
+        autocomplete="off"
+        [value]="ultimosDigitosPoliza()[digito]"
+        (balInput)="onDigitoPolizaInput($event, digito)"
+        (balChange)="onDigitoPolizaInput($event, digito)"
+      ></bal-input>
+    }
+  </div>
+
+@if (mostrarContinuarSinPoliza()) {
+  <bal-button-group direction="auto" class="mt-large">
+    <bal-button class="w-full" elementType="button" (click)="continuarSinNumeroPolizaYAvanzar()">
+      {{ 'usoConductores.seguroAnterior.polizaActual.continueWithout' | translate }}
+    </bal-button>
+  </bal-button-group>
+}
+
+
+</section>
+
+}
+
+
+@if (mostrarAniosAsegurado()) {
+<section class="w-full tablet:w-10 desktop:w-6 flex flex-direction-column gap-normal bg-white mb-large mobile:mb-normal tablet:mb-large">
+
+  <bal-heading level="h3" visual-level="h4" class="mb-none text-blue">
+    {{ 'usoConductores.seguroAnterior.aniosAsegurado.title' | translate }}
+  </bal-heading>
+
+  <p class="w-full text-body-small text-light mt-none text-blue">
+    {{ 'usoConductores.seguroAnterior.aniosAsegurado.subtitle' | translate }}
+  </p>
+
+  <bal-select
+    class="w-full tablet:w-8"
+    name="anios-asegurado"
+    [placeholder]="'usoConductores.seguroAnterior.aniosAsegurado.placeholder' | translate"
+    [value]="aniosAseguradoSeleccionado()"
+    (balChange)="onAniosAseguradoChange($event)"
+  >
+    @for (opcion of aniosAseguradoOpciones; track opcion.value) {
+      <bal-select-option [value]="opcion.value" [label]="opcion.label">
+        {{ opcion.label }}
+      </bal-select-option>
+    }
+  </bal-select>
+
+</section>
+}
+
+
+@if (mostrarSiniestro()) {
+<section class="w-full tablet:w-10 desktop:w-6 flex flex-direction-column gap-normal bg-white mb-large mobile:mb-normal tablet:mb-large">
+
+  <bal-heading level="h3" visual-level="h4" class="mb-none text-blue">
+    {{ 'usoConductores.seguroAnterior.siniestro.title' | translate }}
+  </bal-heading>
+
+  <p class="w-full text-body-small text-light mt-none text-blue">
+    {{ 'usoConductores.seguroAnterior.siniestro.subtitle' | translate }}
+  </p>
+
+  <bal-select
+    class="w-full tablet:w-8"
+    name="siniestro"
+    [placeholder]="'usoConductores.seguroAnterior.siniestro.placeholder' | translate"
+    [value]="siniestroSeleccionado()"
+    (balChange)="onSiniestroChange($event)"
+  >
+    @for (opcion of siniestroOpciones; track opcion.value) {
+      <bal-select-option [value]="opcion.value" [label]="opcion.label">
+        {{ opcion.label }}
+      </bal-select-option>
+    }
+  </bal-select>
+
+</section>
+}

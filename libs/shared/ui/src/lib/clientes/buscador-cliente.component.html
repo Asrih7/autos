@@ -1,0 +1,38 @@
+<section class="w-12 mobile:w-8 flex flex-direction-column gap-small bg-white mb-large">
+  <bal-field [invalid]="error !== null">
+    <bal-field-label>{{ 'tuCliente.search.documentLabel' | translate }}</bal-field-label>
+
+    <bal-field-control>
+      <!-- Reducimos el gap aquí -->
+      <div class="buttons bal-flex--gap-small w-12 ">
+
+        <!-- INPUT (ocupa más espacio) -->
+        <div class="bal-flex-grow w-10 mt-normal">
+          <bal-input
+            autocomplete="off"
+            placeholder="Ej. 11843928V"
+            [value]="documento"
+            (balInput)="onInput($event)"
+          ></bal-input>
+        </div>
+
+        <!-- BOTÓN (ocupa menos espacio) -->
+        <div class="bal-flex-grow w-2 mt-normal bloque-accion buttons justify-content-end">
+          <bal-button
+            color="primary"
+            [disabled]="documento.trim().length === 0 || searching"
+            (click)="search()"
+          >
+            {{ (searching ? 'tuCliente.search.searching' : 'tuCliente.search.search') | translate }}
+          </bal-button>
+        </div>
+
+      </div>
+    </bal-field-control>
+
+    @if (error) {
+      <bal-field-message class="mt-normal" color="danger">{{ error }}</bal-field-message>
+    }
+  </bal-field>
+</section>
+
