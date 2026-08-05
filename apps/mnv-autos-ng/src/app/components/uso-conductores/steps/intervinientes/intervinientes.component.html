@@ -1,0 +1,381 @@
+
+<section class="w-full flex flex-direction-column gap-normal bg-white mb-large mobile:mb-normal tablet:mb-large">
+
+  <bal-heading level="h3" visual-level="h4" class="mb-none text-blue">
+    {{ 'usoConductores.intervinientes.pageTitle' | translate }}
+  </bal-heading>
+
+  <div class="flex flex-direction-column gap-none" role="group" aria-label="Intervinientes toggles">
+
+    <div class="flex align-items-center gap-small">
+      <bal-checkbox
+        interface="switch"
+        [checked]="tomadorEsPropietario()"
+        (balChange)="onTomadorEsPropietarioChange($event.detail)">
+      </bal-checkbox>
+      <span class="text-body-small text-light text-blue">
+        {{ 'usoConductores.intervinientes.toggles.owner' | translate }}
+      </span>
+    </div>
+
+    <div class="flex align-items-center gap-small">
+      <bal-checkbox
+        interface="switch"
+        [checked]="tomadorEsConductorHabitual()"
+        (balChange)="onTomadorEsConductorHabitualChange($event.detail)">
+      </bal-checkbox>
+      <span class="text-body-small text-light text-blue">
+        {{ 'usoConductores.intervinientes.toggles.driver' | translate }}
+      </span>
+    </div>
+
+  </div>
+
+</section>
+
+@switch (true) {
+
+  @case (tomadorEsPropietario() && tomadorEsConductorHabitual()) {
+    <section class="w-full tablet:w-10 desktop:w-8 mb-large mobile:mb-normal tablet:mb-large">
+      <bal-card class="overflow-visible">
+        <div class="bg-grey-light p-normal text-body-small text-blue text-uppercase">
+          {{ 'usoConductores.intervinientes.sections.tomadorPropietarioConductor' | translate }}
+        </div>
+        <div class="p-normal">
+          <ng-container
+            [ngTemplateOutlet]="personaForm"
+            [ngTemplateOutletContext]="{
+              $implicit: tomador,
+              showDocumento: true,
+              showCarnet: true,
+              useEdad: false,
+              requireCarnet: true
+            }">
+          </ng-container>
+        </div>
+      </bal-card>
+    </section>
+  }
+
+  @case (!tomadorEsPropietario() && tomadorEsConductorHabitual()) {
+    <section class="w-full tablet:w-10 desktop:w-8 mb-large mobile:mb-normal tablet:mb-large">
+      <bal-card class="overflow-visible">
+        <div class="bg-grey-light p-normal text-body-small text-blue text-uppercase">
+          {{ 'usoConductores.intervinientes.sections.tomadorConductor' | translate }}
+        </div>
+        <div class="p-normal">
+          <ng-container
+            [ngTemplateOutlet]="personaForm"
+            [ngTemplateOutletContext]="{
+              $implicit: tomador,
+              showDocumento: true,
+              showCarnet: true,
+              useEdad: false,
+              requireCarnet: true
+            }">
+          </ng-container>
+        </div>
+      </bal-card>
+    </section>
+
+    <section class="w-full tablet:w-10 desktop:w-8 mb-large mobile:mb-normal tablet:mb-large">
+      <bal-card class="overflow-visible">
+        <div class="bg-grey-light p-normal text-body-small text-blue text-uppercase">
+          {{ 'usoConductores.intervinientes.sections.propietarioVehicle' | translate }}
+        </div>
+        <div class="p-normal">
+          <ng-container
+            [ngTemplateOutlet]="personaForm"
+            [ngTemplateOutletContext]="{
+              $implicit: propietario,
+              showDocumento: true,
+              showCarnet: true,
+              useEdad: false,
+              requireCarnet: false
+            }">
+          </ng-container>
+        </div>
+      </bal-card>
+    </section>
+  }
+
+  @case (tomadorEsPropietario() && !tomadorEsConductorHabitual()) {
+    <section class="w-full tablet:w-10 desktop:w-8 mb-large mobile:mb-normal tablet:mb-large">
+      <bal-card class="overflow-visible">
+        <div class="bg-grey-light p-normal text-body-small text-blue text-uppercase">
+          {{ 'usoConductores.intervinientes.sections.tomadorPropietario' | translate }}
+        </div>
+        <div class="p-normal">
+          <ng-container
+            [ngTemplateOutlet]="personaForm"
+            [ngTemplateOutletContext]="{
+              $implicit: tomador,
+              showDocumento: false,
+              showCarnet: true,
+              useEdad: useEdadTomador(),
+              requireCarnet: true
+            }">
+          </ng-container>
+        </div>
+      </bal-card>
+    </section>
+
+    <section class="w-full tablet:w-10 desktop:w-8 mb-large mobile:mb-normal tablet:mb-large">
+      <bal-card class="overflow-visible">
+        <div class="bg-grey-light p-normal text-body-small text-blue text-uppercase">
+          {{ 'usoConductores.intervinientes.sections.conductorHabitual' | translate }}
+        </div>
+        <div class="p-normal">
+          <ng-container
+            [ngTemplateOutlet]="personaForm"
+            [ngTemplateOutletContext]="{
+              $implicit: conductorHabitual,
+              showDocumento: false,
+              showCarnet: true,
+              useEdad: useEdadConductorHabitual(),
+              requireCarnet: true
+            }">
+          </ng-container>
+        </div>
+      </bal-card>
+    </section>
+  }
+
+  @case (!tomadorEsPropietario() && !tomadorEsConductorHabitual()) {
+    <section class="w-full tablet:w-10 desktop:w-8 mb-large mobile:mb-normal tablet:mb-large">
+      <bal-card class="overflow-visible">
+        <div class="bg-grey-light p-normal text-body-small text-blue text-uppercase">
+          {{ 'usoConductores.intervinientes.sections.tomador' | translate }}
+        </div>
+        <div class="p-normal">
+          <ng-container
+            [ngTemplateOutlet]="personaForm"
+            [ngTemplateOutletContext]="{
+              $implicit: tomador,
+              showDocumento: true,
+              showCarnet: true,
+              useEdad: false,
+              requireCarnet: true
+            }">
+          </ng-container>
+        </div>
+      </bal-card>
+    </section>
+
+    <section class="w-full tablet:w-10 desktop:w-8 mb-large mobile:mb-normal tablet:mb-large">
+      <bal-card class="overflow-visible">
+        <div class="bg-grey-light p-normal text-body-small text-blue text-uppercase">
+          {{ 'usoConductores.intervinientes.sections.propietario' | translate }}
+        </div>
+        <div class="p-normal">
+          <ng-container
+            [ngTemplateOutlet]="personaForm"
+            [ngTemplateOutletContext]="{
+              $implicit: propietario,
+                showDocumento: true,
+                showCarnet: true,
+                useEdad: false,
+                requireCarnet: false
+            }">
+          </ng-container>
+        </div>
+      </bal-card>
+    </section>
+
+    <section class="w-full tablet:w-10 desktop:w-8 mb-large mobile:mb-normal tablet:mb-large">
+      <bal-card class="overflow-visible">
+        <div class="bg-grey-light p-normal text-body-small text-blue text-uppercase">
+          {{ 'usoConductores.intervinientes.sections.conductorHabitual' | translate }}
+        </div>
+        <div class="p-normal">
+          <ng-container
+            [ngTemplateOutlet]="personaForm"
+            [ngTemplateOutletContext]="{
+              $implicit: conductorHabitual,
+              showDocumento: true,
+              showCarnet: true,
+              useEdad: false,
+              requireCarnet: true
+            }">
+          </ng-container>
+        </div>
+      </bal-card>
+    </section>
+  }
+
+}
+
+@for (oc of conductoresOcasionales(); track oc; let idx = $index) {
+  <section class="w-full tablet:w-10 desktop:w-8 mb-large mobile:mb-normal tablet:mb-large">
+    <bal-card class="overflow-visible">
+      <div class="bg-grey-light p-normal flex align-items-center justify-content-space-between text-body-small text-blue text-uppercase">
+        <span>{{ 'usoConductores.intervinientes.sections.conductorOcasional' | translate }}</span>
+        <bal-button color="danger" variant="link" size="small" (click)="removeConductorOcasional(idx)">
+          <bal-icon name="close" size="small"></bal-icon>
+        </bal-button>
+      </div>
+      <div class="p-normal">
+        <ng-container
+          [ngTemplateOutlet]="personaForm"
+          [ngTemplateOutletContext]="{
+            $implicit: oc,
+            showDocumento: true,
+            showCarnet: true,
+            useEdad: false,
+            requireCarnet: true
+          }">
+        </ng-container>
+      </div>
+    </bal-card>
+  </section>
+}
+
+<section class="w-full tablet:w-10 desktop:w-8 flex justify-content-end mb-large mobile:mb-normal tablet:mb-large">
+  <bal-button variant="ghost" color="grey" (click)="addConductorOcasional()">
+    <span class="flex align-items-center gap-small">
+      {{ 'usoConductores.intervinientes.sections.addConductor' | translate }}
+      <bal-icon name="plus" size="small"></bal-icon>
+    </span>
+  </bal-button>
+</section>
+
+<!-- persona form: single horizontal row, all fields same height -->
+<ng-template #personaForm let-model let-showDocumento="showDocumento" let-showCarnet="showCarnet" let-useEdad="useEdad" let-requireCarnet="requireCarnet">
+  <div class="flex flex-wrap gap-normal align-items-end mobile:flex-direction-column mobile:align-items-stretch tablet:flex-direction-row">
+
+    @if (showDocumento) {
+      <div class="flex-1 min-w-0">
+        <bal-field [invalid]="!!documentoError(model)">
+          <bal-field-label class="text-body-small text-light mt-none text-blue">{{ 'usoConductores.intervinientes.form.documento' | translate }}</bal-field-label>
+          <bal-field-control>
+            <bal-select
+              [value]="model.documento"
+              (balChange)="onSelectChange($event, model, 'documento')"
+              placeholder="{{ 'usoConductores.intervinientes.form.documento' | translate }}"
+            >
+              @for (opt of documentos$ | async; track opt.value) {
+                <bal-select-option [value]="opt.value" [label]="opt.label">{{ opt.label }}</bal-select-option>
+              }
+            </bal-select>
+          </bal-field-control>
+          @if (documentoError(model)) {
+            <bal-field-message color="danger">{{ documentoError(model) }}</bal-field-message>
+          }
+        </bal-field>
+      </div>
+    }
+
+    <div class="flex-1 min-w-0">
+      <bal-field [invalid]="!!numeroDocumentoError(model) && !!model.numeroDocumento">
+        <bal-field-label class="text-body-small text-light mt-none text-blue">{{ 'usoConductores.intervinientes.form.numeroNif' | translate }}</bal-field-label>
+        <bal-field-control>
+          <bal-input
+            [value]="model.numeroDocumento"
+            (balInput)="onInputChange($event, model, 'numeroDocumento')"
+            (balChange)="onInputChange($event, model, 'numeroDocumento')"
+            (balBlur)="onNumeroDocumentoBlur(model)"
+            [invalid]="!!numeroDocumentoError(model) && !!model.numeroDocumento"
+          ></bal-input>
+        </bal-field-control>
+        @if (numeroDocumentoError(model) && model.numeroDocumento) {
+          <bal-field-message color="danger">{{ numeroDocumentoError(model) }}</bal-field-message>
+        }
+      </bal-field>
+    </div>
+
+    <div class="flex-1 min-w-0">
+      <bal-field [invalid]="!!paisError(model)">
+        <bal-field-label class="text-body-small text-light mt-none text-blue">{{ 'usoConductores.intervinientes.form.pais' | translate }}</bal-field-label>
+        <bal-field-control>
+          <bal-select
+            [value]="model.pais"
+            (balChange)="onSelectChange($event, model, 'pais')"
+            placeholder="{{ 'usoConductores.intervinientes.form.pais' | translate }}"
+          >
+            @for (opt of paises$ | async; track opt.value) {
+              <bal-select-option [value]="opt.value" [label]="opt.label">{{ opt.label }}</bal-select-option>
+            }
+          </bal-select>
+        </bal-field-control>
+        @if (paisError(model)) {
+          <bal-field-message color="danger">{{ paisError(model) }}</bal-field-message>
+        }
+      </bal-field>
+    </div>
+
+    @if (!esCIF(model)) {
+      <div class="flex-1 min-w-0">
+        <bal-field [invalid]="!!fechaNacimientoError(model)">
+          <bal-field-label class="text-body-small text-light mt-none text-blue">{{ 'usoConductores.intervinientes.form.fechaNacimiento' | translate }}</bal-field-label>
+          <bal-field-control>
+            <bal-date
+              [value]="dateToIso(model.fechaNacimiento)"
+              (balChange)="onDateChange($event, model, 'fechaNacimiento')"
+            ></bal-date>
+          </bal-field-control>
+          @if (fechaNacimientoError(model)) {
+            <bal-field-message color="danger">{{ fechaNacimientoError(model) }}</bal-field-message>
+          }
+        </bal-field>
+      </div>
+    }
+
+    @if (showCarnet && !esCIF(model)) {
+      <div class="flex-1 min-w-0">
+        <bal-field [invalid]="!!tipoCarnetError(model, showCarnet, requireCarnet)">
+          <bal-field-label class="text-body-small text-light mt-none text-blue">{{ 'usoConductores.intervinientes.form.tipoCarnet' | translate }}</bal-field-label>
+          <bal-field-control>
+            <bal-select
+              [value]="model.tipoCarnet"
+              (balChange)="onSelectChange($event, model, 'tipoCarnet')"
+              placeholder="{{ 'usoConductores.intervinientes.form.tipoCarnet' | translate }}"
+            >
+              @for (opt of tiposCarnet$ | async; track opt.value) {
+                <bal-select-option [value]="opt.value" [label]="opt.label">{{ opt.label }}</bal-select-option>
+              }
+            </bal-select>
+          </bal-field-control>
+          @if (tipoCarnetError(model, showCarnet, requireCarnet)) {
+            <bal-field-message color="danger">{{ tipoCarnetError(model, showCarnet, requireCarnet) }}</bal-field-message>
+          }
+        </bal-field>
+      </div>
+
+      @if (useEdad) {
+        <div class="flex-1 min-w-0">
+          <bal-field [invalid]="!!edadObtencionCarnetError(model, showCarnet, requireCarnet, true)">
+            <bal-field-label class="text-body-small text-light mt-none text-blue">{{ 'usoConductores.intervinientes.form.edadObtuvoCarnet' | translate }}</bal-field-label>
+            <bal-field-control>
+              <bal-input
+                type="number"
+                maxlength="2"
+                [value]="model.edadObtencionCarnet"
+                (balInput)="onInputChange($event, model, 'edadObtencionCarnet')"
+                [invalid]="!!edadObtencionCarnetError(model, showCarnet, requireCarnet, true)"
+              ></bal-input>
+            </bal-field-control>
+            @if (edadObtencionCarnetError(model, showCarnet, requireCarnet, true)) {
+              <bal-field-message color="danger">{{ edadObtencionCarnetError(model, showCarnet, requireCarnet, true) }}</bal-field-message>
+            }
+          </bal-field>
+        </div>
+      } @else {
+        <div class="flex-1 min-w-0">
+          <bal-field [invalid]="!!fechaObtencionCarnetError(model, showCarnet, requireCarnet, false)">
+            <bal-field-label class="text-body-small text-light mt-none text-blue">{{ 'usoConductores.intervinientes.form.fechaObtuvoCarnet' | translate }}</bal-field-label>
+            <bal-field-control>
+              <bal-date
+                [value]="dateToIso(model.fechaObtencionCarnet)"
+                (balChange)="onDateChange($event, model, 'fechaObtencionCarnet')"
+              ></bal-date>
+            </bal-field-control>
+            @if (fechaObtencionCarnetError(model, showCarnet, requireCarnet, false)) {
+              <bal-field-message color="danger">{{ fechaObtencionCarnetError(model, showCarnet, requireCarnet, false) }}</bal-field-message>
+            }
+          </bal-field>
+        </div>      
+      }
+    }
+
+  </div>
+</ng-template>

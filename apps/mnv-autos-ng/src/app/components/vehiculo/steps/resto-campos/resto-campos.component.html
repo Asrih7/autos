@@ -1,0 +1,154 @@
+<div class="w-full flex flex-direction-column">
+  @let rc = 'vehiculo.restoCampos';
+
+  <div class="grid mb-normal">
+    
+    <div class="col is-half">
+      <div>
+        <span class="text-medium font-weight-bold mb-none block">
+          {{ rc + '.remolque.title' | translate }}
+        </span>
+        <p class="text-small  mb-normal">
+          {{ rc + '.remolque.subtitle' | translate }}
+        </p>
+        
+        <div class="flex gap-normal">
+          <bal-button 
+            type="button" 
+            color="secondary"
+            class="mobile:w-6"
+            [expanded]="esMobile()"
+            [disabled]="cargandoCarrocerias()"
+            [isActive]="tieneRemolque() === true"
+            (click)="tieneRemolque.set(true)">
+            {{ rc + '.remolque.options.si' | translate }}
+          </bal-button>
+          <bal-button 
+            type="button" 
+            color="secondary"
+            class="mobile:w-6"
+            [expanded]="esMobile()"
+            [disabled]="cargandoCarrocerias()"
+            [isActive]="tieneRemolque() === false"
+            (click)="tieneRemolque.set(false)">
+            {{ rc + '.remolque.options.no' | translate }}
+          </bal-button>
+        </div>
+      </div>
+    </div>
+
+    <div class="col is-half">
+      <div>
+        <span class="text-medium font-weight-bold mb-none block">
+          {{ rc + '.matriculacion.title' | translate }}
+        </span>
+        <p class="text-small  mb-normal">
+          {{ rc + '.matriculacion.subtitle' | translate }}
+        </p>
+        
+        <bal-field>
+          <!--test-->
+          <bal-field-control>
+            <bal-date
+  [value]="fechaMatriculacionIso()"
+  (balChange)="onDateChange($event)"
+  [max]="maxDateLimit()"
+  [disabled]="cargandoCarrocerias()">
+</bal-date>
+
+          </bal-field-control>
+        </bal-field>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="grid mb-none">
+    
+    <div class="col is-half">
+      <div>
+        <span class="text-medium font-weight-bold mb-none block">
+          {{ rc + '.carroceria.title' | translate }}
+        </span>
+        <p class="text-small  mb-normal">
+          {{ rc + '.carroceria.subtitle' | translate }}
+        </p>
+        
+        <bal-field>
+          <bal-field-control>
+            <bal-select 
+              [value]="tipoCarroceria()" 
+              (balChange)="onSelectChange($event)"
+              [disabled]="cargandoCarrocerias()"
+              [loading]="cargandoCarrocerias()">
+              @for (opcion of opcionesCarroceria(); track opcion.codigo) {
+                <bal-select-option [value]="opcion.descripcion" [label]="opcion.descripcion">
+                  {{ opcion.descripcion }}
+                </bal-select-option>
+              }
+            </bal-select>
+          </bal-field-control>
+        </bal-field>
+      </div>
+    </div>
+
+    <div class="col is-half">
+      <div>
+        <span class="text-medium font-weight-bold mb-none block">
+          {{ rc + '.codigoPostal.title' | translate }}
+        </span>
+        <p class="text-small  mb-normal">
+          {{ rc + '.codigoPostal.subtitle' | translate }}
+        </p>
+        
+        <bal-field class="mb-normal">
+          <bal-field-control>
+            <bal-input 
+              [value]="codigoPostal()" 
+              (balInput)="onInputChange($event)"
+              [invalid]="cpInvalido()"
+              [disabled]="cargandoCarrocerias()"
+              maxlength="5"
+              [placeholder]="rc + '.codigoPostal.placeholders.cp' | translate">
+            </bal-input>
+          </bal-field-control>
+          @if (cpInvalidoFormato()) {
+            <span class="text-small text-danger block">
+              {{ rc + '.codigoPostal.error' | translate }}
+            </span>
+          } @else if (isCpInvalidoEnEspana()) {
+            <span class="text-small text-danger block">
+              {{ rc + '.codigoPostal.unknownPrefix' | translate }}
+            </span>
+          }
+        </bal-field>
+
+        <bal-field>
+          <bal-field-control>
+            <bal-input 
+              [value]="provincia()" 
+              [readonly]="true"
+              [disabled]="true"
+              [placeholder]="rc + '.codigoPostal.placeholders.provincia' | translate">
+            </bal-input>
+          </bal-field-control>
+        </bal-field>
+      </div>
+    </div>
+
+  </div>
+
+  <div class="grid">
+    <div class="col w-full flex justify-content-end">
+      <bal-button 
+        color="primary" 
+        [disabled]="botonDeshabilitado()"
+        [loading]="cargandoCarrocerias()"
+        [expanded]="esMobile()"
+        (click)="confirmarDetalles()">
+        {{ rc + '.buttons.confirm' | translate }}
+      </bal-button>
+    </div>
+  </div>
+
+</div>
