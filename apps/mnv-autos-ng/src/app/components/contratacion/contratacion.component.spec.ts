@@ -1,0 +1,22 @@
+import { ComponentFixture, TestBed } from "@angular/core/testing";
+import { ContratacionComponent } from "./contratacion.component";
+import { TranslateModule } from "@ngx-translate/core";
+
+describe("Contratacion", () => {
+  let component: ContratacionComponent;
+  let fixture: ComponentFixture<ContratacionComponent>;
+
+  beforeEach(async () => {
+    await TestBed.configureTestingModule({
+      imports: [ContratacionComponent, TranslateModule.forRoot()],
+    }).compileComponents();
+
+    fixture = TestBed.createComponent(ContratacionComponent);
+    component = fixture.componentInstance;
+    await fixture.whenStable();
+  });
+
+  it("should create", () => {
+    expect(component).toBeTruthy();
+  });
+});

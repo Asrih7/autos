@@ -1,0 +1,28 @@
+<div class="w-full">
+
+  <!-- Toast SIEMPRE visible -->
+  @if (toastOpen()) {
+    <bal-toast
+      class="global-toast"
+      [duration]="toastDurationMs"
+      [color]="toastType()"
+      (balClose)="toastOpen.set(false)">
+      {{ toastMessage() }}
+    </bal-toast>
+  }
+
+  <!-- Contenedor que se reordena -->
+  <div (click)="onStepAreaInteraction($event)" (focusin)="onStepAreaInteraction($event)">
+    <ng-container #stepOutlet></ng-container>
+
+    <div #buttonAnchor class="mb-large">
+      @if (!isLastStep()) {
+        <bal-button-group direction="auto" class="mt-large">
+          <bal-button [disabled]="!nextEnabled()" (click)="goNext()">
+            {{ 'usoConductores.navigation.next' | translate }}
+          </bal-button>
+        </bal-button-group>
+      }
+    </div>
+  </div>
+</div>
