@@ -1,0 +1,8 @@
+@for (grupo of modalidadesAgrupadas(); track grupo.codigo) {
+  <app-grupo-modalidades
+    [titulo]="grupo.titulo"
+    [codigo]="grupo.codigo"
+    [modalidades]="grupo.modalidades"
+    (recalcularModalidad)="onRecalcularModalidad($event)">
+  </app-grupo-modalidades>
+}

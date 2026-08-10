@@ -1,0 +1,41 @@
+
+
+.tu-cliente-toast {
+  position: fixed;
+  bottom: 24px;
+  left: 50%;
+  transform: translateX(-50%);
+  z-index: 9999;
+  width: max-content;
+  max-width: calc(100vw - 32px);
+}
+
+.client-operation-actions {
+  display: flex;
+  gap: 1rem;
+  width: 100%;
+}
+
+.client-operation-actions bal-button.client-operation-button {
+  flex: 1 1 0;
+  width: 100%;
+}
+
+.client-operation-actions bal-button.client-operation-button button.button {
+  width: 100%;
+  min-height: 3.5rem;
+  font-size: 1rem;
+}
+
+// Stack vertically on small screens
+@media (max-width: 767px) {
+  .client-operation-actions {
+    flex-direction: column;
+  }
+}
+::ng-deep .button.is-primary {
+    background: var(--bal-button-primary-background);
+    border-color: var(--bal-button-primary-border-color);
+    color: var(--bal-button-primary-color);
+    width: 100%;
+}

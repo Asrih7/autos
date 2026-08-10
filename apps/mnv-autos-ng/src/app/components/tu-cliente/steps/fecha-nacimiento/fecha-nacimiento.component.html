@@ -1,0 +1,21 @@
+<section class="mb-large">
+
+
+<bal-field [required]="required()" [invalid]="invalid()">
+  <bal-field-label>{{ label() | translate }}</bal-field-label>
+  <bal-date
+    [value]="value()"
+    [placeholder]="placeholder() | translate"
+    [required]="required()"
+    [invalid]="invalid()"
+    [allowInvalidValue]="true"
+    (balChange)="handleDateChange($event)"
+    (balBlur)="handleDateBlur()"
+  ></bal-date>
+
+
+  @if (invalid()) {
+    <bal-field-message color="danger">{{ invalidMessage() | translate }}</bal-field-message>
+  }
+</bal-field>
+</section>

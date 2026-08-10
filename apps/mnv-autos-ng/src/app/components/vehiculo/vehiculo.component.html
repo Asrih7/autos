@@ -1,0 +1,9 @@
+<div class="contenedor-principal-vehiculos stacked-layout">
+
+  @for (layer of renderedSteps(); track layer.id) {
+    <div class="seccion-wizard-dinamica entry-animation" libScrollOnRender>
+      <ng-container *ngComponentOutlet="layer.componentClass; inputs: layer.inputs"></ng-container>
+    </div>
+  }
+
+</div>
