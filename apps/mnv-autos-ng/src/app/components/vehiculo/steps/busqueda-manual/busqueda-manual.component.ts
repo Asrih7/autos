@@ -4,9 +4,9 @@ import {
   signal,
   viewChild,
   inject,
-  input,
   OnInit,
   untracked,
+  input,
 } from "@angular/core";
 import { FormsModule } from "@angular/forms";
 import {
@@ -21,7 +21,7 @@ import {
 import { DataGridSelector } from "@mnv-autos-ng/ui";
 import { VehiculoStateService } from "../../services/vehiculo-state.service";
 import { TranslateModule } from "@ngx-translate/core";
-import { useIsMobile } from '@mnv-autos-ng/util';
+import { useIsMobile } from "@mnv-autos-ng/util";
 
 @Component({
   selector: "app-busqueda-manual",
@@ -35,72 +35,92 @@ import { useIsMobile } from '@mnv-autos-ng/util';
     BalSelect,
     BalSelectOption,
     DataGridSelector,
-    TranslateModule
+    TranslateModule,
   ],
   templateUrl: "./busqueda-manual.component.html",
   styleUrl: "./busqueda-manual.component.scss",
 })
 export class BusquedaManualComponent implements OnInit {
-  private readonly stateService = inject(VehiculoStateService);
+  protected readonly stateService = inject(VehiculoStateService);
   readonly onStepComplete = input<(stepOutputData: unknown) => void>();
+  readonly stepId = input<string>();
   readonly selectModelo = viewChild<BalSelect>("selectComponent");
   readonly baseLangKey = "vehiculo.busquedaManual";
   readonly esMobile = useIsMobile();
-
-  readonly catalogoMarcas = this.stateService.marcas;
-  readonly listaModelos = this.stateService.modelos;
-  readonly cargandoModelos = this.stateService.loadingModelos;
 
   readonly marcaSeleccionadaId = signal<string | null>(null);
   readonly modeloSeleccionadoId = signal<string | null>(null);
   readonly mostrarModelos = signal<boolean>(false);
 
-  private isInitializing = false;
-
   constructor() {
     effect(() => {
-      const brandId = this.marcaSeleccionadaId();
+      const state = this.stateService.state();
+      const vehiculo = state.vehiculoData;
 
-      if (brandId) {
+      if (vehiculo?.marca?.id) {
         untracked(() => {
-          this.stateService.loadModelosCatalog(brandId);
+          this.marcaSeleccionadaId.set(vehiculo.marca?.id ?? null);
+          this.mostrarModelos.set(true);
 
-          if (!this.isInitializing) {
+          if (vehiculo?.modelo?.id) {
+            this.modeloSeleccionadoId.set(vehiculo.modelo?.id ?? null);
+          } else {
             this.modeloSeleccionadoId.set(null);
           }
-          
-          setTimeout(() => void this.selectModelo()?.setFocus(), 100);
+        });
+      } else {
+        untracked(() => {
+          this.marcaSeleccionadaId.set(null);
+          this.modeloSeleccionadoId.set(null);
+          this.mostrarModelos.set(false);
+        });
+      }
+    });
+
+    effect(() => {
+      if (this.stateService.busquedaExitosa()) {
+        untracked(() => {
+          const callback = this.onStepComplete();
+          if (callback) {
+            callback({
+              status: "REGISTRATION_LOOKUP_COMPLETE",
+              source: "API_SEARCH",
+            });
+          }
+          this.stateService.clearBusquedaExitosa();
         });
       }
     });
   }
 
   ngOnInit(): void {
-    this.isInitializing = true;
-    
     this.stateService.loadMarcasCatalog();
+    const state = this.stateService.state();
+    const vehiculo = state.vehiculoData;
 
-    const currentSummary = this.stateService.selectedBrandAndModel();
-
-    if (currentSummary.marca?.id) {
-      this.marcaSeleccionadaId.set(currentSummary.marca.id);
+    if (vehiculo?.marca?.id) {
+      this.marcaSeleccionadaId.set(vehiculo.marca.id);
+      this.mostrarModelos.set(true);
       
-      if (currentSummary.modelo?.id) {
-        this.modeloSeleccionadoId.set(currentSummary.modelo.id);
-        this.mostrarModelos.set(true); 
+      this.stateService.loadModelosCatalog(vehiculo.marca.id);
+
+      if (vehiculo?.modelo?.id) {
+        this.modeloSeleccionadoId.set(vehiculo.modelo.id);
       }
     }
-
-    setTimeout(() => {
-      this.isInitializing = false;
-    }, 0);
   }
 
   confirmarMarca(): void {
-    const brandObject = this.catalogoMarcas().find(m => m.id === this.marcaSeleccionadaId());
+    const brandId = this.marcaSeleccionadaId();
+    if (!brandId) return;
+
+    const brandObject = this.stateService
+      .marcas()
+      .find((m) => m.id === brandId);
     if (brandObject) {
       this.stateService.saveMarca(brandObject);
     }
+    this.stateService.loadModelosCatalog(brandId);
     this.mostrarModelos.set(true);
   }
 
@@ -109,7 +129,8 @@ export class BusquedaManualComponent implements OnInit {
     if (!parsedEvent) return;
 
     const value = Array.isArray(parsedEvent) ? parsedEvent : parsedEvent;
-    const validatedValue = typeof value === "string" && value.trim().length > 0 ? value : null;
+    const validatedValue =
+      typeof value === "string" && value.trim().length > 0 ? value : null;
 
     this.modeloSeleccionadoId.set(validatedValue);
   }
@@ -117,7 +138,9 @@ export class BusquedaManualComponent implements OnInit {
   confirmarModelo(): void {
     const modeloId = this.modeloSeleccionadoId();
     if (modeloId !== null) {
-      const modelObject = this.listaModelos().find(m => m.id === modeloId);
+      const modelObject = this.stateService
+        .modelos()
+        .find((m) => m.id === modeloId);
       if (modelObject) {
         this.stateService.saveModelo(modelObject);
       }

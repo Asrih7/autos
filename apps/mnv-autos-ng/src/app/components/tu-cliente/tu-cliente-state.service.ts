@@ -192,13 +192,13 @@ export class TuClienteStateService {
       clientNotFound: false,
       operationType: type,
       editingClient: false,
-      showPersonalDataStep: true,
-      showAddressStep: false,
+            showPersonalDataStep: true,
+      showAddressStep: ['nif', 'cif'].includes(current.datosPersona.documentType ?? ''),
       showBirthdateStep: false,
     }));
-
     return true;
   }
+
 
   setNewClientDocument(documentType: DatosPersonaModel['documentType'], documentNumber: string): void {
     this._state.update((current: TuClienteGlobalState) => ({
@@ -281,37 +281,49 @@ export class TuClienteStateService {
   }
 
   setDireccion(value: DatosDomicilioModel): void {
+    const direccion: DatosDomicilioModel = {
+      ...value,
+      tipoVia: value.tipoVia?.trim() ?? '',
+      nombreVia: value.nombreVia?.trim() ?? '',
+      numero: value.numero?.trim() ?? '',
+      codigoPostal: value.codigoPostal?.trim() ?? '',
+      provincia: value.provincia?.trim() ?? '',
+      localidad: value.localidad?.trim() ?? '',
+    };
+
     this._state.update((current: TuClienteGlobalState) => ({
       ...current,
-      direccion: value,
+      direccion,
       addressError: null,
     }));
   }
 
   confirmDireccion(): void {
-    const state = this._state();
+  const state = this._state();
 
-    if (state.editingClient && state.clientResult) {
-      this._state.update((current: TuClienteGlobalState) => ({
-        ...current,
-        clientResult: {
-          ...current.clientResult!,
-          address: this.formatAddress(current.direccion),
-        },
-        editingClient: false,
-        showPersonalDataStep: false,
-        showAddressStep: false,
-        showBirthdateStep: false,
-      }));
-      return;
-    }
-
-    this._state.update((current: TuClienteGlobalState) => ({
+  if (state.editingClient && state.clientResult) {
+    this._state.update((current) => ({
       ...current,
+      clientResult: {
+        ...current.clientResult!,
+        address: this.formatAddress(current.direccion),
+      },
+      editingClient: false,
+      showPersonalDataStep: false,
       showAddressStep: false,
-      showBirthdateStep: true,
+      showBirthdateStep: false,
     }));
+    return;
   }
+
+  this._state.update((current) => ({
+    ...current,
+    showAddressStep: true,        
+    showPersonalDataStep: true,   
+    showBirthdateStep: true       
+  }));
+}
+
 
   setNormalizingAddress(value: boolean): void {
     this._state.update((current: TuClienteGlobalState) => ({ ...current, normalizingAddress: value }));

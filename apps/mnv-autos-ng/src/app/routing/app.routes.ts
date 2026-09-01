@@ -2,6 +2,7 @@ import { Route } from '@angular/router';
 import { vehiculoProgressGuard } from '../core/guards/vehiculo-progress.guard';
 
 import { usoConductoresEntryGuard } from '../core/guards/uso-conductores-entry.guard';
+import { rootInitGuard } from '../core/guards/root-init.guard';
 
 export const appRoutes: Route[] = [
 
@@ -64,6 +65,13 @@ export const appRoutes: Route[] = [
         .then(m => m.ContratacionComponent),
     data: { pageId: 'contratacion', label: 'Contratación', showInMenu: true },
   },
+  {
+    path: 'initial',
+    loadComponent: () =>
+      import('../components/initial/initial.component')
+        .then(m => m.InicialComponent),
+      data: { pageId: 'initial', label: 'hola', showInMenu: true }
+  },
 
-  { path: '', redirectTo: 'tu-cliente', pathMatch: 'full' },
+  { path: '', pathMatch: 'full', canActivate: [rootInitGuard], children: [] },
 ];

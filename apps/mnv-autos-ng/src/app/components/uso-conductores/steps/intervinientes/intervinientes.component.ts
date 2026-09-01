@@ -13,7 +13,7 @@ import {
 import { Router } from '@angular/router';
 import { FormsModule } from '@angular/forms';
 import { Observable, of } from 'rxjs';
-import { catchError } from 'rxjs/operators';
+import { catchError, map } from 'rxjs/operators';
 import { toSignal } from '@angular/core/rxjs-interop';
 
 import {
@@ -34,10 +34,12 @@ import { TranslateModule } from '@ngx-translate/core';
 
 import { BdiService } from '../../services/bdi.service';
 import { SisnetService } from '../../services/sisnet.service';
+import { validateDocumentNumber } from '@mnv-autos-ng/ui';
 
 import { Persona } from '../../models/persona.model';
 import { DireccionModel } from '../../models/direccion.model';
 import { UsoConductoresStateService } from '../../uso-conductores-state.service';
+import { TuClienteStateService } from '../../../tu-cliente/tu-cliente-state.service';
 import { USO_CONDUCTORES_STEPS } from '../../uso-conductores.steps';
 
 @Component({
@@ -71,6 +73,7 @@ export class IntervinientesComponent implements OnInit {
   tomadorEsConductorHabitual = signal(true);
 
   documentos$!: Observable<{ label: string; value: string }[]>;
+  documentosSinCif$!: Observable<{ label: string; value: string }[]>;
   paises$!: Observable<{ label: string; value: string }[]>;
   tiposCarnet$!: Observable<{ label: string; value: string }[]>;
 
@@ -109,6 +112,7 @@ export class IntervinientesComponent implements OnInit {
   public usoState = inject(UsoConductoresStateService);
   private readonly router = inject(Router);
   private readonly cdr = inject(ChangeDetectorRef);
+  private readonly tuClienteState = inject(TuClienteStateService);
 
   private readonly NIE_MAP = { X: '0', Y: '1', Z: '2' } as const;
   private readonly CIF_LETTER_ONLY = ['K', 'P', 'Q', 'S'];
@@ -135,6 +139,9 @@ export class IntervinientesComponent implements OnInit {
 
   constructor(private bdi: BdiService, private sisnet: SisnetService) {
     this.documentos$ = this.bdi.getDocumentTypes().pipe(catchError(() => of([])));
+    this.documentosSinCif$ = this.documentos$.pipe(
+      map(docs => docs.filter(d => d.value !== 'CIF'))
+    );
     this.paises$ = this.bdi.getCountries().pipe(catchError(() => of([])));
     this.tiposCarnet$ = this.sisnet.getDrivingLicenseTypes().pipe(catchError(() => of([])));
 
@@ -157,8 +164,22 @@ export class IntervinientesComponent implements OnInit {
       this.propietarioDireccion = saved.propietarioDireccion;
     }
 
+    const tomadorYaInformado = Boolean(
+      saved?.tomador?.numeroDocumento?.trim(),
+    );
+
+    // La página de clientes completa el tomador solo al iniciar el flujo.
+    // Al volver desde otra pantalla se conserva lo que el mediador haya
+    // introducido manualmente y lo que ya estaba guardado en el state.
+    if (!tomadorYaInformado) {
+      this.applyTomadorDataFromClient();
+    }
+
     this.enforceAllCIFRules();
-    this.autofillRelatedPersons();
+    // Solo se precargan propietario y conductor habitual si están vacíos.
+    // Así no se destruyen datos manuales al reconstruir el componente.
+    this.initializeRelatedPersonsWithoutOverwritingSavedData();
+    this.persistIntervinientesState();
     this.checkCompletion();
   }
 
@@ -168,24 +189,83 @@ export class IntervinientesComponent implements OnInit {
   }
 
   private copyFromTomador(target: Persona): void {
+    target.documento = this.tomador.documento ?? '';
     target.numeroDocumento = this.tomador.numeroDocumento ?? '';
-    target.pais = this.tomador.pais ?? 'ES';
-    target.fechaNacimiento = this.tomador.fechaNacimiento ? new Date(this.tomador.fechaNacimiento) : null;
-    if (!target.tipoCarnet) target.tipoCarnet = 'B';
-    if (!target.fechaObtencionCarnet) target.fechaObtencionCarnet = this.tomador.fechaObtencionCarnet ? new Date(this.tomador.fechaObtencionCarnet) : null;
+    target.pais = this.tomador.pais ?? '';
+    target.fechaNacimiento = this.tomador.fechaNacimiento
+      ? new Date(this.tomador.fechaNacimiento)
+      : null;
+  }
+
+  private emptyPersona(): Persona {
+    return {
+      documento: '',
+      numeroDocumento: '',
+      pais: '',
+      fechaNacimiento: null,
+      tipoCarnet: undefined,
+      fechaObtencionCarnet: null,
+      edadObtencionCarnet: undefined,
+    };
+  }
+
+  private clearPersona(model: Persona): void {
+    Object.assign(model, this.emptyPersona());
+  }
+
+  private applyTomadorDataFromClient(): void {
+    const client = this.tuClienteState.datosPersona();
+    if (!client?.documentNumber?.trim()) return;
+
+    const documentTypeMap: Record<string, string> = {
+      nif: 'NIF',
+      nie: 'NIE',
+      passport: 'PAS',
+      nrt: 'NRT',
+      cif: 'CIF',
+    };
+
+    // La página de cliente es la fuente de verdad del tomador. Se sincroniza
+    // siempre al entrar en este paso para no reutilizar valores de una sesión
+    // anterior cuando el cliente actual ha cambiado.
+    this.tomador.documento =
+      documentTypeMap[String(client.documentType ?? '').toLowerCase()] ?? 'NIF';
+    this.tomador.numeroDocumento = client.documentNumber.trim();
+    const nationality = String(client.nationality ?? '').trim();
+    this.tomador.pais = ['española', 'españa', 'espana', 'es'].includes(nationality.toLowerCase())
+      ? 'ES'
+      : nationality;
+    this.tomador.fechaNacimiento = this.tuClienteState.birthDate()
+      ? this.isoToDate(this.tuClienteState.birthDate())
+      : null;
   }
 
   private autofillRelatedPersons(): void {
-    if (!this.tomadorEsPropietario() && this.isEmptyPersonaModel(this.propietario)) {
-      this.copyFromTomador(this.propietario as Persona);
+    if (this.tomadorEsPropietario()) {
+      this.copyFromTomador(this.propietario);
+    } else {
+      this.clearPersona(this.propietario);
     }
 
-    if (!this.tomadorEsConductorHabitual() && this.isEmptyPersonaModel(this.conductorHabitual)) {
-      this.copyFromTomador(this.conductorHabitual as Persona);
+    if (this.tomadorEsConductorHabitual()) {
+      this.copyFromTomador(this.conductorHabitual);
+    } else {
+      this.clearPersona(this.conductorHabitual);
+    }
+  }
+
+  /**
+   * Inicializa las relaciones por defecto sin destruir una sesión restaurada.
+   * Al volver desde otra pantalla, propietario, conductor habitual y ocasionales
+   * ya contienen los datos introducidos por el mediador y deben conservarse.
+   */
+  private initializeRelatedPersonsWithoutOverwritingSavedData(): void {
+    if (this.tomadorEsPropietario() && this.isEmptyPersonaModel(this.propietario)) {
+      this.copyFromTomador(this.propietario);
     }
 
-    if (this.conductoresOcasionales().length === 0 && this.isEmptyPersonaModel(undefined)) {
-      // no-op
+    if (this.tomadorEsConductorHabitual() && this.isEmptyPersonaModel(this.conductorHabitual)) {
+      this.copyFromTomador(this.conductorHabitual);
     }
   }
 
@@ -198,20 +278,19 @@ export class IntervinientesComponent implements OnInit {
   }
 
   private enforceAllCIFRules(): void {
-    if (this.tomador.documento === 'CIF' && this.conductorHabitual.documento === 'CIF') {
+    // Los conductores NO pueden ser CIF
+    if (this.conductorHabitual.documento === 'CIF') {
       this.conductorHabitual.documento = 'NIF';
     }
 
-    if (this.propietario.documento === 'CIF' && this.conductorHabitual.documento === 'CIF') {
-      this.conductorHabitual.documento = 'NIF';
+    // Si tomador=conductor tampoco podría ser CIF
+    if (this.tomadorEsConductorHabitual() && this.tomador.documento === 'CIF') {
+      this.tomador.documento = 'NIF';
     }
 
     this.conductoresOcasionales().forEach((oc: Persona) => {
       if (oc.documento === 'CIF') {
-        oc.fechaNacimiento = null;
-        oc.fechaObtencionCarnet = null;
-        oc.tipoCarnet = undefined;
-        oc.edadObtencionCarnet = undefined;
+        oc.documento = 'NIF';
       }
     });
 
@@ -227,11 +306,12 @@ export class IntervinientesComponent implements OnInit {
 
   private restorePersona(data: any): Persona {
     return {
-      documento: data?.documento ?? 'NIF',
+      // Conservar exactamente lo guardado, incluidos los campos vacíos.
+      documento: data?.documento ?? '',
       numeroDocumento: data?.numeroDocumento ?? '',
-      pais: data?.pais ?? 'ES',
+      pais: data?.pais ?? '',
       fechaNacimiento: this.isoToDate(data?.fechaNacimiento),
-      tipoCarnet: data?.tipoCarnet ?? 'B',
+      tipoCarnet: data?.tipoCarnet ?? undefined,
       fechaObtencionCarnet: this.isoToDate(data?.fechaObtencionCarnet),
       edadObtencionCarnet: data?.edadObtencionCarnet,
     };
@@ -302,9 +382,7 @@ export class IntervinientesComponent implements OnInit {
         this.usoState.clearStepLoaded(originalIndex);
       }
 
-      if (!checked && this.isEmptyPersonaModel(this.propietario)) {
-        this.copyFromTomador(this.propietario as Persona);
-      }
+      this.autofillRelatedPersons();
 
       const segments = this.router.parseUrl(this.router.url)
         .root.children['primary']?.segments.map(s => s.path) ?? [];
@@ -323,9 +401,7 @@ export class IntervinientesComponent implements OnInit {
     const checked = this.getCheckedFromEvent(event);
     this.tomadorEsConductorHabitual.set(checked);
 
-    if (!checked && this.isEmptyPersonaModel(this.conductorHabitual)) {
-      this.copyFromTomador(this.conductorHabitual as Persona);
-    }
+    this.autofillRelatedPersons();
 
     this.persistIntervinientesState();
     this.checkCompletion();
@@ -337,15 +413,9 @@ export class IntervinientesComponent implements OnInit {
       return;
     }
 
-    const newOc: Persona = {
-      documento: 'NIF',
-      numeroDocumento: this.tomador.numeroDocumento ?? '',
-      pais: this.tomador.pais ?? 'ES',
-      fechaNacimiento: this.tomador.fechaNacimiento ? new Date(this.tomador.fechaNacimiento) : null,
-      tipoCarnet: this.tomador.tipoCarnet ?? 'B',
-      fechaObtencionCarnet: this.tomador.fechaObtencionCarnet ? new Date(this.tomador.fechaObtencionCarnet) : null,
-      edadObtencionCarnet: this.tomador.edadObtencionCarnet,
-    };
+    // Un conductor ocasional siempre comienza como una persona nueva y no
+    // comparte referencia ni datos con la tarjeta del tomador.
+    const newOc: Persona = this.emptyPersona();
 
     this.conductoresOcasionales.update(list => [...list, newOc]);
     this.persistIntervinientesState();
@@ -449,21 +519,11 @@ export class IntervinientesComponent implements OnInit {
     if (!model.numeroDocumento || model.numeroDocumento.trim().length === 0) return false;
     if (!model.pais) return false;
 
-    if (model.documento === 'NIF' || model.documento === 'NIE') {
-      if (!this.isDocumentoValid(model.numeroDocumento, model.documento)) return false;
+    if (!this.isDocumentoValid(model.numeroDocumento, model.documento)) {
+      return false;
     }
 
-    if (model.documento === 'PASAPORTE') {
-      if (!/^[A-Z0-9]{5,12}$/.test(String(model.numeroDocumento).toUpperCase())) return false;
-    }
-
-    if (model.documento === 'CIF') {
-      if (!/^[A-HJ-NP-SUVW][0-9]{7}[0-9A-J]$/i.test(String(model.numeroDocumento))) return false;
-      if (!this.validateCifControl(String(model.numeroDocumento))) return false;
-      return true;
-    }
-
-    if (!model.fechaNacimiento) return false;
+    if (model.documento !== 'CIF' && !model.fechaNacimiento) return false;
 
     const requireCarnet = opts.requireCarnet === undefined ? true : !!opts.requireCarnet;
     if (opts.showCarnet && requireCarnet) {
@@ -543,97 +603,43 @@ export class IntervinientesComponent implements OnInit {
 
   isDocumentoValid(value: string, documento: string): boolean {
     if (!value) return false;
-    const v = String(value).toUpperCase().trim();
 
-    switch (documento) {
-      case 'NIF':
-        return /^[0-9]{8}[A-Z]$/.test(v) && this.validateNifControl(v);
-      case 'NIE':
-        return /^[XYZ][0-9]{7}[A-Z]$/.test(v) && this.validateNieControl(v);
-      case 'CIF':
-        return /^[A-HJ-NP-SUVW][0-9]{7}[0-9A-J]$/i.test(v) && this.validateCifControl(v);
-      case 'PASAPORTE':
-        return /^[A-Z0-9]{5,12}$/.test(v);
-      default:
-        return false;
-    }
-  }
+    const typeMap: Record<string, any> = {
+      'NIF': 'nif',
+      'NIE': 'nie',
+      'CIF': 'cif',
+      'PASAPORTE': 'passport'
+    };
 
-  validateNifControl(nif: string): boolean {
-    if (!nif || nif.length !== 9) return false;
-    const letters = 'TRWAGMYFPDXBNJZSQVHLCKE';
-    const number = parseInt(nif.slice(0, 8), 10);
-    if (Number.isNaN(number)) return false;
-    const expected = letters[number % 23];
-    return nif[8] === expected;
-  }
-
-  validateNieControl(nie: string): boolean {
-    if (!nie || nie.length !== 9) return false;
-
-    const first = String(nie[0]).toUpperCase();
-    const rest = nie.slice(1);
-
-    if (!(first in this.NIE_MAP)) {
-      return false;
-    }
-
-    const mapped = this.NIE_MAP[first as keyof typeof this.NIE_MAP];
-    const numericPart = mapped + rest.slice(0, 7);
-    const checkLetter = rest[7];
-    const nifLike = numericPart + checkLetter;
-
-    return this.validateNifControl(nifLike);
-  }
-
-  validateCifControl(cif: string): boolean {
-    if (!cif || cif.length !== 9) return false;
-
-    const v = cif.toUpperCase();
-    const entityLetter = v[0];
-    const digits = v.slice(1, 8);
-    const controlChar = v[8];
-
-    if (!/^[0-9]{7}$/.test(digits)) return false;
-
-    let pares = 0;
-    let impares = 0;
-
-    for (let i = 0; i < 7; i++) {
-      const digit = Number(digits[i]);
-      if (i % 2 === 0) {
-        const doubled = digit * 2;
-        impares += doubled > 9 ? Math.floor(doubled / 10) + (doubled % 10) : doubled;
-      } else {
-        pares += digit;
-      }
-    }
-
-    const c = pares + impares;
-    const d = (10 - (c % 10)) % 10;
-
-    const expectedLetter = this.CIF_CONTROL_LETTERS[d];
-    const expectedNumber = String(d);
-
-    if (this.CIF_LETTER_ONLY.includes(entityLetter)) {
-      return controlChar === expectedLetter;
-    }
-    if (this.CIF_NUMBER_ONLY.includes(entityLetter)) {
-      return controlChar === expectedNumber;
-    }
-    return controlChar === expectedNumber || controlChar === expectedLetter;
+    const type = typeMap[documento] || documento.toLowerCase();
+    return validateDocumentNumber(type, value) === null;
   }
 
   numeroDocumentoError(model: Persona): string | null {
     if (!model.numeroDocumento || model.numeroDocumento.trim().length === 0) return 'Campo obligatorio';
-    if ((model.documento === 'NIF' || model.documento === 'NIE') && !this.isDocumentoValid(model.numeroDocumento, model.documento))
-      return 'Formato inválido';
-    if (model.documento === 'CIF') {
-      if (!/^[A-HJ-NP-SUVW][0-9]{7}[0-9A-J]$/i.test(String(model.numeroDocumento))) return 'Formato CIF inválido';
-      if (!this.validateCifControl(String(model.numeroDocumento))) return 'Dígito de control CIF inválido';
+
+    const typeMap: Record<string, any> = {
+      'NIF': 'nif',
+      'NIE': 'nie',
+      'CIF': 'cif',
+      'PASAPORTE': 'passport'
+    };
+    const type = typeMap[model.documento] || model.documento?.toLowerCase();
+    const error = validateDocumentNumber(type, model.numeroDocumento);
+
+    if (error) {
+      const messages: Record<string, string> = {
+        documentTypeRequired: 'Tipo de documento requerido',
+        required: 'Campo obligatorio',
+        invalidDni: 'DNI inválido',
+        invalidNif: 'NIF inválido',
+        invalidCif: 'CIF inválido',
+        invalidNie: 'NIE inválido',
+        invalidNrt: 'NRT inválido',
+        invalidPassport: 'Pasaporte inválido',
+      };
+      return messages[error] || 'Formato inválido';
     }
-    if (model.documento === 'PASAPORTE' && !/^[A-Z0-9]{5,12}$/.test(String(model.numeroDocumento).toUpperCase()))
-      return 'Formato inválido';
     return null;
   }
 

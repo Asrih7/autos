@@ -7,3 +7,18 @@
   width: max-content;
   max-width: calc(100vw - 32px);
 }
+
+.step-focused {
+  outline: none;
+  opacity: 1;
+  pointer-events: auto;
+  filter: none;
+  transition: opacity 0.3s ease;
+}
+
+.step-not-focused {
+  opacity: 0.5;
+  pointer-events: none;
+  filter: grayscale(0.5);
+  transition: opacity 0.3s ease;
+}

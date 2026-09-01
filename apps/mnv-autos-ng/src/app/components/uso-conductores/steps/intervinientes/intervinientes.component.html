@@ -1,4 +1,6 @@
 
+
+
 <section class="w-full flex flex-direction-column gap-normal bg-white mb-large mobile:mb-normal tablet:mb-large">
 
   <bal-heading level="h3" visual-level="h4" class="mb-none text-blue">
@@ -49,7 +51,8 @@
               showDocumento: true,
               showCarnet: true,
               useEdad: false,
-              requireCarnet: true
+              requireCarnet: true,
+              isConductor: tomadorEsConductorHabitual()
             }">
           </ng-container>
         </div>
@@ -71,7 +74,8 @@
               showDocumento: true,
               showCarnet: true,
               useEdad: false,
-              requireCarnet: true
+              requireCarnet: true,
+              isConductor: tomadorEsConductorHabitual()
             }">
           </ng-container>
         </div>
@@ -91,7 +95,8 @@
               showDocumento: true,
               showCarnet: true,
               useEdad: false,
-              requireCarnet: false
+              requireCarnet: false,
+              isConductor: false
             }">
           </ng-container>
         </div>
@@ -113,7 +118,8 @@
               showDocumento: false,
               showCarnet: true,
               useEdad: useEdadTomador(),
-              requireCarnet: true
+              requireCarnet: true,
+              isConductor: tomadorEsConductorHabitual()
             }">
           </ng-container>
         </div>
@@ -133,7 +139,8 @@
               showDocumento: false,
               showCarnet: true,
               useEdad: useEdadConductorHabitual(),
-              requireCarnet: true
+              requireCarnet: true,
+              isConductor: true
             }">
           </ng-container>
         </div>
@@ -155,7 +162,8 @@
               showDocumento: true,
               showCarnet: true,
               useEdad: false,
-              requireCarnet: true
+              requireCarnet: true,
+              isConductor: tomadorEsConductorHabitual()
             }">
           </ng-container>
         </div>
@@ -175,7 +183,8 @@
                 showDocumento: true,
                 showCarnet: true,
                 useEdad: false,
-                requireCarnet: false
+                requireCarnet: false,
+                isConductor: false
             }">
           </ng-container>
         </div>
@@ -195,7 +204,8 @@
               showDocumento: true,
               showCarnet: true,
               useEdad: false,
-              requireCarnet: true
+              requireCarnet: true,
+              isConductor: true
             }">
           </ng-container>
         </div>
@@ -222,7 +232,8 @@
             showDocumento: true,
             showCarnet: true,
             useEdad: false,
-            requireCarnet: true
+            requireCarnet: true,
+            isConductor: true
           }">
         </ng-container>
       </div>
@@ -240,7 +251,7 @@
 </section>
 
 <!-- persona form: single horizontal row, all fields same height -->
-<ng-template #personaForm let-model let-showDocumento="showDocumento" let-showCarnet="showCarnet" let-useEdad="useEdad" let-requireCarnet="requireCarnet">
+<ng-template #personaForm let-model let-showDocumento="showDocumento" let-showCarnet="showCarnet" let-useEdad="useEdad" let-requireCarnet="requireCarnet" let-isConductor="isConductor">
   <div class="flex flex-wrap gap-normal align-items-end mobile:flex-direction-column mobile:align-items-stretch tablet:flex-direction-row">
 
     @if (showDocumento) {
@@ -253,7 +264,7 @@
               (balChange)="onSelectChange($event, model, 'documento')"
               placeholder="{{ 'usoConductores.intervinientes.form.documento' | translate }}"
             >
-              @for (opt of documentos$ | async; track opt.value) {
+              @for (opt of (isConductor ? documentosSinCif$ : documentos$) | async; track opt.value) {
                 <bal-select-option [value]="opt.value" [label]="opt.label">{{ opt.label }}</bal-select-option>
               }
             </bal-select>
@@ -373,7 +384,7 @@
               <bal-field-message color="danger">{{ fechaObtencionCarnetError(model, showCarnet, requireCarnet, false) }}</bal-field-message>
             }
           </bal-field>
-        </div>      
+        </div>
       }
     }
 

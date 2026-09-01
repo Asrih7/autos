@@ -90,13 +90,12 @@ fieldDisabled = signal({
 
 
   onFormChanged(updated: DatosDomicilioModel): void {
-    // Component controls can emit an empty value while being re-created after
-    // navigation. Preserve already saved address fields in that situation.
-    this.updateAddress(updated, true);
-    if (!this.formDisabled()) {
-      this.normalized.set(false);
-      this.usoState.resetDireccionTomador();
-    }
+    // El formulario compartido emite el modelo completo en cada cambio.
+    // Debemos aceptar también cadenas vacías para que el disabled se recalcule
+    // correctamente cuando el usuario borra un campo.
+    this.updateAddress(updated, false);
+    this.normalized.set(false);
+    this.usoState.resetDireccionTomador();
   }
 
   public validate(): void {}
@@ -132,27 +131,14 @@ fieldDisabled = signal({
       return Promise.resolve(false);
     }
 
-    // Si ya se ha normalizado esta misma dirección (p.ej. el usuario pulsa
-    // "Continuar" dos veces sin tocar nada), no hace falta repetir la llamada.
-    if (this.normalized()) {
-      return Promise.resolve(true);
-    }
+        // La normalización está desactivada en este recorrido: se conservan
+    // exactamente los valores introducidos por el usuario.
+    this.normalized.set(true);
+    this.save.emit({ domicilio: formatDireccionToString(current) });
+    this.direccionCompleted.emit();
+    return Promise.resolve(true);
 
-    return new Promise<boolean>((resolve) => {
-      this.datosDomicilioService
-        .normalizeAddress(current)
-        .pipe(take(1))
-        .subscribe({
-          next: (normalized) => {
-            this.applyNormalizedAddress(normalized);
-            resolve(true);
-          },
-          error: () => {
-            this.showNormalisationFailure();
-            resolve(false);
-          },
-        });
-    });
+    
   }
 
   public applyNormalizedAddress(normalized: DatosDomicilioModel): void {
@@ -224,8 +210,17 @@ private showToast(message: string, type: 'success' | 'info' | 'warning' | 'dange
   }
 
   private isReady(current: DatosDomicilioModel): boolean {
-    return [current.tipoVia, current.nombreVia, current.numero, current.codigoPostal, current.provincia, current.localidad]
-      .every((value) => value.trim().length > 0);
+    const required = [
+      current.tipoVia,
+      current.nombreVia,
+      current.numero,
+      current.codigoPostal,
+      current.provincia,
+      current.localidad,
+    ];
+
+    return required.every((value) => Boolean(value?.trim()))
+      && /^\d{5}$/.test(String(current.codigoPostal ?? '').trim());
   }
 
 

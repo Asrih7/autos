@@ -2,10 +2,10 @@ import { ComponentFixture, TestBed } from "@angular/core/testing";
 import { BusquedaManualComponent } from "./busqueda-manual.component";
 import { describe, it, expect, beforeEach, vi, type MockInstance } from "vitest";
 import { TranslateModule } from "@ngx-translate/core";
-import { VehiculoStateService } from "../../services/vehiculo-state.service";
+import { VehiculoStateService, VehiculoGlobalState } from "../../services/vehiculo-state.service";
 import { signal, type WritableSignal, type Signal } from "@angular/core";
 import * as util from "@mnv-autos-ng/util";
-import { Marca, Modelo, BrandModelSummary } from "../../models/vehiculo.models";
+import { Marca, Modelo } from "../../models/vehiculo.models";
 import { HttpClientTestingModule } from "@angular/common/http/testing";
 
 vi.mock("@mnv-autos-ng/util", () => ({
@@ -13,49 +13,58 @@ vi.mock("@mnv-autos-ng/util", () => ({
 }));
 
 interface MockVehiculoStateService {
+  state: WritableSignal<Partial<VehiculoGlobalState>>;
   marcas: Signal<Marca[]>;
   modelos: Signal<Modelo[]>;
   loadingModelos: Signal<boolean>;
-  selectedBrandAndModel: MockInstance<() => BrandModelSummary>;
+  busquedaExitosa: Signal<boolean>;
   loadMarcasCatalog: MockInstance<() => void>;
   loadModelosCatalog: MockInstance<(marcaId: string) => void>;
   saveMarca: MockInstance<(marca: Marca) => void>;
   saveModelo: MockInstance<(modelo: Modelo) => void>;
+  clearBusquedaExitosa: MockInstance<() => void>;
 }
 
-describe("BusquedaManualComponent", () => {
+describe("BusquedaManualComponent Spec Suite", () => {
   let component: BusquedaManualComponent;
   let fixture: ComponentFixture<BusquedaManualComponent>;
   let mockStateService: MockVehiculoStateService;
   let mockOnStepComplete: MockInstance<(stepOutputData: unknown) => void>;
 
+  let mockGlobalStateSignal: WritableSignal<Partial<VehiculoGlobalState>>;
   let mockMarcasSignal: WritableSignal<Marca[]>;
   let mockModelosSignal: WritableSignal<Modelo[]>;
   let mockLoadingModelosSignal: WritableSignal<boolean>;
+  let mockBusquedaExitosaSignal: WritableSignal<boolean>;
 
   beforeEach(async () => {
     mockMarcasSignal = signal<Marca[]>([
-      { id: "aud", nombre: "Audi" },
-      { id: "kia", nombre: "Kia" }
+      { id: "aud", nombre: "Audi", logo: "assets/images/marcas/audi.png" },
+      { id: "kia", nombre: "Kia", logo: "assets/images/marcas/kia.png" }
     ]);
     mockModelosSignal = signal<Modelo[]>([
       { id: "golf", nombre: "Golf" },
       { id: "polo", nombre: "Polo" }
     ]);
     mockLoadingModelosSignal = signal<boolean>(false);
+    mockBusquedaExitosaSignal = signal<boolean>(false);
+
+    mockGlobalStateSignal = signal<Partial<VehiculoGlobalState>>({
+      matriculaOBastidor: "MANUAL_SEARCH_ACTIVE",
+      vehiculoData: {},
+    });
 
     mockStateService = {
+      state: mockGlobalStateSignal,
       marcas: mockMarcasSignal.asReadonly(),
       modelos: mockModelosSignal.asReadonly(),
       loadingModelos: mockLoadingModelosSignal.asReadonly(),
-      selectedBrandAndModel: vi.fn().mockReturnValue({
-        marca: { id: "", nombre: "", logo: "" },
-        modelo: { id: "", nombre: "" }
-      }),
+      busquedaExitosa: mockBusquedaExitosaSignal.asReadonly(),
       loadMarcasCatalog: vi.fn(),
       loadModelosCatalog: vi.fn(),
       saveMarca: vi.fn(),
       saveModelo: vi.fn(),
+      clearBusquedaExitosa: vi.fn()
     };
 
     const mockMobileSignal = signal<boolean>(false);
@@ -96,22 +105,27 @@ describe("BusquedaManualComponent", () => {
     });
 
     it("should populate matching structural keys if a valid brand exists in state service", () => {
-      mockStateService.selectedBrandAndModel.mockReturnValue({
-        marca: { id: "aud", nombre: "Audi" },
-        modelo: { id: "", nombre: "" }
+      mockGlobalStateSignal.set({
+        matriculaOBastidor: "MANUAL_SEARCH_ACTIVE",
+        vehiculoData: {
+          marca: { id: "aud", nombre: "Audi", logo: "assets/images/marcas/audi.png" }
+        }
       });
 
       fixture.detectChanges();
 
       expect(component.marcaSeleccionadaId()).toBe("aud");
       expect(component.modeloSeleccionadoId()).toBeNull();
-      expect(component.mostrarModelos()).toBe(false);
+      expect(component.mostrarModelos()).toBe(true);
     });
 
     it("should expand the full block elements if both brand and model exist in state service", () => {
-      mockStateService.selectedBrandAndModel.mockReturnValue({
-        marca: { id: "aud", nombre: "Audi" },
-        modelo: { id: "golf", nombre: "Golf" },
+      mockGlobalStateSignal.set({
+        matriculaOBastidor: "MANUAL_SEARCH_ACTIVE",
+        vehiculoData: {
+          marca: { id: "aud", nombre: "Audi", logo: "assets/images/marcas/audi.png" },
+          modelo: { id: "golf", nombre: "Golf" }
+        }
       });
 
       fixture.detectChanges();
@@ -127,7 +141,19 @@ describe("BusquedaManualComponent", () => {
       fixture.detectChanges();
     });
 
-    
+    it("should process brand confirmations and request downstream models catalog", () => {
+      component.marcaSeleccionadaId.set("aud");
+
+      component.confirmarMarca();
+
+      expect(mockStateService.saveMarca).toHaveBeenCalledWith({
+        id: "aud",
+        nombre: "Audi",
+        logo: "assets/images/marcas/audi.png"
+      });
+      expect(mockStateService.loadModelosCatalog).toHaveBeenCalledWith("aud");
+      expect(component.mostrarModelos()).toBe(true);
+    });
 
     it("should skip state collection saves if confirmation fires without an active brand selected", () => {
       component.marcaSeleccionadaId.set(null);
@@ -135,7 +161,8 @@ describe("BusquedaManualComponent", () => {
       component.confirmarMarca();
 
       expect(mockStateService.saveMarca).not.toHaveBeenCalled();
-      expect(component.mostrarModelos()).toBe(true);
+      expect(mockStateService.loadModelosCatalog).not.toHaveBeenCalled();
+      expect(component.mostrarModelos()).toBe(false);
     });
 
     it("should cleanly assign string targets into the active model signals upon onModeloChanged", () => {
@@ -170,6 +197,17 @@ describe("BusquedaManualComponent", () => {
 
       expect(mockStateService.saveModelo).not.toHaveBeenCalled();
       expect(mockOnStepComplete).not.toHaveBeenCalled();
+    });
+
+    it("should dispatch lookup complete status actions forward if an API response fires successfully", () => {
+      mockBusquedaExitosaSignal.set(true);
+      fixture.detectChanges();
+
+      expect(mockOnStepComplete).toHaveBeenCalledWith({
+        status: "REGISTRATION_LOOKUP_COMPLETE",
+        source: "API_SEARCH",
+      });
+      expect(mockStateService.clearBusquedaExitosa).toHaveBeenCalled();
     });
   });
 });

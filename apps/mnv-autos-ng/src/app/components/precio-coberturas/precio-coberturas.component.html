@@ -1,8 +1,103 @@
+<!-- Fraccionamiento -->
+<bal-field class="border-grey px-large pt-small">
+  <bal-field-label>{{ baseLangKey + '.fraccionado.label' | translate }}</bal-field-label>
+  <bal-field-control class="gap-normal">
+    <!-- Listado de periodos -->
+    <bal-select [value]="this.fraccionadoSeleccionado()" (balChange)="onChangeFraccionado($event)">
+      @for (periodo of periodosCobro(); track periodo.codigo) {
+      <bal-select-option [value]="periodo.codigo" [label]="periodo.descripcion">
+        {{ periodo.descripcion }}</bal-select-option>
+      }
+    </bal-select>
+    <!-- Aplicar fraccionado -->
+    <button class="button is-primary w-10rem mr-x-small" [disabled]="this.isDisabledFraccionado"
+      (click)="aplicarFraccionado()">{{ baseLangKey + '.fraccionado.botonAplicar' | translate }}</button>
+  </bal-field-control>
+</bal-field>
+
+<!-- Parrilla de modalidades -->
 @for (grupo of modalidadesAgrupadas(); track grupo.codigo) {
-  <app-grupo-modalidades
-    [titulo]="grupo.titulo"
-    [codigo]="grupo.codigo"
-    [modalidades]="grupo.modalidades"
-    (recalcularModalidad)="onRecalcularModalidad($event)">
-  </app-grupo-modalidades>
+<app-grupo-modalidades [titulo]="grupo.titulo" [codigo]="grupo.codigo" [modalidades]="grupo.modalidades"
+  [disableButtons]="!this.isDisabledFraccionado" (recalcularModalidad)="onRecalcularModalidad($event)">
+</app-grupo-modalidades>
 }
+
+<!-- Otras opciones -->
+<bal-list class="mt-large">
+  <bal-list-item accordion="true" class="px-normal bg-grey-light border-grey radius-normal">
+    <!-- Cabecera -->
+    <bal-list-item-accordion-head icon="" class="my-xx-small">
+      <bal-list-item-icon class="ml-x-small">
+        <bal-icon name="caret-down"></bal-icon>
+      </bal-list-item-icon>
+
+      <bal-list-item-content>
+        <bal-list-item-title>{{ baseLangKey + '.otrasOpciones.titulo' | translate }}</bal-list-item-title>
+        <bal-list-item-subtitle class="text-primary-light">
+          {{ baseLangKey + '.otrasOpciones.subtitulo' | translate }}
+        </bal-list-item-subtitle>
+      </bal-list-item-content>
+    </bal-list-item-accordion-head>
+
+    <!-- Detalles -->
+    <bal-list-item-accordion-body class="py-normal">
+      <div class="bg-white border-grey w-full py-small">
+        <p class="text-grey text-small mx-medium mt-x-small font-weight-bold">{{ baseLangKey +
+          '.otrasOpciones.tituloDetalles' | translate | uppercase }}</p>
+
+        <div class="flex w-full justify-content-space-between px-small">
+          <!-- Plazas aseguradas -->
+          <bal-field class="px-small pt-small w-full">
+            <bal-field-label>{{ baseLangKey + '.otrasOpciones.labelPlazasAseguradas' | translate }}</bal-field-label>
+            <bal-field-control class="gap-normal">
+              <bal-select [value]="this.numeroPlazasSeleccionado()"
+                (balChange)="onChangeOtrasOpciones($event, 'numeroPlazasAseguradas')">
+                @for (item of numeroPlazasAseguradas(); track item.valor) {
+                <bal-select-option [value]="item.valor" [label]="item.valor">{{ item.valor }}</bal-select-option>
+                }
+              </bal-select>
+            </bal-field-control>
+          </bal-field>
+
+          <!-- Capital fallecimiento -->
+          <bal-field class="px-small pt-small w-full">
+            <bal-field-label>
+              {{ baseLangKey + '.otrasOpciones.labelCapitalFallecimiento' | translate }}</bal-field-label>
+            <bal-field-control class="gap-normal">
+              <bal-select [value]="this.capitalesFallecimientoSeleccionado()"
+                (balChange)="onChangeOtrasOpciones($event, 'capitalesFallecimiento')">
+                @for (item of capitalesFallecimiento(); track item.valor) {
+                <bal-select-option [value]="item.valor" [label]="item.valor">{{ item.valor }}</bal-select-option>
+                }
+              </bal-select>
+            </bal-field-control>
+          </bal-field>
+
+          <!-- Capital invalidez -->
+          <bal-field class="px-small pt-small w-full">
+            <bal-field-label>{{ baseLangKey + '.otrasOpciones.labelCapitalInvalidez' | translate }}</bal-field-label>
+            <bal-field-control class="gap-normal">
+              <bal-select [value]="this.capitalesInvalidezSeleccionado()"
+                (balChange)="onChangeOtrasOpciones($event, 'capitalesInvalidez')">
+                @for (item of capitalesInvalidez(); track item.valor) {
+                <bal-select-option [value]="item.valor" [label]="item.valor">{{ item.valor }}</bal-select-option>
+                }
+              </bal-select>
+            </bal-field-control>
+          </bal-field>
+        </div>
+
+        <!-- Botón de recálculo -->
+        <div class="flex justify-content-end px-small">
+          <div class="w-6 m-small">
+            <bal-button color="secondary" expanded [class.border-primary]="!this.isDisabledOtrasOpciones"
+              [class.border-white]="this.isDisabledOtrasOpciones" [disabled]="this.isDisabledOtrasOpciones"
+              (balClick)="aplicarOtrasOpciones()">
+              {{ baseLangKey + '.otrasOpciones.aplicarRecalcular' | translate }}
+            </bal-button>
+          </div>
+        </div>
+      </div>
+    </bal-list-item-accordion-body>
+  </bal-list-item>
+</bal-list>

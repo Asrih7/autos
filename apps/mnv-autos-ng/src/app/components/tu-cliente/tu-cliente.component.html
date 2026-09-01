@@ -1,3 +1,5 @@
+
+
 <div class="w-full">
   @if (toastOpen()) {
     <bal-toast
@@ -85,7 +87,7 @@
           (edit)="handleEdit()"
         ></app-tarjeta-cliente-encontrado>
 
-        @if (!state.operationType()) {
+        @if (!state.editingClient()) {
           <div class="client-operation-actions mt-large">
             <bal-button
               class="client-operation-button"
@@ -113,52 +115,64 @@
       <section class="w-full flex flex-direction-column gap-normal bg-white border border-grey border-radius-normal p-normal">
 
         <div class="mb-normal">
-          <app-datos-persona
+        <app-datos-persona
             [model]="state.datosPersona()"
             [compact]="state.compactMode()"
             [onlyNameFields]="state.editingClient() && state.clientFound()"
             [showNationality]="state.editingClient() && state.clientFound()"
+            [disabledDocuments]="!state.editingClient()"
+            [disabledNationality]="state.editingClient() && state.clientFound()"
             (modelChange)="handleDatosPersonaChange($event)"
           ></app-datos-persona>
         </div>
 
-        @if (!state.showAddressStep()) {
+@if (!state.showAddressStep()) {
         <div class="flex">
-          <bal-button
-            expand="full"
-            color="primary"
-            [disabled]="normalizingPerson()"
-            (click)="handleConfirmDatosPersona()"
-          >
-            {{ 'tuCliente.actions.confirm' | translate }}
-          </bal-button>
+          @if (normalizingPerson() || shouldDisableConfirmDatosPersona()) {
+            <bal-button
+              expand="full"
+              color="green"
+              disabled
+            >
+              {{ 'tuCliente.actions.confirm' | translate }}
+            </bal-button>
+          } @else {
+            <bal-button
+              expand="full"
+              color="primary"
+              (click)="handleConfirmDatosPersona()"
+            >
+              {{ 'tuCliente.actions.confirm' | translate }}
+            </bal-button>
+          }
         </div>
         }
       </section>
     }
 
-    @if (state.showAddressStep()) {
-      <section class="w-full flex flex-direction-column gap-normal bg-white border border-grey border-radius-normal p-normal">
+   @if (state.showAddressStep()) {
+  <section class="w-full flex flex-direction-column gap-normal bg-white border border-grey border-radius-normal p-normal">
 
-        <div class="mb-normal">
-          <app-direccion-cliente
-            [direccion]="state.direccion()"
-            (direccionChange)="handleDireccionChange($event)"
-          ></app-direccion-cliente>
-        </div>
+    <div class="mb-normal">
+      <app-direccion-cliente
+        [direccion]="state.direccion()"
+        (direccionChange)="handleDireccionChange($event)"
+      ></app-direccion-cliente>
+    </div>
 
-        @if (!state.showBirthdateStep()) {
-          <div class="flex">
-            <bal-button
-              expand="full"
-              color="primary"
-              [disabled]="state.normalizingAddress()"
-              (click)="handleConfirmDireccion()"
-            >
-              {{ 'tuCliente.actions.confirm' | translate }}
-            </bal-button>
-          </div>
-        }
+    @if (!state.showBirthdateStep()) {
+      <div class="flex bloque-accion buttons">
+        <bal-button
+          expand="full"
+          color="primary"
+          [disabled]="state.normalizingAddress() || !direccionCompleta()"
+          (click)="handleConfirmDireccion()"
+        >
+          {{ 'tuCliente.actions.confirm' | translate }}
+        </bal-button>
+      </div>
+    }
+
 
         @if (state.addressError()) {
           <p class="text-danger mb-none">{{ state.addressError() }}</p>

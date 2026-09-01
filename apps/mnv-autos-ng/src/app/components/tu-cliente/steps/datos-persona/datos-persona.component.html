@@ -1,7 +1,11 @@
+
 <lib-datos-persona
   [initialModel]="model"
   [compact]="compact"
   [onlyNameFields]="onlyNameFields"
   [showNationality]="showNationality"
+    [disabledDocuments]="disabledDocuments"
+  [disabledNationality]="disabledNationality"
+
   (modelChange)="modelChange.emit($event)"
 ></lib-datos-persona>

@@ -73,6 +73,7 @@ describe("Accesorios Component Tests", () => {
       versionesCatalog: [],
       carroceriasCatalog: [],
       accesoriosCatalog: [],
+      versionMasContratada: null
     });
 
     mockLoadingAccesoriosSignal = signal<boolean>(false);

@@ -66,7 +66,7 @@ export class Accesorios implements OnInit {
   readonly onStepComplete = input<(stepOutputData: unknown) => void>();
   readonly stepId = input<string>();
 
-  private readonly stateService = inject(VehiculoStateService);
+  protected readonly stateService = inject(VehiculoStateService);
 
   readonly esMobile = useIsMobile();
   readonly tieneAccesoriosSeries = signal<boolean>(true);
@@ -87,19 +87,20 @@ export class Accesorios implements OnInit {
     const activeSegment = this.tipoSelectorAccesorios();
 
     const itemsPorOrigen = this.listaAccesoriosCompleta().filter(item => {
-      const esFabricante = item.tipoAccesorio === "Fabricante";
+      const esFabricante = (item.tipoAccesorio || "").toLowerCase() === "fabricante";
       return activeSegment === "fabricante" ? esFabricante : !esFabricante;
     });
 
     const itemsFiltrados = query 
-      ? itemsPorOrigen.filter(item => item.descripcionAccesorio.toLowerCase().includes(query))
+      ? itemsPorOrigen.filter(item => (item.descripcionAccesorio || "").toLowerCase().includes(query))
       : itemsPorOrigen;
 
     if (itemsFiltrados.length === 0) return [];
 
     const gruposMap = new Map<string, AccesoriosAdicionales[]>();
     itemsFiltrados.forEach(item => {
-      const nombreGrupo = item.tipoAccesorio === "Fabricante" ? "Accesorios del Fabricante" : item.tipoAccesorio;
+      const tipo = item.tipoAccesorio || "Otros";
+      const nombreGrupo = tipo.toLowerCase() === "fabricante" ? "Accesorios del Fabricante" : tipo;
       if (!gruposMap.has(nombreGrupo)) gruposMap.set(nombreGrupo, []);
       gruposMap.get(nombreGrupo)?.push(item);
     });
@@ -125,15 +126,6 @@ export class Accesorios implements OnInit {
         });
       }
     });
-
-    effect(() => {
-    const seleccionados = this.listaAccesoriosCompleta().filter(i => i.checked);
-    const esDeSerie = this.tieneAccesoriosSeries();
-    untracked(() => {
-      this.stateService.saveAccesoriosData(esDeSerie, seleccionados);
-    });
-  });
-
   }
 
   ngOnInit(): void {
@@ -141,6 +133,8 @@ export class Accesorios implements OnInit {
     
     if (cachedState?.version?.id) {
       this.stateService.loadAccesoriosCatalog(cachedState.version.id);
+    } else {
+      this.stateService.loadAccesoriosCatalog('20010001'); //temporario para enseñar la lista de accesorios en la pantalla
     }
 
     if (cachedState && cachedState.tieneAccesoriosSeries !== undefined) {
@@ -205,9 +199,9 @@ export class Accesorios implements OnInit {
     const callback = this.onStepComplete();
     if (callback) callback({ status: statusLabel });
   }
-  readonly isLastStep = computed(() => {
-  const steps = ['busqueda-matricula', 'busqueda-manual', 'confirmacion-version', 'resto-campos', 'accesorios'];
-  return this.stepId() === steps[steps.length - 1];
-});
 
+  readonly isLastStep = computed(() => {
+    const steps = ['busqueda-matricula', 'busqueda-manual', 'confirmacion-version', 'resto-campos', 'accesorios'];
+    return this.stepId() === steps[steps.length - 1];
+  });
 }

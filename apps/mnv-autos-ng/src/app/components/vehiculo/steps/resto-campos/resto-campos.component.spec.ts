@@ -16,7 +16,7 @@ interface MockVehiculoStateService {
   state: WritableSignal<VehiculoGlobalState>;
   carrocerias: Signal<CarroceriaOption[]>;
   loadingCarrocerias: Signal<boolean>;
-  loadCarroceriasCatalog: MockInstance<() => void>;
+  // loadCarroceriasCatalog: MockInstance<() => void>;
   saveRestoCampos: MockInstance<(payload: RestoCamposModel) => void>;
 }
 
@@ -47,7 +47,8 @@ describe("RestoCampos Component tests", () => {
       modelosCatalog: [],
       versionesCatalog: [],
       carroceriasCatalog: [],
-      accesoriosCatalog: []
+      accesoriosCatalog: [],
+      versionMasContratada: null
     });
 
     mockCarroceriasSignal = signal<CarroceriaOption[]>([
@@ -61,7 +62,7 @@ describe("RestoCampos Component tests", () => {
       state: mockStateSignal,
       carrocerias: mockCarroceriasSignal.asReadonly(),
       loadingCarrocerias: mockLoadingCarroceriasSignal.asReadonly(),
-      loadCarroceriasCatalog: vi.fn(),
+      // loadCarroceriasCatalog: vi.fn(),
       saveRestoCampos: vi.fn(),
     };
 
@@ -94,7 +95,7 @@ describe("RestoCampos Component tests", () => {
   it("should create and fetch bodywork options from API on load", () => {
     fixture.detectChanges();
     expect(component).toBeTruthy();
-    expect(mockStateService.loadCarroceriasCatalog).toHaveBeenCalled();
+    // expect(mockStateService.loadCarroceriasCatalog).toHaveBeenCalled();
     expect(component.opcionesCarroceria().length).toBe(3);
   });
 

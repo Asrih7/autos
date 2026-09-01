@@ -1,0 +1,70 @@
+<form
+  class="temporal-form"
+  [formGroup]="form"
+>
+
+  <!--
+    Controles temporales para probar
+    el comportamiento del flujo.
+  -->
+
+  <div class="temporal-form__actions">
+
+    <bal-button
+      type="button"
+      color="primary"
+      (click)="openCommunications()"
+    >
+      Autorizaciones
+    </bal-button>
+
+  </div>
+
+
+  @if (communicationsConsent) {
+
+    <div class="temporal-form__result">
+
+      <div class="result-row">
+
+        <span>
+          Cesión de datos:
+        </span>
+
+        <strong>
+          {{
+            communicationsConsent.dataTransfer
+              ? 'Sí'
+              : 'No'
+          }}
+        </strong>
+
+      </div>
+
+      <div class="result-row">
+
+        <span>
+          Comunicaciones comerciales :
+        </span>
+
+        <strong>
+          {{
+            communicationsConsent.commercialCommunications
+              ? 'Sí'
+              : 'No'
+          }}
+        </strong>
+
+      </div>
+
+    </div>
+
+  }
+
+</form>
+
+
+<app-communications-consent
+  [value]="communicationsConsent"
+  (completed)="onCommunicationsCompleted($event)"
+></app-communications-consent>

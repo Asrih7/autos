@@ -1,0 +1,100 @@
+<div class="w-full">
+    <div class="w-full flex flex-direction-column gap-large">
+    <section class="w-full">
+      <bal-heading space="large" level="2" visual-level="h3" class="mb-none text-blue">
+        {{ 'initial.title' | translate }}
+      </bal-heading>
+    </section>
+
+  <section class="w-full flex flex-direction-column gap-normal bg-white border border-grey border-radius-normal p-normal">
+
+    <div class="initial__field">
+      <bal-label class="initial__label">
+        {{ 'initial.agent.label' | translate }}
+      </bal-label>
+
+      <app-agent-search
+        (agentSelected)="onAgentSelected($event)"
+      />
+    </div>
+
+
+    <div class="initial__field">
+      <bal-label class="initial__label">
+         {{ 'initial.company.label' | translate }}
+      </bal-label>
+
+      <bal-dropdown
+        [placeholder]="'initial.company.placeholder' | translate"
+        [disabled]="companyDisabled()"
+        [value]="selectedCompany()?.code ?? ''"
+        (balChange)="onCompanyChange($any($event).detail)"
+      >
+        @for (
+          company of companies();
+          track company.code
+        ) {
+          <bal-option
+            [value]="company.code"
+            [label]="getCompanyLabel(company)"
+          >
+            {{ getCompanyLabel(company) }}
+          </bal-option>
+        }
+      </bal-dropdown>
+    </div>
+
+
+    <div class="initial__field">
+      <bal-label class="initial__label">
+        {{ 'initial.product.label' | translate }}
+      </bal-label>
+
+      <bal-dropdown
+        [placeholder]="'initial.product.placeholder' | translate"
+        [disabled]="productDisabled()"
+        [value]="selectedProduct()?.code ?? ''"
+        (balChange)="onProductChange($any($event).detail)"
+      >
+        @for (
+          product of products();
+          track product.code
+        ) {
+          <bal-option
+            [value]="product.code"
+            [label]="getProductLabel(product)"
+          >
+            {{ getProductLabel(product) }}
+          </bal-option>
+        }
+      </bal-dropdown>
+    </div>
+
+
+    <div class="initial__field">
+      <bal-label class="initial__label">
+        {{ 'initial.collective.label' | translate }}
+      </bal-label>
+
+      <bal-dropdown
+        [placeholder]="'initial.collective.placeholder' | translate"
+        [disabled]="collectiveDisabled()"
+        [value]="selectedCollective()?.code ?? ''"
+        (balChange)="onCollectiveChange($any($event).detail)"
+      >
+        @for (
+          collective of collectives();
+          track collective.code
+        ) {
+          <bal-option
+            [value]="collective.code"
+            [label]="getCollectiveLabel(collective)"
+          >
+            {{ getCollectiveLabel(collective) }}
+          </bal-option>
+        }
+      </bal-dropdown>
+    </div>
+
+  </section>
+</div>

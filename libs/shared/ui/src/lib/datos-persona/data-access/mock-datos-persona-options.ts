@@ -4,8 +4,6 @@ export const DOCUMENT_TYPES: readonly DatosPersonaOption[] = [
   { label: 'NIF', value: 'NIF' },
   { label: 'CIF', value: 'CIF' },
   { label: 'NIE', value: 'NIE' },
-  { label: 'NRT', value: 'NRT' },
-  { label: 'Pasaporte', value: 'PAS' },
 ];
 
 /** Mock temporal del catálogo de nacionalidades recibido de negocio. */

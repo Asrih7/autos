@@ -13,8 +13,7 @@
   <div class="w-full mb-normal">
     <div class="grid flex flex-wrap is-mobile is-gapless align-items-center">
       <div class="col mobile:is-full tablet:is-2 desktop:is-2 mobile:mb-normal">
-        <bal-badge color="primary" class="bg-transparent font-weight-bold text-align-center w-full
-          mobile:flex mobile:flex-wrap">
+        <bal-badge color="primary" class="bg-transparent font-weight-bold text-align-center w-full mobile:flex mobile:flex-wrap">
           {{ nombreVehiculoCompleto() }}
         </bal-badge>
       </div>
@@ -26,7 +25,7 @@
           (balChange)="onFiltroChanged('puertas', $event)"
           [placeholder]="lang + '.filters.doors.placeholder' | translate"
         >
-          <bal-select-option [value]="null" [label]="lang + '.filters.doors.all' | translate">
+          <bal-select-option value="RESET_CLEAR" [label]="lang + '.filters.doors.all' | translate">
             {{ lang + '.filters.doors.all' | translate }}
           </bal-select-option>
           @for (opt of opcionesPuertas(); track opt.value) {
@@ -44,7 +43,7 @@
           (balChange)="onFiltroChanged('cilindrada', $event)"
           [placeholder]="lang + '.filters.engine.placeholder' | translate"
         >
-          <bal-select-option [value]="null" [label]="lang + '.filters.engine.all' | translate">
+          <bal-select-option value="RESET_CLEAR" [label]="lang + '.filters.engine.all' | translate">
             {{ lang + '.filters.engine.all' | translate }}
           </bal-select-option>
           @for (opt of opcionesCilindrada(); track opt.value) {
@@ -62,7 +61,7 @@
           (balChange)="onFiltroChanged('potencia', $event)"
           [placeholder]="lang + '.filters.power.placeholder' | translate"
         >
-          <bal-select-option [value]="null" [label]="lang + '.filters.power.all' | translate">
+          <bal-select-option value="RESET_CLEAR" [label]="lang + '.filters.power.all' | translate">
             {{ lang + '.filters.power.all' | translate }}
           </bal-select-option>
           @for (opt of opcionesPotencia(); track opt.value) {
@@ -80,7 +79,7 @@
           (balChange)="onFiltroChanged('combustible', $event)"
           [placeholder]="lang + '.filters.fuel.placeholder' | translate"
         >
-          <bal-select-option [value]="null" [label]="lang + '.filters.fuel.all' | translate">
+          <bal-select-option value="RESET_CLEAR" [label]="lang + '.filters.fuel.all' | translate">
             {{ lang + '.filters.fuel.all' | translate }}
           </bal-select-option>
           @for (opt of opcionesCombustible(); track opt.value) {
@@ -90,6 +89,25 @@
           }
         </bal-select>
       </div>
+
+      <!-- Confirmar si necesita -->
+      <!-- <div class="col mobile:is-full tablet:is-2 desktop:is-2 filter-item-dropdown">
+        <bal-select
+          [value]="filtroInicioFab()"
+          [disabled]="cargandoVersiones()"
+          (balChange)="onFiltroChanged('inicioFabricacion', $event)"
+          [placeholder]="lang + '.filters.releaseYear.placeholder' | translate"
+        >
+          <bal-select-option value="RESET_CLEAR" [label]="lang + '.filters.releaseYear.all' | translate">
+            {{ lang + '.filters.releaseYear.all' | translate }}
+          </bal-select-option>
+          @for (opt of opcionesInicioFab(); track opt.value) {
+            <bal-select-option [value]="opt.value" [label]="opt.label">
+              {{ opt.label }}
+            </bal-select-option>
+          }
+        </bal-select>
+      </div> -->
 
       <div class="col mobile:is-full tablet:is-2 desktop:is-2 buscador-wrapper">
         <bal-field class="is-fullwidth">
@@ -120,18 +138,16 @@
     } @else {
       <bal-radio-group
         interface="tile"
-        [value]="idSeleccionadaVista()"
-        (balChange)="onTileSelected($any($event).detail)"
+        [value]="versionSeleccionadaId()"
+        (balChange)="onTileSelected($event)"
       >
-        @for (version of versionesPaginadas(); track version.id)
- {
+        @for (version of versionesPaginadas(); track version.id) {
           <bal-radio
             interface="tile"
             [value]="version.id"
             class="tarjeta-vehiculo-tile-wrapper"
           >
-            <div class="flex justify-content-space-between align-content-center w-full gap-normal
-              mobile:flex-direction-column mobile:align-items-start mobile:gap-small">
+            <div class="flex justify-content-space-between align-content-center w-full gap-normal mobile:flex-direction-column mobile:align-items-start mobile:gap-small">
               <div class="flex gap-small my-auto">
                 <bal-radio-icon></bal-radio-icon>
                 <span class="lbl-nombre-vehiculo text-body font-weight-bold">
@@ -147,9 +163,10 @@
                   </bal-tag>
                   <bal-tag color="grey-light">{{ version.potencia }}</bal-tag>
                   <bal-tag color="grey-light" class="white-space-normal">{{ version.puertas }}</bal-tag>
-                  <span class="text-body-small text-light ms-auto mobile:ms-none">
+                  <bal-tag color="grey-light" class="white-space-normal">{{ version.inicioFabricacion }}</bal-tag>
+                  <!-- <span class="text-body-small text-light ms-auto mobile:ms-none">
                     {{ version.inicioFabricacion }}
-                  </span>
+                  </span> -->
                 </div>
               }
             </div>
@@ -165,16 +182,18 @@
       </bal-radio-group>
     }
   </div>
-<bal-pagination
-  [pageRange]="3"
-  [totalPages]="totalPages()"
-  [value]="currentPage()"
-  (balChange)="onPageChange($event)"
-  size="small"
-  align="center"
-  class="mt-normal mb-normal"
-></bal-pagination>
 
+  @if (totalPages() > 1) {
+    <bal-pagination
+      [pageRange]="3"
+      [totalPages]="totalPages()"
+      [value]="currentPage()"
+      (balChange)="onPageChange($event)"
+      size="small"
+      align="center"
+      class="mt-normal mb-normal"
+    ></bal-pagination>
+  }
 
   <div class="bloque-confirmacion buttons justify-content-end mt-normal">
     <bal-button

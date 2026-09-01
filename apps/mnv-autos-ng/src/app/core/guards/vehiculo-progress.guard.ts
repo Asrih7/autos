@@ -1,36 +1,51 @@
-import { inject } from '@angular/core';
-import { CanActivateFn, Router, UrlTree } from '@angular/router';
-import { VehiculoStateService } from '../../components/vehiculo/services/vehiculo-state.service';
+import { inject } from "@angular/core";
+import { CanActivateFn, Router, UrlTree } from "@angular/router";
+import { VehiculoStateService } from "../../components/vehiculo/services/vehiculo-state.service";
+import { VEHICULO_STEPS } from "../../components/vehiculo/vehiculo.steps";
 
-export const vehiculoProgressGuard: CanActivateFn = (route): boolean | UrlTree => {
+export const vehiculoProgressGuard: CanActivateFn = (
+  route,
+): boolean | UrlTree => {
   const router = inject(Router);
   const stateService = inject(VehiculoStateService);
   const state = stateService.state();
-  
-  const requestedStep = route.paramMap.get('step');
+  const requestedStep = route.paramMap.get("step");
 
-  if (requestedStep === ':step') {
-    return router.createUrlTree(['/vehiculos', 'busqueda-matricula']);
+  if (requestedStep === ":step" || !requestedStep) {
+    return router.createUrlTree(["/vehiculos", "busqueda-matricula"]);
   }
 
-  if (!state.matriculaOBastidor) {
-    if (requestedStep !== 'busqueda-matricula') {
-      return router.createUrlTree(['/vehiculos', 'busqueda-matricula']);
-    }
-    return true;
+  const requestedIdx = VEHICULO_STEPS.findIndex((s) => s.id === requestedStep);
+
+  if (requestedIdx === -1) {
+    return router.createUrlTree(["/vehiculos", "busqueda-matricula"]);
   }
 
-  let furthestStep = 'busqueda-matricula';
-  if (state.vehiculoData?.restoCampos) {
-    furthestStep = 'accesorios';
-  } else if (state.vehiculoData?.version) {
-    furthestStep = 'resto-campos';
-  } else if (state.vehiculoData?.marca || state.matriculaOBastidor === 'MANUAL_SEARCH_ACTIVE') {
-    furthestStep = 'confirmacion-version';
+  let maxAllowedIdx = 0;
+
+  const vehicle = state.vehiculoData;
+  const hasManualActive = state.matriculaOBastidor === "MANUAL_SEARCH_ACTIVE";
+  const hasCarData = !!(vehicle?.marca?.id || vehicle?.modelo?.id);
+
+  if (state.matriculaOBastidor || hasManualActive || hasCarData) {
+    maxAllowedIdx = 1;
   }
 
-  if (requestedStep === 'busqueda-matricula' && state.matriculaOBastidor) {
-    return router.createUrlTree(['/vehiculos', furthestStep]);
+  if (hasCarData) {
+    maxAllowedIdx = 2;
+  }
+
+  if (vehicle?.version) {
+    maxAllowedIdx = 3;
+  }
+
+  if (vehicle?.restoCampos) {
+    maxAllowedIdx = 4;
+  }
+
+  if (requestedIdx > maxAllowedIdx) {
+    const fallbackStepId = VEHICULO_STEPS[maxAllowedIdx].id;
+    return router.createUrlTree(["/vehiculos", fallbackStepId]);
   }
 
   return true;

@@ -21,6 +21,21 @@
   width: 100%;
 }
 
+.confirm-address-button {
+  width: 100%;
+}
+
+// Estilo heredado de Nueva cotización / Precotización.
+// El alcance explícito evita que pueda afectar a Confirmar.
+::ng-deep .client-operation-actions
+  bal-button.client-operation-button
+  button.button.is-primary {
+  background: var(--bal-button-primary-background);
+  border-color: var(--bal-button-primary-border-color);
+  color: var(--bal-button-primary-color);
+  width: 100%;
+}
+
 .client-operation-actions bal-button.client-operation-button button.button {
   width: 100%;
   min-height: 3.5rem;
@@ -33,9 +48,4 @@
     flex-direction: column;
   }
 }
-::ng-deep .button.is-primary {
-    background: var(--bal-button-primary-background);
-    border-color: var(--bal-button-primary-border-color);
-    color: var(--bal-button-primary-color);
-    width: 100%;
-}
+

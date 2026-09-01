@@ -30,7 +30,8 @@
 
                 <!-- Botón de selección -->
                 <bal-button-group direction="column" position="right">
-                    <bal-button color="primary" class="w-10rem" (balClick)="seleccionModalidad(modalidad)">
+                    <bal-button color="primary" class="w-10rem" [disabled]="isBotonSeleccionDisabled(modalidad)"
+                        (balClick)="seleccionModalidad(modalidad)">
                         {{ baseLangKey + (modalidad.derogacion ? '.solicitar' : '.contratar') | translate }}
                     </bal-button>
                 </bal-button-group>
@@ -75,7 +76,9 @@
                         </bal-radio-group>
                         }
 
-                        <h5 class="font-weight-bold mb-x-small">{{ baseLangKey + '.coberturasOpcionales' | translate }}</h5>
+                        <h5 class="font-weight-bold mb-x-small">
+                            {{ baseLangKey + '.coberturasOpcionales' | translate }}
+                        </h5>
 
                         <!-- Listado de coberturas opcionales -->
                         <bal-checkbox-group vertical="true" class="ml-small">
@@ -91,8 +94,8 @@
                         <!-- Botón de recálculo -->
                         @if (!modalidad.derogacion) {
                         <div class="mt-large">
-                            <bal-button color="secondary" class="border-primary" expanded
-                                (balClick)="recalcularPrecio(modalidad)">
+                            <bal-button color="secondary" [class.border-primary]="!disableButtons()" expanded
+                                [disabled]="disableButtons()" (balClick)="recalcularPrecio(modalidad)">
                                 {{ baseLangKey + '.aplicarRecalcular' | translate }}
                             </bal-button>
                         </div>

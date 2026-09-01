@@ -1,0 +1,89 @@
+<bal-modal id="communications-modal" modal-width="820">
+  <bal-modal-header>
+    <span class="multiline-text">
+      {{ "cotizacion.proyecto.gdpr.modal.title" | translate }}
+    </span>
+  </bal-modal-header>
+
+  <bal-modal-body>
+    <form class="communications-form" [formGroup]="form">
+      <p
+        class="communications-form__description multiline-text text-body-small text-light mt-none text-blue mb-small"
+      >
+        {{ "cotizacion.proyecto.gdpr.modal.description" | translate }}
+      </p>
+
+      <div class="communications-options">
+        <div class="communications-option">
+          <div class="communications-option__content">
+            <div class="communications-option__header">
+              <span class="communications-option__title multiline-text">
+                {{
+                  "cotizacion.proyecto.gdpr.modal.options.dataTransfer.title"
+                    | translate
+                }}
+              </span>
+
+              <bal-icon name="info-circle" size="x-small"></bal-icon>
+            </div>
+
+            <p
+              class="communications-option__description multiline-text text-body-small text-light mt-none text-blue mb-small"
+            >
+              {{
+                "cotizacion.proyecto.gdpr.modal.options.dataTransfer.description"
+                  | translate
+              }}
+            </p>
+          </div>
+
+          <div class="communications-option__control">
+            <bal-checkbox
+              interface="switch"
+              [checked]="form.controls.dataTransfer.value"
+              (balChange)="onConsentChange('dataTransfer', $event)"
+            ></bal-checkbox>
+          </div>
+        </div>
+
+        <div class="communications-option">
+          <div class="communications-option__content">
+            <div class="communications-option__header">
+              <span class="communications-option__title multiline-text">
+                {{
+                  "cotizacion.proyecto.gdpr.modal.options.commercialCommunications.title"
+                    | translate
+                }}
+              </span>
+
+              <bal-icon name="info-circle" size="x-small"></bal-icon>
+            </div>
+
+            <p
+              class="communications-option__description multiline-text text-body-small text-light mt-none text-blue mb-small"
+            >
+              {{
+                "cotizacion.proyecto.gdpr.modal.options.commercialCommunications.description"
+                  | translate
+              }}
+            </p>
+          </div>
+
+          <div class="communications-option__control">
+            <bal-checkbox
+              interface="switch"
+              [checked]="form.controls.commercialCommunications.value"
+              (balChange)="onConsentChange('commercialCommunications', $event)"
+            ></bal-checkbox>
+          </div>
+        </div>
+      </div>
+
+      <div class="communications-form__actions">
+        <bal-button type="button" color="primary" (click)="confirm()">
+          {{ "cotizacion.proyecto.gdpr.modal.actions.continue" | translate }}
+        </bal-button>
+      </div>
+    </form>
+  </bal-modal-body>
+</bal-modal>

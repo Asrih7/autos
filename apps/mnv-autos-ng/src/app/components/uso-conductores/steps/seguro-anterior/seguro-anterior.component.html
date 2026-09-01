@@ -1,3 +1,5 @@
+
+
 <section class="w-full tablet:w-10 desktop:w-6 flex flex-direction-column gap-normal bg-white mb-large mobile:mb-normal tablet:mb-large">
 
   <bal-heading level="h3" visual-level="h4" class="mb-none text-blue">
@@ -100,6 +102,7 @@
         allowedKeyPress="^[0-9]$"
         autocomplete="off"
         [value]="ultimosDigitosPoliza()[digito]"
+        (focusin)="onDigitoPolizaFocus(digito)"
         (balInput)="onDigitoPolizaInput($event, digito)"
         (balChange)="onDigitoPolizaInput($event, digito)"
       ></bal-input>
@@ -138,7 +141,7 @@
     [value]="aniosAseguradoSeleccionado()"
     (balChange)="onAniosAseguradoChange($event)"
   >
-    @for (opcion of aniosAseguradoOpciones; track opcion.value) {
+    @for (opcion of aniosAseguradoOpciones(); track opcion.value) {
       <bal-select-option [value]="opcion.value" [label]="opcion.label">
         {{ opcion.label }}
       </bal-select-option>
@@ -161,13 +164,15 @@
   </p>
 
   <bal-select
+    #siniestroSelect
     class="w-full tablet:w-8"
     name="siniestro"
     [placeholder]="'usoConductores.seguroAnterior.siniestro.placeholder' | translate"
     [value]="siniestroSeleccionado()"
+    (focusin)="onSiniestroFocus()"
     (balChange)="onSiniestroChange($event)"
   >
-    @for (opcion of siniestroOpciones; track opcion.value) {
+    @for (opcion of siniestroOpciones(); track opcion.value) {
       <bal-select-option [value]="opcion.value" [label]="opcion.label">
         {{ opcion.label }}
       </bal-select-option>

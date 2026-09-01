@@ -10,7 +10,6 @@ export interface Vehiculo {
 }
 
 export interface AccesoriosAdicionales {
-  // Local state tracking property
   checked: boolean;
   idAccesorio: number;
   idModeloVehiculo: number;
@@ -29,8 +28,14 @@ export interface Modelo {
 export interface Marca {
   id: string;
   nombre: string;
-  // logo: string;
+  logo: string;
 }
+
+export interface VersionesCatalogPayload {
+  versiones: VersionVehiculo[];
+  versionMasContratada: string | null;
+}
+
 export interface VersionVehiculo {
   id: string;
   nombre: string;
@@ -39,7 +44,9 @@ export interface VersionVehiculo {
   potencia: string;
   puertas: string;
   inicioFabricacion: string;
+  tipoVehiculo: string;
 }
+
 export type BrandModelSummary = Pick<Vehiculo, "marca" | "modelo">;
 
 export interface RestoCamposModel {

@@ -96,14 +96,14 @@
               {{ (grupo.nombreGrupo === 'Accesorios del Fabricante' ? (acc + '.subSection.groups.fabricante' | translate) : grupo.nombreGrupo) }}
             </span>
             
-            <bal-checkbox-group interface="tile" class="flex flex-direction-column gap-normal">
+            <bal-checkbox-group interface="tile" class="flex flex-direction-column gap-normal  flex-1 overflow-y-auto overflow-x-hidden" style="max-height: 480px;">
               
               @for (item of grupo.items; track item.idAccesorio) {
                 <bal-checkbox 
                   [name]="'acc-' + item.idAccesorio" 
                   [value]="item.idAccesorio"
                   [checked]="item.checked"
-                  (click)="$event.preventDefault(); toggleAccesorioSelection(item)">
+                  (balChange)="toggleAccesorioSelection(item)">
                   
                   <div class="w-full flex align-items-center justify-content-space-between flex-wrap py-x-small">
                     
@@ -140,17 +140,14 @@
   }
 
   <div class="flex flex-direction-column align-items-end gap-normal mt-normal">
-   @if (!isLastStep()) {
-  <bal-button color="primary" 
-    [disabled]="cargandoAccesorios()"
-    [loading]="cargandoAccesorios()"
-    (click)="guardarYAvanzar()" 
-    [expanded]="esMobile()">
-    {{ acc + '.buttons.confirm' | translate }}
-  </bal-button>
-}
+    <bal-button color="primary" 
+      [disabled]="cargandoAccesorios()"
+      [loading]="cargandoAccesorios()"
+      (click)="guardarYAvanzar()" 
+      [expanded]="esMobile()">
+      {{ acc + '.buttons.confirm' | translate }}
+    </bal-button>
 
-    
     @if (tieneAccesoriosSeries() && !cargandoAccesorios()) {
       <button type="button" class="p-none bg-transparent border-none pointer underline text-medium" (click)="saltarYNoDeclarar()">
         {{ acc + '.buttons.skip' | translate }}

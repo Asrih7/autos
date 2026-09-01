@@ -37,6 +37,7 @@ export interface ApiVehiculoVersionNode {
   comercial: {
     precioOficial: string;
     precioVentaPublico: string;
+    anioLanzamiento: number;
   };
   origen: string;
 }

@@ -51,6 +51,8 @@ export class DatosPersona implements OnChanges {
   @Input() documentNumberLabel = 'tuCliente.personalData.documentNumber';
   @Input() nationalityLabel = 'tuCliente.personalData.nationality';
   @Input() beneficiaryLabel = 'tuCliente.personalData.sameBeneficiary';
+  @Input() disabledDocuments = false;
+  @Input() disabledNationality = false;
 
   model: DatosPersonaModel = { ...this.initialModel };
   @Input() compact = false;

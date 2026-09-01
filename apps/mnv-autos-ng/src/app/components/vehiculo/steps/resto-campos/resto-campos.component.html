@@ -47,15 +47,13 @@
         </p>
         
         <bal-field>
-          <!--test-->
           <bal-field-control>
             <bal-date
-  [value]="fechaMatriculacionIso()"
-  (balChange)="onDateChange($event)"
-  [max]="maxDateLimit()"
-  [disabled]="cargandoCarrocerias()">
-</bal-date>
-
+              [value]="fechaMatriculacionIso()"
+              (balChange)="onDateChange($event)"
+              [max]="maxDateLimit()"
+              [disabled]="cargandoCarrocerias() || isFechaPreinformada()">
+            </bal-date>
           </bal-field-control>
         </bal-field>
       </div>
@@ -65,32 +63,34 @@
 
   <div class="grid mb-none">
     
-    <div class="col is-half">
-      <div>
-        <span class="text-medium font-weight-bold mb-none block">
-          {{ rc + '.carroceria.title' | translate }}
-        </span>
-        <p class="text-small  mb-normal">
-          {{ rc + '.carroceria.subtitle' | translate }}
-        </p>
-        
-        <bal-field>
-          <bal-field-control>
-            <bal-select 
-              [value]="tipoCarroceria()" 
-              (balChange)="onSelectChange($event)"
-              [disabled]="cargandoCarrocerias()"
-              [loading]="cargandoCarrocerias()">
-              @for (opcion of opcionesCarroceria(); track opcion.codigo) {
-                <bal-select-option [value]="opcion.descripcion" [label]="opcion.descripcion">
-                  {{ opcion.descripcion }}
-                </bal-select-option>
-              }
-            </bal-select>
-          </bal-field-control>
-        </bal-field>
+    @if (opcionesCarroceria().length > 0) {
+      <div class="col is-half">
+        <div>
+          <span class="text-medium font-weight-bold mb-none block">
+            {{ rc + '.carroceria.title' | translate }}
+          </span>
+          <p class="text-small  mb-normal">
+            {{ rc + '.carroceria.subtitle' | translate }}
+          </p>
+          
+          <bal-field>
+            <bal-field-control>
+              <bal-select 
+                [value]="tipoCarroceria()" 
+                (balChange)="onSelectChange($event)"
+                [disabled]="cargandoCarrocerias()"
+                [loading]="cargandoCarrocerias()">
+                @for (opcion of opcionesCarroceria(); track opcion.codigo) {
+                  <bal-select-option [value]="opcion.codigo" [label]="opcion.descripcion">
+                    {{ opcion.descripcion }}
+                  </bal-select-option>
+                }
+              </bal-select>
+            </bal-field-control>
+          </bal-field>
+        </div>
       </div>
-    </div>
+    }
 
     <div class="col is-half">
       <div>
@@ -107,7 +107,7 @@
               [value]="codigoPostal()" 
               (balInput)="onInputChange($event)"
               [invalid]="cpInvalido()"
-              [disabled]="cargandoCarrocerias()"
+              [disabled]="cargandoCarrocerias() || isCpPreinformado()"
               maxlength="5"
               [placeholder]="rc + '.codigoPostal.placeholders.cp' | translate">
             </bal-input>

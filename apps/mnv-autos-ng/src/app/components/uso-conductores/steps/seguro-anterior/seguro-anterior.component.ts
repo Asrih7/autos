@@ -1,3 +1,4 @@
+import { Location } from "@angular/common";
 import {
   Component,
   EventEmitter,
@@ -7,10 +8,12 @@ import {
   Output,
   QueryList,
   SimpleChanges,
+  ViewChild,
   ViewChildren,
   computed,
   inject,
   signal,
+  effect,
 } from "@angular/core";
 import {
   BalButton,
@@ -24,6 +27,7 @@ import {
 } from "@baloise/ds-angular";
 
 import { TranslateModule, TranslateService } from "@ngx-translate/core";
+import { PageNavigationService } from "@mnv-autos-ng/navigation";
 
 import { UsoConductoresStateService } from "../../uso-conductores-state.service";
 import { SeguroAnteriorService } from "../../services/seguro-anterior.service";
@@ -53,10 +57,14 @@ export class SeguroAnteriorComponent implements OnChanges, OnInit {
   private readonly usoState = inject(UsoConductoresStateService);
   private readonly translate = inject(TranslateService);
   private readonly seguroAnteriorService = inject(SeguroAnteriorService);
+  private readonly location = inject(Location);
+  private readonly navService = inject(PageNavigationService);
 
   @Output() stepSelected = new EventEmitter<string>();
   @ViewChildren("digitoPolizaInput")
   private digitoPolizaInputs!: QueryList<BalInput>;
+  @ViewChild("siniestroSelect")
+  private siniestroSelect?: BalSelect;
 
   @Input() valorInicial: string | null = null;
 
@@ -66,9 +74,7 @@ export class SeguroAnteriorComponent implements OnChanges, OnInit {
 
   readonly aseguradoraSeleccionadaId = signal<string | null>(null);
   protected readonly aseguradoraConfirmada = signal(false);
-  readonly catalogoSeguros = signal<GridItemSelector[]>(
-    this.seguroAnteriorService.getCatalogoSeguros(),
-  );
+  readonly catalogoSeguros = signal<GridItemSelector[]>([]);
 
   protected readonly seguroSeleccionadoKey = signal("");
   protected readonly digitosPoliza = [0, 1, 2, 3, 4];
@@ -78,12 +84,8 @@ export class SeguroAnteriorComponent implements OnChanges, OnInit {
   protected readonly aniosAseguradoSeleccionado = signal("");
   protected readonly siniestroSeleccionado = signal("");
 
-  protected readonly aniosAseguradoOpciones: SelectOpcion[] =
-    this.seguroAnteriorService.getAniosAseguradoOpciones();
-  protected readonly siniestroOpciones: SelectOpcion[] = [
-    { label: "", value: "si" },
-    { label: "", value: "no" },
-  ];
+  protected readonly aniosAseguradoOpciones = signal<SelectOpcion[]>([]);
+  protected readonly siniestroOpciones = signal<SelectOpcion[]>([]);
 
   protected readonly esOtraCompania = computed(
     () => this.seguroSeleccionadoKey() === "otra-compania",
@@ -158,22 +160,35 @@ export class SeguroAnteriorComponent implements OnChanges, OnInit {
     return true;
   });
 
+  constructor() {
+    // 🔥 Auto-focus cuando aparece la sección de siniestros
+    effect(() => {
+      if (this.mostrarSiniestro()) {
+        this.scheduleSiniestroFocus();
+      }
+    });
+  }
 
- validate() {
-  const completed =
-    this.seguroAnteriorCompleto() &&
-    (!this.mostrarAniosAsegurado() || this.aniosAseguradoSeleccionado() !== "") &&
-    (!this.mostrarSiniestro() || this.siniestroSeleccionado() !== "");
+  validate() {
+    const completed =
+      this.seguroAnteriorCompleto() &&
+      (!this.mostrarAniosAsegurado() || this.aniosAseguradoSeleccionado() !== "") &&
+      (!this.mostrarSiniestro() || this.siniestroSeleccionado() !== "");
 
-  this.usoState.updateSeguroAnteriorState({
-    ...this.usoState.seguroAnterior(),
-    completed
-  });
-}
-
+    this.usoState.updateSeguroAnteriorState({
+      ...this.usoState.seguroAnterior(),
+      completed
+    });
+  }
 
   public onParentNext(): boolean {
+    // La opción seleccionada solo habilita Continuar después de confirmar
+    // este bloque pulsando Siguiente.
+    this.usoState.marcarSeguroAnteriorConfirmadoParaContinuar();
+    this.refreshFooterNavigation();
+
     if (!this.esOtraCompania()) {
+      this.clearSiniestroContextUrl();
       return false;
     }
 
@@ -181,23 +196,34 @@ export class SeguroAnteriorComponent implements OnChanges, OnInit {
       this.aseguradoraConfirmada.set(true);
       this.persistSeguroAnteriorState();
       this.validate();
+      this.showSiniestroContextUrl();
+      setTimeout(() => this.digitoPolizaInputs.first?.setFocus());
       return true;
     }
 
     if (!this.datosPolizaConfirmados() && this.polizaCompleta()) {
       this.confirmarPoliza();
+      this.clearSiniestroContextUrl();
       this.validate();
       return true;
     }
 
+    if (this.mostrarAniosAsegurado() && this.aniosAseguradoCompleto() && !this.siniestroCompleto()) {
+      this.enterSiniestroSection();
+      return true;
+    }
+
     if (this.continuarSinPoliza()) {
+      this.clearSiniestroContextUrl();
       return false;
     }
 
+    this.clearSiniestroContextUrl();
     return false;
   }
 
   ngOnInit(): void {
+    this.loadCatalogs();
     this.applyTranslations();
     this.translate.onLangChange.subscribe(() => this.applyTranslations());
     const saved = this.usoState.seguroAnterior();
@@ -221,6 +247,18 @@ export class SeguroAnteriorComponent implements OnChanges, OnInit {
     this.validate();
   }
 
+  private loadCatalogs(): void {
+    this.seguroAnteriorService.getCompaniaAseguradoras().subscribe(data => {
+      this.catalogoSeguros.set(data);
+    });
+    this.seguroAnteriorService.getAniosCompaniaAnterior().subscribe(data => {
+      this.aniosAseguradoOpciones.set(data);
+    });
+    this.seguroAnteriorService.getNumeroSiniestros().subscribe(data => {
+      this.siniestroOpciones.set(data);
+    });
+  }
+
   ngOnChanges(changes: SimpleChanges): void {
     if (changes["valorInicial"] && !changes["valorInicial"].firstChange) {
       this.aplicarValorInicial();
@@ -233,6 +271,8 @@ export class SeguroAnteriorComponent implements OnChanges, OnInit {
     const siguienteValor = this.readInputValue(value);
 
     this.seguroSeleccionadoKey.set(siguienteValor);
+    // Cualquier cambio de opción requiere volver a pulsar Siguiente.
+    this.usoState.resetSeguroAnteriorConfirmadoParaContinuar();
     this.resetSeguroAnteriorFlow();
 
     const opcion = this.opciones.find(
@@ -245,6 +285,8 @@ export class SeguroAnteriorComponent implements OnChanges, OnInit {
 
     this.persistSeguroAnteriorState();
     this.validate();
+    this.usoState.resetFechaEfectoSeguro();
+    this.refreshFooterNavigation();
   }
 
   protected seleccionarSeguro(key: string): void {
@@ -261,8 +303,15 @@ export class SeguroAnteriorComponent implements OnChanges, OnInit {
     }
 
     this.aseguradoraSeleccionadaId.set(id);
+    this.usoState.resetFechaEfectoSeguro();
     this.persistSeguroAnteriorState();
     this.validate();
+    this.refreshFooterNavigation();
+  }
+
+  protected onDigitoPolizaFocus(index: number): void {
+    this.showSiniestroContextUrl();
+    setTimeout(() => void this.digitoPolizaInputs.get(index)?.setFocus());
   }
 
   protected onDigitoPolizaInput(event: unknown, index: number): void {
@@ -284,8 +333,14 @@ export class SeguroAnteriorComponent implements OnChanges, OnInit {
     this.persistSeguroAnteriorState();
     this.validate();
 
+    // 🔥 Auto-focus hacia delante
     if (digito && index < this.ultimosDigitosPoliza().length - 1) {
       this.enfocarSiguienteDigito(index);
+    }
+
+    // 🔥 Auto-focus hacia atrás (cuando borras)
+    if (!digito && index > 0) {
+      setTimeout(() => this.digitoPolizaInputs.get(index - 1)?.setFocus());
     }
   }
 
@@ -298,26 +353,58 @@ export class SeguroAnteriorComponent implements OnChanges, OnInit {
     this.continuarSinPoliza.set(false);
     this.persistSeguroAnteriorState();
     this.validate();
+    this.refreshFooterNavigation();
   }
 
   protected continuarSinNumeroPoliza(): void {
     this.ultimosDigitosPoliza.set(Array(5).fill("0"));
-    this.continuarSinPoliza.set(false);
+    this.polizaConfirmada.set(true);
+    this.continuarSinPoliza.set(true);
 
     this.persistSeguroAnteriorState();
     this.validate();
+    this.refreshFooterNavigation();
+  }
+
+  protected continuarSinNumeroPolizaYAvanzar(): void {
+    this.continuarSinNumeroPoliza();
+    this.clearSiniestroContextUrl();
   }
 
   protected onAniosAseguradoChange(event: unknown): void {
     this.aniosAseguradoSeleccionado.set(this.readInputValue(event));
+    this.siniestroSeleccionado.set("");
     this.persistSeguroAnteriorState();
     this.validate();
+    this.refreshFooterNavigation();
   }
+
+  public enterSiniestroSection(): void {
+    this.showSiniestroContextUrl();
+    this.scheduleSiniestroFocus();
+  }
+
+  protected onSiniestroFocus(): void {}
 
   protected onSiniestroChange(event: unknown): void {
     this.siniestroSeleccionado.set(this.readInputValue(event));
     this.persistSeguroAnteriorState();
     this.validate();
+    this.refreshFooterNavigation();
+  }
+
+  private showSiniestroContextUrl(): void {
+    this.location.replaceState("/uso-conductores/seguro-anterior/numero-siniestros");
+  }
+
+  private clearSiniestroContextUrl(): void {
+    this.location.replaceState("/uso-conductores/seguro-anterior");
+  }
+
+  private refreshFooterNavigation(): void {
+    this.navService.activePageConfig.update((config) =>
+      config ? { ...config } : config,
+    );
   }
 
   private aplicarValorInicial(): void {
@@ -417,8 +504,11 @@ export class SeguroAnteriorComponent implements OnChanges, OnInit {
       "mas-5": "usoConductores.seguroAnterior.aniosAsegurado.options.mas5",
     };
 
-    this.aniosAseguradoOpciones.forEach((op) => {
-      op.label = t(aniosMap[op.value]);
+    this.aniosAseguradoOpciones().forEach((op) => {
+      const translationKey = aniosMap[op.value];
+      if (translationKey) {
+        op.label = t(translationKey);
+      }
     });
 
     const siniestroMap: Record<string, string> = {
@@ -426,12 +516,15 @@ export class SeguroAnteriorComponent implements OnChanges, OnInit {
       no: "usoConductores.seguroAnterior.siniestro.options.no",
     };
 
-    this.siniestroOpciones.forEach((op) => {
-      op.label = t(siniestroMap[op.value]);
+    this.siniestroOpciones().forEach((op) => {
+      const translationKey = siniestroMap[op.value];
+      if (translationKey) {
+        op.label = t(translationKey);
+      }
     });
   }
 
-  private enfocarSiguienteDigito(index: number): void {
+    private enfocarSiguienteDigito(index: number): void {
     if (index >= this.ultimosDigitosPoliza().length - 1) {
       return;
     }
@@ -439,21 +532,13 @@ export class SeguroAnteriorComponent implements OnChanges, OnInit {
     setTimeout(() => void this.digitoPolizaInputs.get(index + 1)?.setFocus());
   }
 
-  protected continuarSinNumeroPolizaYAvanzar(): void {
-    this.ultimosDigitosPoliza.set(Array(5).fill("0"));
-    this.polizaConfirmada.set(true);
-    this.continuarSinPoliza.set(true);
+  private scheduleSiniestroFocus(): void {
+  // Reintentos para asegurar que el selector ya está renderizado
+  [0, 30, 100].forEach(delay => {
+    setTimeout(() => {
+      this.siniestroSelect?.setFocus();
+    }, delay);
+  });
+}
 
-    this.usoState.updateSeguroAnteriorState({
-      ...this.usoState.seguroAnterior(),
-      ultimosDigitosPoliza: Array(5).fill("0"),
-      polizaConfirmada: true,
-      continuarSinPoliza: true,
-      completed: true
-    });
-
-    this.stepSelected.emit('seguro-anterior');
-    this.onParentNext();
-    this.validate();
-  }
 }

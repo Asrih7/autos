@@ -59,6 +59,10 @@ const STEPS_COUNT = 5;
 
 @Injectable({ providedIn: "root" })
 export class UsoConductoresStateService {
+    private readonly fechaEfectoInicializada = signal(false);
+  // Marca de sesión: la elección de seguro debe confirmarse con Siguiente
+  // antes de habilitar el Continuar global.
+  private readonly seguroAnteriorConfirmadoParaContinuar = signal(false);
   private readonly STORAGE_KEY = "mnv_autos_uso_conductores_state";
   private readonly _state = signal<UsoConductoresGlobalState>(
     this.loadInitialState(),
@@ -86,6 +90,15 @@ export class UsoConductoresStateService {
 
   readonly lastStepId = computed(() => this._state().lastStepId);
   readonly stepsLoaded = computed(() => this._state().stepsLoaded);
+  readonly seguroAnteriorListoParaContinuar = this.seguroAnteriorConfirmadoParaContinuar.asReadonly();
+
+  marcarSeguroAnteriorConfirmadoParaContinuar(): void {
+    this.seguroAnteriorConfirmadoParaContinuar.set(true);
+  }
+
+  resetSeguroAnteriorConfirmadoParaContinuar(): void {
+    this.seguroAnteriorConfirmadoParaContinuar.set(false);
+  }
 
   readonly seguroAnterior = computed(() => this._state().seguroAnterior);
   readonly fechaEfectoSeguro = computed(() => this._state().fechaEfectoSeguro);
@@ -160,6 +173,34 @@ export class UsoConductoresStateService {
         ...partial,
       },
     }));
+  }
+
+  initializeFechaEfectoSeguroIfEmpty(): void {
+    if (this.fechaEfectoInicializada() || this.fechaEfectoSeguro().fechaISO) return;
+
+    const today = new Date();
+    const fechaISO = [
+      today.getFullYear(),
+      String(today.getMonth() + 1).padStart(2, '0'),
+      String(today.getDate()).padStart(2, '0'),
+    ].join('-');
+    const [anio, mes, dia] = fechaISO.split('-');
+    this.updateFechaEfectoSeguroState({ fechaISO, dia, mes, anio, completed: true });
+    this.fechaEfectoInicializada.set(true);
+  }
+
+  resetFechaEfectoSeguro(): void {
+    // La fecha de efecto debe quedar siempre fijada al día actual, también
+    // cuando se reinicia el flujo al cambiar la elección de seguro.
+    const today = new Date();
+    const fechaISO = [
+      today.getFullYear(),
+      String(today.getMonth() + 1).padStart(2, '0'),
+      String(today.getDate()).padStart(2, '0'),
+    ].join('-');
+    const [anio, mes, dia] = fechaISO.split('-');
+    this.fechaEfectoInicializada.set(true);
+    this.updateFechaEfectoSeguroState({ fechaISO, dia, mes, anio, completed: true });
   }
 
   updateFechaEfectoSeguroState(partial: Partial<FechaEfectoSeguroState>) {
@@ -266,6 +307,13 @@ export class UsoConductoresStateService {
 
     if (!seguro.polizaConfirmada && !seguro.continuarSinPoliza) {
       return seguro.ultimosDigitosPoliza.every((digito) => digito !== "");
+    }
+
+    // Años asegurado y número de siniestros son subpasos del mismo step.
+    // Se permite avanzar al siguiente subpaso solo cuando el anterior está
+    // informado; la finalización real sigue dependiendo de `completed`.
+    if (seguro.aniosAseguradoSeleccionado !== "" && !seguro.siniestroSeleccionado) {
+      return true;
     }
 
     return seguro.completed;

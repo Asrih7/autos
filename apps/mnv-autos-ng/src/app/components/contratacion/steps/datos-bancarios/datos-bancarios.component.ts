@@ -1,4 +1,4 @@
-import { Component, computed, signal } from "@angular/core";
+import { Component, computed, signal, OnInit, inject } from '@angular/core';
 import { TranslateModule } from "@ngx-translate/core";
 import {
   BalCard,
@@ -12,6 +12,7 @@ import {
   BalSelectOption,
   parseCustomEvent,
 } from "@baloise/ds-angular";
+import { ContratacionService } from '../../services/contratacion.service';
 
 @Component({
   selector: "app-datos-bancarios",
@@ -30,7 +31,9 @@ import {
   templateUrl: "./datos-bancarios.component.html",
   styleUrl: "./datos-bancarios.component.scss",
 })
-export class DatosBancarios {
+export class DatosBancarios implements OnInit {
+  private readonly httpService = inject(ContratacionService);
+
   readonly baseLangKey = "contratacion.datosBancarios";
 
   readonly ibanKey = "iban";
@@ -77,6 +80,19 @@ export class DatosBancarios {
     return !/^\d{9}$/.test(value);
   });
   //#endregionregion Validaciones computed
+
+  ngOnInit(): void {
+    // Implementación temporal del servicio
+    // dado que la respuesta aún no se alínea con lo descrito en GDCARTPROY-2393
+    this.httpService.obtenerFormaPago().subscribe({
+      next: (formas) => {
+        console.log('Formas de pago obtenidas: ', formas);
+      },
+      error: (error) => {
+        console.error('Error al cargar las formas de pago: ', error);
+      }
+    });
+  }
 
   /**
    * Actualiza el medio de pago seleccionado.

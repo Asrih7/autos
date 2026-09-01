@@ -1,0 +1,66 @@
+:host {
+  display: block;
+  width: 100%;
+}
+
+.initial {
+  display: flex;
+  flex-direction: column;
+
+  gap: 0.875rem;
+
+  width: 100%;
+}
+
+
+/*
+ * Cada bloque:
+ *
+ * Label
+ * Control
+ */
+.initial__field {
+  display: flex;
+  flex-direction: column;
+
+  gap: 0.25rem;
+
+  width: 100%;
+}
+
+
+/*
+ * Labels compactos.
+ */
+.initial__label {
+  margin: 0;
+
+  font-size: 0.875rem;
+  font-weight: 600;
+
+  line-height: 1.25rem;
+}
+
+
+/*
+ * Hacemos que Baloise ocupe
+ * todo el ancho disponible.
+ */
+.initial__field bal-dropdown,
+.initial__field app-agent-search {
+  display: block;
+
+  width: 100%;
+}
+
+
+/*
+ * Acciones.
+ */
+.initial__actions {
+  display: flex;
+
+  justify-content: flex-end;
+
+  margin-top: 0.5rem;
+}

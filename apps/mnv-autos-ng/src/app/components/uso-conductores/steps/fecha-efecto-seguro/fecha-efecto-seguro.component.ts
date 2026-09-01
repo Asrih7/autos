@@ -49,6 +49,27 @@ export class FechaEfectoSeguroComponent {
 
   ngOnInit(): void {
     this.stepSelected.emit('fecha-efecto-seguro');
+    this.setDefaultDateIfEmpty();
+  }
+
+  private setDefaultDateIfEmpty(): void {
+    // La fecha de efecto se establece siempre al día local actual; no se
+    // reutiliza una fecha persistida de una simulación anterior.
+    const today = new Date();
+    const iso = [
+      today.getFullYear(),
+      String(today.getMonth() + 1).padStart(2, '0'),
+      String(today.getDate()).padStart(2, '0'),
+    ].join('-');
+    const [anio, mes, dia] = iso.split('-');
+
+    this.usoState.updateFechaEfectoSeguroState({
+      fechaISO: iso,
+      dia,
+      mes,
+      anio,
+      completed: true
+    });
   }
 
   /**

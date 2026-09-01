@@ -1,5 +1,5 @@
 <div class="w-full">
-  <div class="bloque-busqueda mb-normal">
+  <div class="bloque-busqueda mb-normal flex-none">
     <bal-field class="is-fullwidth">
       <bal-field-control>
         <bal-input
@@ -13,8 +13,8 @@
     </bal-field>
   </div>
 
-  <div class="contenedor-catalogo-grid pr-x-small" 
-       style="max-height: 480px; overflow-y: auto; overflow-x: hidden;">
+  <div class="contenedor-catalogo-grid pr-x-small flex-1 overflow-y-auto overflow-x-hidden" 
+       style="max-height: 480px;">
     
     <div class="grid is-multiline is-mobile mx-none">
       
@@ -34,7 +34,14 @@
             <bal-card-content>
               <div class="flex align-items-center justify-content-center flex-direction-column">
                 <div class="flex align-items-center justify-content-center w-full mb-x-small" style="height: 40px;">
-                  <img [src]="item.logo" [alt]="item.nombre" class="max-h-full block" style="object-fit: contain;" />
+                  <img 
+                    [src]="item.logo" 
+                    [alt]="item.nombre" 
+                    #brandLogo
+                    (error)="brandLogo.src = 'assets/images/marcas/noexiste.png'"
+                    class="max-h-full block" 
+                    style="object-fit: contain;" 
+                  />
                 </div>
                 
                 <span class="nombre-item text-small font-weight-bold text-center w-full">

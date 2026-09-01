@@ -1,3 +1,4 @@
+import { Location } from "@angular/common";
 import {
   AfterViewInit,
   Component,
@@ -18,7 +19,7 @@ import {
   Renderer2, 
 } from "@angular/core";
 import { NavigationEnd, Router } from "@angular/router";
-import { filter, firstValueFrom } from "rxjs";
+import { filter } from "rxjs";
 import { BalButton , BalButtonGroup, BalToast} from "@baloise/ds-angular";
 import { TranslateModule } from "@ngx-translate/core";
 
@@ -26,7 +27,7 @@ import { USO_CONDUCTORES_STEPS } from "./uso-conductores.steps";
 import { UsoConductoresStateService } from "./uso-conductores-state.service";
 import { PageNavigationService } from "@mnv-autos-ng/navigation";
 import { takeUntilDestroyed } from "@angular/core/rxjs-interop";
-import { DatosDomicilioModel, DatosDomicilioService } from "@mnv-autos-ng/ui";
+import { DatosDomicilioModel } from "@mnv-autos-ng/ui";
 
 @Component({
   selector: "app-uso-conductores",
@@ -43,7 +44,7 @@ export class UsoConductoresComponent
   private readonly navService = inject(PageNavigationService);
   private readonly destroyRef = inject(DestroyRef);
   private readonly injector = inject(Injector); 
-  private readonly datosDomicilioService = inject(DatosDomicilioService);
+  
   private navigating = false;
   private activeStepInstance: ParentNextStep | null = null;
   private readonly stepComponentRefs = new Map<string, ComponentRef<any>>();
@@ -56,16 +57,17 @@ toastDurationMs = 3000;
   private stepOutlet!: ViewContainerRef;
 
    private readonly renderer = inject(Renderer2);
+  private readonly location = inject(Location);
 
   @ViewChild("buttonAnchor", { static: true })
   private buttonAnchor!: ElementRef<HTMLElement>;
   readonly steps = computed(() => {
     const inter = this.state.intervinientes();
-    if (inter?.tomadorEsPropietario) {
-      return USO_CONDUCTORES_STEPS.filter((s) => s.id !== "direccion-tomador");
-    }
-    return USO_CONDUCTORES_STEPS;
+    return inter?.tomadorEsPropietario
+      ? USO_CONDUCTORES_STEPS.filter((s) => s.id !== "direccion-tomador")
+      : USO_CONDUCTORES_STEPS;
   });
+
   readonly activeIndex = signal(0);
   readonly activeStepId = computed(
     () => this.steps()[this.activeIndex()]?.id ?? null,
@@ -110,7 +112,11 @@ readonly isLastStep = computed(() => {
       return false;
     }
 
-    if (!this.state.canContinueFromSeguroAnterior()) return false;
+    // El avance interno del paso puede estar habilitado para confirmar
+    // subpasos, pero la navegación final solo puede habilitarse cuando el
+    // mediador ha pulsado antes Siguiente en el bloque de seguro.
+    if (!this.state.seguroAnteriorListoParaContinuar()) return false;
+    if (!this.state.seguroAnterior().completed) return false;
     if (!this.state.canContinueFromFechaEfectoSeguro()) return false;
 
     return true;
@@ -311,6 +317,7 @@ readonly isLastStep = computed(() => {
     }
 
     this.repositionNextButton();
+    this.focusActiveStep();
 
     if (this.activeStepInstance?.validate) {
       try {
@@ -343,21 +350,59 @@ readonly isLastStep = computed(() => {
     }
   }
 
+  private focusActiveStep(): void {
+    const activeId = this.activeStepId();
+    if (!activeId) return;
+
+    const activeRef = this.stepComponentRefs.get(activeId);
+    if (!activeRef) return;
+
+    const activeEl = activeRef.location.nativeElement as HTMLElement;
+    
+    // Añadir clase de focus visual
+    this.stepComponentRefs.forEach((ref, id) => {
+      const el = ref.location.nativeElement as HTMLElement;
+            if (id === activeId) {
+        this.renderer.addClass(el, 'step-focused');
+        this.renderer.removeClass(el, 'step-not-focused');
+      } else {
+        this.renderer.removeClass(el, 'step-focused');
+        this.renderer.addClass(el, 'step-not-focused');
+      }
+
+    });
+
+    // Scroll suave al inicio de la sección
+    setTimeout(() => {
+      activeEl.scrollIntoView({ behavior: 'smooth', block: 'start' });
+    }, 100);
+  }
+
   async goNext(): Promise<void> {
     if (!this.nextEnabled()) return;
     if (this.navigating) return;
 
     const index = this.activeIndex();
     const currentSteps = this.steps();
-    const currentStep = currentSteps[index];
+        const currentStep = currentSteps[index];
     if (!currentStep) return;
 
+    // Se intercepta aquí, antes de onParentNext, porque este es el handler
+    // único que ejecuta el botón Siguiente del step. Así la URL cambia aunque
+    // la instancia lazy todavía no esté disponible.
     if (this.activeStepInstance?.onParentNext?.()) {
       return;
     }
 
     const nextStep = currentSteps[index + 1];
     if (!nextStep) return;
+
+    if (
+      currentStep.id === "seguro-anterior" &&
+      this.location.path().includes("/seguro-anterior/numero-siniestros")
+    ) {
+      this.location.replaceState("/uso-conductores/seguro-anterior");
+    }
 
     const nextOriginalIndex = USO_CONDUCTORES_STEPS.findIndex(
       (step) => step.id === nextStep.id,
@@ -389,29 +434,13 @@ readonly isLastStep = computed(() => {
     ].every((value) => value.trim().length > 0);
   }
 
-  private async normalizeDireccionTomador(): Promise<boolean> {
-    const step = this.stepComponentRefs.get("direccion-tomador")?.instance as DireccionTomadorStep | undefined;
+    private async normalizeDireccionTomador(): Promise<boolean> {
+    // La normalisation est désactivée pour Intervinientes/Dirección tomador.
+    // On conserve les valeurs saisies et on valide uniquement leur complétude.
+    this.state.completeDireccionTomador();
+    return true;
 
-    try {
-      const normalizedAddress = await firstValueFrom(
-        this.datosDomicilioService.normalizeAddress(this.state.direccionTomador()),
-      );
-
-      const addressData = await firstValueFrom(
-        this.datosDomicilioService.getAddressData(normalizedAddress.codigoPostal),
-      );
-      const normalized = {
-        ...normalizedAddress,
-        provincia: addressData.provincia ?? addressData.provincias[0]?.value ?? normalizedAddress.provincia,
-      };
-      this.state.updateDireccionTomador(normalized);
-      this.state.completeDireccionTomador();
-      step?.applyNormalizedAddress?.(normalized);
-      return true;
-    } catch {
-      step?.showNormalisationFailure?.();
-      return false;
-    }
+    
   }
 
   private async prepareToContinueToPricing(): Promise<boolean> {
@@ -460,9 +489,11 @@ readonly isLastStep = computed(() => {
     this.activeStepInstance =
       (this.stepComponentRefs.get(stepId)?.instance as ParentNextStep) ??
       null;
-    this.state.setLastStep(stepId);
+        this.state.setLastStep(stepId);
     this.repositionNextButton();
+    this.focusActiveStep();
     this.navigateTo(stepId, true);
+
   }
 
   showToast(message: string, type: 'success' | 'info' | 'warning' | 'danger') {
@@ -484,6 +515,7 @@ export interface StepDefinition {
 
 interface ParentNextStep {
   onParentNext?(): boolean;
+  enterSiniestroSection?(): void;
   validate?(): void;
 }
 

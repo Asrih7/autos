@@ -4,7 +4,7 @@ import localeEs from '@angular/common/locales/es';
 import { BalButton, BalButtonGroup, BalCard, BalCardContent, BalCheckbox, BalCheckboxGroup, BalIcon, BalList, BalListItem, BalListItemAccordionBody, BalListItemAccordionHead, BalListItemContent, BalListItemIcon, BalListItemTitle, BalRadio, BalRadioGroup } from "@baloise/ds-angular";
 import { TranslateModule } from "@ngx-translate/core";
 import { Cobertura, Modalidad, ModalidadEditable } from "../../models/modalidades.models";
-import { EstadoEdicionGrupo, RecalcularModalidadEvent } from "../../models/precio-coberturas-state.model";
+import { EstadoEdicionGrupo, RecalcularModalidadEvent } from "../../models/precio-coberturas.model";
 
 registerLocaleData(localeEs);
 
@@ -39,6 +39,7 @@ export class GrupoModalidadesComponent {
     readonly titulo = input.required<string>();
     readonly codigo = input.required<string>();
     readonly modalidades = input.required<Modalidad[]>();
+    readonly disableButtons = input.required<boolean>();
     readonly recalcularModalidad = output<RecalcularModalidadEvent>();
 
     readonly baseLangKey = "precioCoberturas.grupoModalidades";
@@ -83,7 +84,8 @@ export class GrupoModalidadesComponent {
                 coberturas: modalidad.coberturasOpcionales.map(cobertura => ({
                     codigo: cobertura.codigo,
                     contratada: !!cobertura.contratada
-                }))
+                })),
+                pendienteRecalculo: false
             };
 
             return acc;
@@ -150,6 +152,7 @@ export class GrupoModalidadesComponent {
                 ...state,
                 [modalidad.codigo]: {
                     ...editable,
+                    pendienteRecalculo: true,
                     coberturas: editable.coberturas.map(c =>
                         c.codigo === cobertura.codigo
                             ? {
@@ -181,10 +184,23 @@ export class GrupoModalidadesComponent {
                 ...state,
                 [modalidad.codigo]: {
                     ...editable,
+                    pendienteRecalculo: true,
                     franquiciaSeleccionada
                 }
             }
         });
+    }
+
+    /**
+     * Determina si el botón Contratar/Solicitar debe estar deshabilitado.
+     *
+     * @param modalidad Modalidad asociada al botón.
+     * @returns `true` si el botón debe deshabilitarse; en caso contrario, `false`.
+     */
+    isBotonSeleccionDisabled(modalidad: Modalidad): boolean {
+        return this.disableButtons()
+            || (!modalidad.derogacion
+                && this.requiereRecalculo(modalidad.codigo));
     }
 
     /**
@@ -215,6 +231,16 @@ export class GrupoModalidadesComponent {
     }
 
     /**
+     * Indica si la modalidad tiene cambios pendientes de recalcular.
+     *
+     * @param codigoModalidad Código de la modalidad.
+     * @returns `true` si requiere recálculo; en caso contrario, `false`.
+     */
+    requiereRecalculo(codigoModalidad: string): boolean {
+        return this.estadoEdicion()[codigoModalidad]?.pendienteRecalculo ?? false;
+    }
+
+    /**
      * Construye la modalidad actualizada y dispara el flujo de recalculo de precio.
      * 
      * @param modalidad Modalidad base desde la cual se construye la versión actualizada.
@@ -224,8 +250,7 @@ export class GrupoModalidadesComponent {
 
         this.recalcularModalidad.emit({
             codigoGrupo: this.codigo(),
-            modalidadVisible: modalidad,
-            modalidadActualizada,
+            modalidadActualizada
         });
     }
 

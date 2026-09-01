@@ -8,9 +8,11 @@ export interface PageBlueprint {
   previousPageUrl: string;
   previousPageLabel: string;
   nextPageUrl: string;
+  nextPageLabel?: string;
   beforeNavigateNext?: () => boolean | Promise<boolean>;
-
   canContinueNext?: () => boolean;
+  showNextButton?: () => boolean;
+  useCustomClass?: string;
 }
 
 @Injectable({ providedIn: "root" })
@@ -35,6 +37,7 @@ export class PageNavigationService {
 
   readonly showBackButton = computed(() => {
     const pageId = this.activePageId();
+    if (pageId==="initial") return false;
     return pageId !== "tu-cliente" && pageId !== "";
   });
 
@@ -44,6 +47,21 @@ export class PageNavigationService {
     return `Volver a ${config.previousPageLabel.toLowerCase()}`;
   });
 
+  readonly showNextButton = computed<boolean>(() => {
+    const config = this.activePageConfig();
+    if (!config?.showNextButton) return true;
+    return config.showNextButton();
+  });
+
+  readonly useCustomClass = computed(
+    () => this.activePageConfig()?.useCustomClass ?? ''
+  );
+
+  readonly nextButtonLabel = computed<string>(() => {
+    const config = this.activePageConfig();
+    if (!config?.nextPageLabel) return "Continuar";
+    return config.nextPageLabel;
+  });
 
   readonly canContinueNext = computed<boolean>(() => {
     const config = this.activePageConfig();
@@ -62,31 +80,35 @@ export class PageNavigationService {
 
   async navigateNext(): Promise<void> {
     const config = this.activePageConfig();
+    const activePageId = this.activePageId();
 
-if (this.activePageId() === "vehiculos") {
-  const callback = this.currentStepCallback();
-  if (callback) {
-    callback({ status: "NEXT_CLICKED" });
-  }
-}
-
+    if (["vehiculos", "initial"].includes(activePageId)) {
+      this.currentStepCallback()?.({
+        status: "NEXT_CLICKED",
+      });
+    }
 
     if (!config) {
       if (this.router.url.includes("/tu-cliente")) {
         await this.router.navigate(["/vehiculos"]);
       }
+
       return;
     }
 
-    if (!config.nextPageUrl || config.nextPageUrl.trim() === "") {
+    if (!config.nextPageUrl?.trim()) {
       console.warn("Último paso alcanzado. No hay navegación siguiente.");
       return;
     }
 
-    if (config.beforeNavigateNext && !(await config.beforeNavigateNext())) {
+    const canNavigate =
+      !config.beforeNavigateNext ||
+      (await config.beforeNavigateNext());
+
+    if (!canNavigate) {
       return;
     }
 
-    void this.router.navigateByUrl(config.nextPageUrl);
+    await this.router.navigateByUrl(config.nextPageUrl);
   }
 }

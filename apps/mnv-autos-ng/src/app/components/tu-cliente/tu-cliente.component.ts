@@ -1,9 +1,7 @@
-import { Component, inject, OnDestroy, OnInit, signal } from '@angular/core';
+import { Component, OnDestroy, OnInit, computed, inject, signal } from '@angular/core';
 import { PageNavigationService } from '@mnv-autos-ng/navigation';
 import {
   ClienteBusquedaService,
-  DatosDomicilioService,
-  DatosPersonaHttpService,
   provideDatosPersonaOptionsApi,
   validateDocumentNumber,
   validateSearchDocument,
@@ -13,7 +11,6 @@ import {
 } from '@mnv-autos-ng/ui';
 import { BalButton, BalHeading, BalToast } from '@baloise/ds-angular';
 import { TranslateModule, TranslateService } from '@ngx-translate/core';
-import { catchError, finalize, of, switchMap } from 'rxjs';
 import { ClienteBusquedaComponent } from './steps/cliente-busqueda/cliente-busqueda.component';
 import { DatosPersonaStepComponent } from './steps/datos-persona/datos-persona.component';
 import { DireccionClienteComponent } from './steps/direccion-cliente/direccion-cliente.component';
@@ -42,16 +39,16 @@ import { TuClienteStateService } from './tu-cliente-state.service';
 export class TuClienteComponent implements OnInit, OnDestroy {
   private readonly navService = inject(PageNavigationService);
   private readonly clienteService = inject(ClienteBusquedaService);
-  private readonly domicilioService = inject(DatosDomicilioService);
-  private readonly datosPersonaService = inject(DatosPersonaHttpService);
   private readonly translate = inject(TranslateService);
-
   protected readonly state = inject(TuClienteStateService);
   protected readonly normalizingPerson = signal(false);
+  // Evita habilitar Confirmar por una dirección completa persistida cuando el
+  // formulario visible aún no ha emitido ningún valor en esta visita.
+  private readonly direccionEditada = signal(false);
   protected readonly toastOpen = signal(false);
   protected readonly toastMessage = signal('');
   protected readonly toastType = signal<'success' | 'info' | 'warning' | 'danger'>('success');
-  protected readonly toastDurationMs = 3000;
+  protected readonly toastDurationMs = 0;
 
   ngOnInit(): void {
     this.navService.activePageConfig.set({
@@ -59,7 +56,9 @@ export class TuClienteComponent implements OnInit, OnDestroy {
       previousPageUrl: '',
       previousPageLabel: '',
       nextPageUrl: '/vehiculos',
-      canContinueNext: () => this.state.canContinue(),
+            canContinueNext: () => this.state.canContinue(),
+      showNextButton: () => !this.state.clientFound(),
+
     });
   }
 
@@ -129,6 +128,10 @@ export class TuClienteComponent implements OnInit, OnDestroy {
   }
 
   protected handleConfirmDatosPersona(): void {
+    if (this.shouldDisableConfirmDatosPersona()) {
+      return;
+    }
+
     const persona = this.state.datosPersona();
     const onlyNameFields = this.state.editingClient() && this.state.clientFound();
 
@@ -160,44 +163,18 @@ export class TuClienteComponent implements OnInit, OnDestroy {
       return;
     }
 
-    this.normalizingPerson.set(true);
-    this.state.setAddressError(null);
-    this.state.setNormalizingAddress(true);
-
-    this.datosPersonaService.normalizeName(persona).pipe(
-      switchMap((normalizedPersona: DatosPersonaModel) => {
-        this.state.setDatosPersona(normalizedPersona);
-        return this.domicilioService.normalizeAddress(direccion).pipe(
-          catchError(() => {
-            const errorMessage = this.t('tuCliente.feedback.addressNormalizationFailed');
-            this.state.setAddressError(errorMessage);
-            this.showToast(errorMessage, 'warning');
-            return of<DatosDomicilioModel | null>(null);
-          }),
-        );
-      }),
-      catchError(() => {
-        this.showToast(this.t('tuCliente.feedback.personalDataNormalizationFailed'), 'danger');
-        return of<DatosDomicilioModel | null>(null);
-      }),
-      finalize(() => {
-        this.normalizingPerson.set(false);
-        this.state.setNormalizingAddress(false);
-      }),
-    ).subscribe((normalizedDireccion: DatosDomicilioModel | null) => {
-      if (!normalizedDireccion) {
-        return;
-      }
-
-      this.state.setDireccion(normalizedDireccion);
-      this.state.setAddressError(null);
-      this.state.confirmDatosPersona();
-      this.showToast(this.t('tuCliente.feedback.addressNormalized'), 'success');
-    });
+  
+    this.state.confirmDatosPersona();
+    this.showToast(this.t('tuCliente.feedback.personalDataValidated'), 'success');
   }
 
   protected handleDireccionChange(model: DatosDomicilioModel): void {
-    this.state.setDireccion(model);
+    this.direccionEditada.set(true);
+    this.state.setDireccion({
+      ...model,
+      numero: model.numero?.trim() ?? '',
+      codigoPostal: model.codigoPostal?.trim() ?? '',
+    });
   }
 
   protected handleConfirmDireccion(): void {
@@ -206,26 +183,10 @@ export class TuClienteComponent implements OnInit, OnDestroy {
       return;
     }
 
-    this.state.setAddressError(null);
-    this.state.setNormalizingAddress(true);
-    this.domicilioService.normalizeAddress(this.state.direccion()).pipe(
-      catchError(() => {
-        const errorMessage = this.t('tuCliente.feedback.addressNormalizationFailed');
-        this.state.setAddressError(errorMessage);
-        this.showToast(errorMessage, 'warning');
-        return of<DatosDomicilioModel | null>(null);
-      }),
-      finalize(() => this.state.setNormalizingAddress(false)),
-    ).subscribe((direccion: DatosDomicilioModel | null) => {
-      if (!direccion) {
-        return;
-      }
 
-      this.state.setDireccion(direccion);
-      this.state.setAddressError(null);
-      this.showToast(this.t('tuCliente.feedback.addressNormalized'), 'success');
-      this.state.confirmDireccion();
-    });
+    this.state.setAddressError(null);
+    this.state.confirmDireccion();
+    this.showToast(this.t('tuCliente.feedback.personalDataValidated'), 'success');
   }
 
   protected showToast(message: string, type: 'success' | 'info' | 'warning' | 'danger'): void {
@@ -242,14 +203,59 @@ export class TuClienteComponent implements OnInit, OnDestroy {
     this.navService.activePageConfig.set(null);
   }
 
-  private isDireccionComplete(direccion: DatosDomicilioModel): boolean {
-    return [
+  protected isNieWithoutNationality(): boolean {
+    const persona = this.state.datosPersona();
+    const documentType = String(persona.documentType ?? '').trim().toLowerCase();
+    return documentType === 'nie' && !persona.nationality?.trim();
+  }
+
+  protected shouldDisableConfirmDatosPersona(): boolean {
+    const persona = this.state.datosPersona();
+    const documentType = String(persona.documentType ?? '').trim().toLowerCase();
+    const hasDocument = Boolean(documentType && persona.documentNumber?.trim());
+
+    if (!hasDocument) {
+      return true;
+    }
+
+    return documentType === 'nie' && !persona.nationality?.trim();
+  }
+
+  protected canConfirmDatosPersona(): boolean {
+    return !this.shouldDisableConfirmDatosPersona();
+  }
+
+  protected direccionCompleta(): boolean {
+  const d = this.state.direccion();
+
+  return Boolean(
+    d.tipoVia?.trim() &&
+    d.nombreVia?.trim() &&
+    d.numero?.trim() &&
+    d.codigoPostal?.trim() &&
+    d.provincia?.trim() &&
+    d.localidad?.trim()
+  );
+}
+
+
+  protected canConfirmDireccion(): boolean {
+    return this.direccionCompleta();
+  }
+
+  public  isDireccionComplete(direccion: DatosDomicilioModel): boolean {
+    const requiredFields = [
       direccion.tipoVia,
       direccion.nombreVia,
       direccion.numero,
       direccion.codigoPostal,
       direccion.provincia,
       direccion.localidad,
-    ].every((value) => value.trim().length > 0);
+    ];
+
+    return requiredFields.every((value) => Boolean(value?.trim()))
+      && /^\d{5}$/.test(String(direccion.codigoPostal ?? '').trim());
   }
+
+  
 }

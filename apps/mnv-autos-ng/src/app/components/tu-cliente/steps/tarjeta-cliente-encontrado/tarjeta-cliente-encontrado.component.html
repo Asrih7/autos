@@ -1,3 +1,4 @@
+
 <bal-card class="mb-large">
   <bal-card-content>
     <div class="flex align-items-center justify-content-space-between gap-normal mb-large">
@@ -9,7 +10,11 @@
           [attr.aria-label]="'tuCliente.found.verified' | translate"
         ></bal-icon>
         <div>
-          <h3 class="text-bold mb-none">{{ person().name }}</h3>
+          <!-- Para el CIF no se muestra la razÃ³n social (igual que no se muestran
+               nombre y apellidos para el resto de tipos de documento). -->
+          @if (documentTypeUpper !== 'CIF') {
+            <h3 class="text-bold mb-none">{{ person().name }}</h3>
+          }
           <bal-tag
             size="small"
             color="info"
@@ -36,7 +41,7 @@
       </div>
       <div class="flex direction-column gap-small mt-normal">
       <p class="text-body mt-none mb-none">
-        {{ 'tuCliente.found.nationality' | translate }} {{ person().nationality }}
+        {{ 'tuCliente.found.nationality' | translate }} {{ nationalityLabel }}
       </p>
       </div>
             <div class="flex direction-column gap-small mt-normal">

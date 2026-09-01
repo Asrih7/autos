@@ -10,7 +10,7 @@
   </div>
 
   <lib-data-grid-selector
-    [items]="catalogoMarcas()"
+    [items]="stateService.marcas()"
     [placeholderBusqueda]="baseLangKey + '.brands.searchPlaceholder' | translate"
     [sinResultadosTexto]="baseLangKey + '.brands.noResults' | translate"
     [(idSeleccionado)]="marcaSeleccionadaId"
@@ -19,7 +19,7 @@
   <div class="bloque-accion buttons mt-normal justify-content-end">
     <bal-button
       color="primary"
-      [disabled]="marcaSeleccionadaId() === null"
+      [disabled]="marcaSeleccionadaId() === null || stateService.state().matriculaOBastidor !== 'MANUAL_SEARCH_ACTIVE'"
       [expanded]="esMobile()"
       (click)="confirmarMarca()">
       {{ baseLangKey + '.brands.confirmBtn' | translate }}
@@ -45,10 +45,10 @@
             (balChange)="onModeloChanged($event)"
             typeahead="true"
             [placeholder]="baseLangKey + '.models.selectPlaceholder' | translate"
-            [disabled]="!marcaSeleccionadaId() || cargandoModelos()"
-            [loading]="cargandoModelos()">
+            [disabled]="!marcaSeleccionadaId() || stateService.loadingModelos()"
+            [loading]="stateService.loadingModelos()">
             
-            @for (mod of listaModelos(); track mod.id) {
+            @for (mod of stateService.modelos(); track mod.id) {
               <bal-select-option [value]="mod.id" [label]="mod.nombre">
                 {{ mod.nombre }}
               </bal-select-option>
@@ -62,7 +62,7 @@
     <div class="bloque-accion buttons justify-content-end">
       <bal-button
         color="primary"
-        [disabled]="modeloSeleccionadoId() === null || cargandoModelos()"
+        [disabled]="modeloSeleccionadoId() === null || stateService.loadingModelos() || stateService.state().matriculaOBastidor !== 'MANUAL_SEARCH_ACTIVE'"
         [expanded]="esMobile()"
         (click)="confirmarModelo()">
         {{ baseLangKey + '.models.confirmBtn' | translate }}

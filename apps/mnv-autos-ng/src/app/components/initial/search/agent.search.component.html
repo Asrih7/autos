@@ -1,0 +1,74 @@
+<div class="agent-search">
+
+  <bal-field class="agent-search__field">
+    <bal-input
+      class="agent-search__input"
+      [placeholder]="'initial.agent.placeholder' | translate"
+      [value]="searchValue()"
+      (balInput)="onSearch($event)"
+    />
+
+  </bal-field>
+
+
+  @if (loading()) {
+
+    <div class="agent-search__loading">
+
+      <bal-spinner />
+
+    </div>
+
+  }
+
+
+  @if (
+    opened() &&
+    !loading()
+  ) {
+
+    <div
+      class="agent-search__results"
+      role="listbox"
+    >
+
+      @for (
+        agent of agents();
+        track agent.id
+      ) {
+
+        <button
+          type="button"
+          class="agent-search__option"
+          (click)="selectAgent(agent)"
+        >
+
+          <div class="agent-search__option-content">
+
+            <div class="agent-search__main">
+
+              <span class="agent-search__code">
+                {{ agent.code }}
+              </span>
+
+              <span class="agent-search__description">
+                {{ agent.description }}
+              </span>
+
+            </div>
+
+            <span class="agent-search__identification">
+              {{ agent.identification }}
+            </span>
+
+          </div>
+
+        </button>
+
+      }
+
+    </div>
+
+  }
+
+</div>

@@ -46,4 +46,5 @@ export interface ModalidadEditable {
     codigoModalidad: string;
     franquiciaSeleccionada: number | null;
     coberturas: CoberturaEditable[];
+    pendienteRecalculo: boolean;
 }

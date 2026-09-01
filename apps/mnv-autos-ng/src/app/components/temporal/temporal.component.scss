@@ -1,0 +1,39 @@
+:host {
+  display: block;
+
+  width: 100%;
+}
+
+.temporal-form {
+  display: flex;
+  flex-direction: column;
+
+  width: 100%;
+
+  gap: 24px;
+}
+
+.temporal-form__actions {
+  display: flex;
+
+  align-items: center;
+  justify-content: flex-start;
+}
+
+.temporal-form__result {
+  display: flex;
+  flex-direction: column;
+
+  max-width: 500px;
+
+  gap: 8px;
+}
+
+.result-row {
+  display: flex;
+
+  align-items: center;
+  justify-content: space-between;
+
+  gap: 24px;
+}

@@ -26,5 +26,17 @@ export class TarjetaClienteEncontrado {
   protected requestEdit(): void {
     this.edit.emit(this.person());
   }
-  
+
+  /** Resuelve la nacionalidad a su literal (p.ej. ES -> ESPAÑA). */
+  protected get nationalityLabel(): string {
+    const value = String(this.person().nationality ?? '').trim().toUpperCase();
+    if (value === 'ES') {
+      return 'ESPAÑA';
+    }
+    return this.person().nationality;
+  }
+
+  protected get documentTypeUpper(): string {
+    return String(this.person().documentType ?? '').trim().toUpperCase();
+  }
 }

@@ -134,7 +134,8 @@
     },
     "notFound": {
       "title": "Cliente no localizado por este NIF",
-      "subtitle": "¿Quieres iniciar una nueva cotización o precotización en este NIF?"
+      "subtitle": "¿Quieres iniciar una nueva cotización o precotización en este NIF?",
+      "document": "NIF="
     },
     "actions": {
       "newQuote": "Nueva cotización",
@@ -262,12 +263,17 @@
           "placeholder": "Combustible",
           "all": "Todos los combustibles"
         },
+        "releaseYear": {
+          "placeholder": "Inicio Fabricacion",
+          "all": "Todos los años"
+        },
         "searchPlaceholder": "Buscar versión..."
       },
       "list": {
         "noResults": "No se encontraron versiones que coincidan con los filtros aplicados.",
         "cc": "cc",
-        "noneOfThese": "Ninguna de estas versiones"
+        "noneOfThese": "Ninguna de estas versiones",
+        "loadingText": "Cargando versiones"
       },
       "buttons": {
         "confirm": "Confirmar versión"
@@ -365,7 +371,34 @@
       }
     }
   },
+  "cotizacion": {
+    "proyecto": {
+      "gdpr": {
+        "modal": {
+          "title": "Autorización del cliente para\nrecibir comunicaciones",
+          "description": "Recibir ofertas y contenidos de nuestras compañías y partners cuando detectemos interés,\nevitando cualquier contacto que no te aporte valor.\nCompartimos los datos necesarios solo para que no te pierdas nada.",
+          "options": {
+            "dataTransfer": {
+              "title": "Cesión de datos",
+              "description": "Aceptas la cesión de tus datos a las empresas para que solo se dirijan a ti\npara ofrecerte ofertas adaptadas a tu perfil."
+            },
+            "commercialCommunications": {
+              "title": "Comunicaciones comerciales",
+              "description": "Quieres disfrutar de las ventajas y servicios personalizados\nde las empresas del grupo y partners."
+            }
+          },
+          "actions": {
+            "continue": "Continuar"
+          }
+        }
+      }
+    }
+  },
   "precioCoberturas": {
+    "fraccionado": {
+      "label": "Fraccionado",
+      "botonAplicar": "Aplicar"
+    },
     "grupoModalidades": {
       "derogacion": "Derogación",
       "solicitar": "Solicitar",
@@ -374,6 +407,38 @@
       "rangoFranquicia": "Rango de franquicia",
       "coberturasOpcionales": "Coberturas opcionales",
       "aplicarRecalcular": "Aplicar y recalcular precio"
+    },
+    "otrasOpciones": {
+      "titulo": "Otras opciones",
+      "subtitulo": "*Para reflejar estas coberturas en el precio pulsa aplicar y recalcular precios",
+      "tituloDetalles": "Plazas y capital asegurado",
+      "labelPlazasAseguradas": "Plazas aseguradas",
+      "labelCapitalFallecimiento": "Capital fallecimiento",
+      "labelCapitalInvalidez": "Capital invalidez",
+      "aplicarRecalcular": "Aplicar y recalcular precio"
+    }
+  },
+  "initial": {
+    "title":"Selección datos iniciales",
+    "agent": {
+      "label": "Agente",
+      "placeholder": "Código, identificación o descripción"
+    },
+    "company": {
+      "label": "Compañía",
+      "placeholder": "Seleccione una compañía"
+    },
+    "product": {
+      "label": "Producto",
+      "placeholder": "Seleccione un producto"
+    },
+    "collective": {
+      "label": "Colectivo",
+      "placeholder": "Seleccione una colectiva"
+    },
+    "actions": {
+      "accept": "Aceptar"
     }
   }
+
 }

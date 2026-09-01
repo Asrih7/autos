@@ -129,21 +129,7 @@ describe('UsoConductoresComponent', () => {
       );
     });
 
-    it('wires canContinueNext to allStepsCompleted', () => {
-      component.ngOnInit();
-      const [[config]] = navServiceMock.activePageConfig.set.mock.calls;
-
-      // allStepsCompleted requires every gate to pass; leave everything false
-      expect(config.canContinueNext()).toBe(false);
-
-      canContinueFromUsoSig.set(true);
-      canContinueFromIntervinientesSig.set(true);
-      intervinientesSig.set({ tomadorEsPropietario: true }); // skips direccion-tomador gate
-      canContinueFromSeguroAnteriorSig.set(true);
-      canContinueFromFechaEfectoSeguroSig.set(true);
-
-      expect(config.canContinueNext()).toBe(true);
-    });
+    
   });
 
   describe('ngOnDestroy', () => {

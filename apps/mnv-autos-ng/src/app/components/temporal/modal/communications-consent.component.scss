@@ -1,0 +1,165 @@
+:host {
+  display: block;
+}
+
+/*
+ * Formulario dentro del bal-modal.
+ */
+.communications-form {
+  display: flex;
+  flex-direction: column;
+
+  width: 100%;
+  max-width: 820px;
+
+  gap: 8px;
+}
+
+/*
+ * Descripción principal.
+ *
+ * Permite que los \n del JSON de traducciones
+ * se representen como saltos de línea.
+ */
+.communications-form__description {
+  margin: 0;
+  white-space: pre-line;
+}
+
+/*
+ * Contenedor de las dos autorizaciones.
+ * Existe un único borde alrededor de ambas.
+ */
+.communications-options {
+  display: flex;
+  flex-direction: column;
+
+  width: 100%;
+
+  border: 1px solid var(--bal-color-grey-3);
+  border-radius: 8px;
+
+  overflow: hidden;
+}
+
+/*
+ * Cada opción.
+ *
+ * No ponemos border entre las opciones.
+ */
+.communications-option {
+  display: flex;
+
+  align-items: center;
+  justify-content: space-between;
+
+  width: 100%;
+
+  gap: 10px;
+  padding: 10px 20px;
+}
+
+/*
+ * Información de la opción:
+ *
+ * título
+ * descripción
+ */
+.communications-option__content {
+  display: flex;
+
+  flex: 1 1 auto;
+  flex-direction: column;
+
+  min-width: 0;
+
+  gap: 6px;
+}
+
+/*
+ * Título + icono info.
+ */
+.communications-option__header {
+  display: flex;
+
+  align-items: center;
+
+  gap: 6px;
+}
+
+.communications-option__title {
+  font-weight: 600;
+
+  /*
+   * También soporta \n si una traducción
+   * necesita dividir el título.
+   */
+  white-space: pre-line;
+}
+
+/*
+ * Descripción de cada switch.
+ */
+.communications-option__description {
+  margin: 0;
+
+  line-height: 1.5;
+  white-space: pre-line;
+}
+
+/*
+ * Switch alineado a la derecha.
+ */
+.communications-option__control {
+  /*
+  display: flex;
+
+  flex: 0 0 auto;
+
+  align-items: center;
+  justify-content: center;
+
+  min-width: 56px;
+
+  padding-left: 24px;
+  */
+}
+
+/*
+ * Botón Continuar.
+ */
+.communications-form__actions {
+  display: flex;
+
+  align-items: center;
+  justify-content: flex-start;
+
+  margin-top: 4px;
+}
+
+/*
+ * Utilidad para cualquier otro texto
+ * procedente de las traducciones.
+ */
+.multiline-text {
+  white-space: pre-line;
+}
+
+/*
+ * Responsive
+ */
+@media (max-width: 768px) {
+  .communications-form {
+    gap: 20px;
+  }
+
+  .communications-option {
+    gap: 16px;
+
+    padding: 16px;
+  }
+
+  .communications-option__control {
+    padding-left: 8px;
+  }
+}

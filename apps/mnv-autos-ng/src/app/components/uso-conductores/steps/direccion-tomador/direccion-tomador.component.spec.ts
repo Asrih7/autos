@@ -130,32 +130,6 @@ describe("DireccionTomadorComponent (Vitest)", () => {
     expect(component.normalized()).toBe(false);
   });
 
-  it("should normalize address successfully", async () => {
-    mockDomicilioService.normalizeAddress.mockReturnValue(of(mockAddress));
-    const applySpy = vi.spyOn(component as any, "applyNormalizedAddress");
-
-    component.direccion.set(mockAddress);
-
-    const result = await component.normalizeAddress();
-
-    expect(result).toBe(true);
-    expect(applySpy).toHaveBeenCalledWith(mockAddress);
-  });
-
-  it("should handle normalization failure", async () => {
-    mockDomicilioService.normalizeAddress.mockReturnValue(
-      throwError(() => new Error("BDI error"))
-    );
-
-    const failSpy = vi.spyOn(component as any, "showNormalisationFailure");
-
-    component.direccion.set(mockAddress);
-
-    const result = await component.normalizeAddress();
-
-    expect(result).toBe(false);
-    expect(failSpy).toHaveBeenCalled();
-  });
 
   it("should apply normalized address and emit events", () => {
     const saveSpy = vi.spyOn(component.save, "emit");

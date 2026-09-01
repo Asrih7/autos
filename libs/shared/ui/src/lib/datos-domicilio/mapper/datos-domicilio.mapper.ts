@@ -19,13 +19,17 @@ export function mapToTipoViaOptions(items: ApiTipoVia[] | null): Array<{ label: 
 }
 
 export function mapToProvinciaOptions(items: ApiProvincia[] | null): Array<{ label: string; value: string }> {
-  return (items ?? []).map((item: ApiProvincia) => {
-    const value = String(item.tdescripcion ?? item.tdescripcionC ?? item.ccodigo ?? '').trim();
-    return {
-      label: value,
-      value,
-    };
-  });
+  return (items ?? [])
+    .map((item: ApiProvincia) => {
+      const value = [item.tdescripcion, item.tdescripcionC, item.ccodigo]
+        .map((candidate) => String(candidate ?? '').trim())
+        .find(Boolean) ?? '';
+      return {
+        label: value,
+        value,
+      };
+    })
+    .filter((item) => Boolean(item.value));
 }
 
 export function mapToLocalidadOptions(items: ApiLocalidadCodigoPostal[] | null): Array<{ label: string; value: string }> {

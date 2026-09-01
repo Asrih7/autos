@@ -23,4 +23,7 @@ export class DatosPersonaStepComponent {
   @Input() compact = false;
   @Input() onlyNameFields = false;
   @Input() showNationality = false;
+    @Input() disabledDocuments = false;
+  @Input() disabledNationality = false;
+
 }

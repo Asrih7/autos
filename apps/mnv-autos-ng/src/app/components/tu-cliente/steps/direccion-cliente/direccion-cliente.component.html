@@ -1,3 +1,4 @@
+
 <div class="mb-large">
   <bal-heading level="h3" visual-level="h4" class="text-bold mb-large">
     {{ 'tuCliente.address.title' | translate }}
@@ -5,7 +6,7 @@
   <p class="text-muted text-small mb-large">{{ 'tuCliente.address.subtitle' | translate }}</p>
 
   <app-datos-domicilio-google
-    [value]="internalDireccion.tipoVia || internalDireccion.nombreVia"
+    [value]="direccionTexto"
     [placeholder]="'tuCliente.address.placeholder' | translate"
     [ariaLabel]="'tuCliente.address.ariaLabel' | translate"
     (addressSelected)="onAddressSelected($event)"
@@ -14,8 +15,6 @@
 
   <app-datos-domicilio-form
     [model]="internalDireccion"
-    [disabled]="disabled || formDisabled"
-    [fieldDisabled]="fieldDisabled"
-    (modelChange)="onDireccionChange($event)"
+    (modelChange)="onFormChanged($event)"
   ></app-datos-domicilio-form>
 </div>

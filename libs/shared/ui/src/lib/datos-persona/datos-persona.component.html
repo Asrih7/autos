@@ -1,3 +1,4 @@
+
 <section class="flex flex-direction-column gap-normal" [attr.aria-label]="title">
   <bal-heading level="h3" visual-level="h4" class="mb-none text-blue">
     {{ title | translate }}
@@ -16,6 +17,7 @@
               placeholder="{{ 'tuCliente.personalData.selectOptionPlaceholder' | translate }}"
               [required]="true"
               [value]="selectedDocumentType"
+              [disabled]="disabledDocuments"
               (balChange)="handleDocumentTypeChange($event)"
             >
               @for (option of options.documentTypes; track option.value) {
@@ -39,6 +41,7 @@
               [required]="true"
               [invalid]="documentNumberInvalid"
               [value]="model.documentNumber"
+               [disabled]="disabledDocuments"
               (balInput)="handleDocumentNumberInput($event)"
               (balBlur)="handleDocumentNumberBlur()"
             />
@@ -63,7 +66,7 @@
               typeahead="true"
               [freeSolo]="false"
               [required]="requiresManualNationality"
-              [disabled]="!requiresManualNationality"
+              [disabled]="disabledNationality || !requiresManualNationality"
               [invalid]="nationalityInvalid"
               [value]="selectedNationality"
               (balInput)="handleNationalityInput()"
@@ -88,25 +91,27 @@
     }
 
     <!-- CIF -->
-    @if (isCifSelected && !onlyNameFields) {
-      <div class="col mobile:is-full tablet:is-one-half desktop:is-one-third">
-        <bal-field [required]="true">
-          <bal-field-label>{{ businessNameLabel | translate }}</bal-field-label>
-          <bal-field-control>
-            <bal-input
-              name="businessName"
-              autocomplete="organization"
-              [required]="true"
-              [value]="model.businessName"
-              (balInput)="setField('businessName', $event.detail ?? '')"
-            />
-          </bal-field-control>
-        </bal-field>
-      </div>
-    }
+ @if (model.documentType === 'cif' && !onlyNameFields && !disabledDocuments) {
+  <div class="col mobile:is-full tablet:is-one-half desktop:is-one-third">
+    <bal-field [required]="true">
+      <bal-field-label>{{ businessNameLabel | translate }}</bal-field-label>
+      <bal-field-control>
+        <bal-input
+          name="businessName"
+          autocomplete="organization"
+          [required]="true"
+          [value]="model.businessName"
+          (balInput)="setField('businessName', $event.detail ?? '')"
+        />
+      </bal-field-control>
+    </bal-field>
+  </div>
+}
+
+
 
     <!-- ONLY NAME FIELDS -->
-    @if (onlyNameFields) {
+    @if (onlyNameFields && model.documentType !== 'cif') {
     <div class="col mobile:is-full tablet:is-one-half desktop:is-one-quarter">
       <bal-field [required]="true">
         <bal-field-label>{{ firstNameLabel | translate }}</bal-field-label>
@@ -163,7 +168,7 @@
               typeahead="true"
               [freeSolo]="false"
               [required]="requiresManualNationality"
-              [disabled]="!requiresManualNationality"
+              [disabled]="disabledNationality || !requiresManualNationality"
               [invalid]="nationalityInvalid"
               [value]="selectedNationality"
               (balInput)="handleNationalityInput()"
@@ -190,7 +195,7 @@
 
 
     <!-- NOT COMPACT -->
-    @else if (!compact) {
+    @else if (!compact && model.documentType !== 'cif') {
 
       <div class="col mobile:is-full tablet:is-one-half desktop:is-one-third">
         <bal-field [required]="true">

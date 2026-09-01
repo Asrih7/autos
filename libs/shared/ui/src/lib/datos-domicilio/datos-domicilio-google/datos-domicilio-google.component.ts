@@ -38,10 +38,16 @@ export class DatosDomicilioGoogle implements OnChanges, AfterViewInit, OnDestroy
   ngOnChanges(changes: SimpleChanges): void {
     if ('value' in changes) {
       const incoming = String(this.value ?? '').trim();
-      this.selectedText.set(incoming);
+      // Si el valor viene del componente padre (por ejemplo, después de
+      // enriquecer provincia/localidad desde el código postal) no se
+      // reinicia la selección: solo se sincroniza el texto visible.
+      if (this.textSetByParent !== incoming) {
+        this.textSetByParent = incoming;
+        this.selectedText.set(incoming);
+      }
 
       if (!incoming) {
-        this.clearSelection.emit();
+        this.hasSelectedAddress = false;
       }
 
       queueMicrotask(() => this.setupAutocomplete());
@@ -50,14 +56,19 @@ export class DatosDomicilioGoogle implements OnChanges, AfterViewInit, OnDestroy
 
   onInput(event: any): void {
     const inputValue = String(event?.detail ?? event?.target?.value ?? '').trim();
+    this.textSetByParent = '';
     this.selectedText.set(inputValue);
 
-    if (!inputValue) {
+    if (!inputValue && this.hasSelectedAddress) {
+      this.hasSelectedAddress = false;
       this.clearSelection.emit();
     }
 
     this.setupAutocomplete();
   }
+
+  /** Texto asignado por el padre vía @Input() value para no colisionar con el tecleo del usuario. */
+  private textSetByParent = '';
 
   private setupAutocomplete(): void {
     const hostElement = this.autocompleteInput?.nativeElement;
@@ -166,10 +177,13 @@ export class DatosDomicilioGoogle implements OnChanges, AfterViewInit, OnDestroy
   }
 
   private readonly onSearchFocus = (): void => {
-    if (!this.hasSelectedAddress) return;
-
-    this.hasSelectedAddress = false;
-    this.selectedText.set('');
+    // Ya no se vacía el texto al recibir el foco: hacerlo provocaba que la
+    // barra de búsqueda quedara desincronizada del formulario (los 6 campos
+    // rellenados por Google seguían bloqueados pero la barra mostraba "").
+    // El usuario puede seguir escribiendo para buscar una nueva dirección.
+    if (this.hasSelectedAddress) {
+      this.hasSelectedAddress = false;
+    }
   };
 
   private parsePlace(place: any): DatosDomicilioModel | null {
@@ -296,8 +310,10 @@ export class DatosDomicilioGoogle implements OnChanges, AfterViewInit, OnDestroy
   }
 
   private getStreetNumberFromText(value: string): string {
-    const match = value.match(/(?:,|\s)(\d+[A-Za-z]?)\b/);
-    return match?.[1] ?? '';
+    const candidates = Array.from(value.matchAll(/(?:^|[,\s])(\d+[A-Za-z]?)\b/g))
+      .map((match) => match[1])
+      .filter((candidate) => !/^\d{5}$/.test(candidate));
+    return candidates[0] ?? '';
   }
 
   private getPostalCodeFromText(value: string): string {

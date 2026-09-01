@@ -28,22 +28,20 @@ vi.mock("@mnv-autos-ng/util", () => ({
 }));
 
 interface MockVehiculoStateService {
-  state: WritableSignal<VehiculoGlobalState>;
+  state: WritableSignal<Partial<VehiculoGlobalState>>;
   nombreVehiculoCompleto: Signal<string>;
   loadingVersiones: Signal<boolean>;
   versionesRaw: Signal<VersionVehiculo[]>;
   selectedBrandAndModel: MockInstance<() => BrandModelSummary>;
-  loadVersionesCatalog: MockInstance<
-    (marcaId: string, modeloId: string) => void
-  >;
+  loadVersionesCatalog: MockInstance<(modeloId: string) => void>;
   saveVersionSeleccionada: MockInstance<(version: VersionVehiculo) => void>;
 }
 
-describe("ConfirmacionVersion", () => {
+describe("ConfirmacionVersion Spec Suite", () => {
   let component: ConfirmacionVersion;
   let fixture: ComponentFixture<ConfirmacionVersion>;
   let mockStateService: MockVehiculoStateService;
-  let mockStateSignal: WritableSignal<VehiculoGlobalState>;
+  let mockStateSignal: WritableSignal<Partial<VehiculoGlobalState>>;
   let mockOnStepComplete: MockInstance<(stepOutputData: unknown) => void>;
   let translateService: TranslateService;
 
@@ -52,22 +50,11 @@ describe("ConfirmacionVersion", () => {
   let mockVersionesRawSignal: WritableSignal<VersionVehiculo[]>;
 
   beforeEach(async () => {
-    mockStateSignal = signal<VehiculoGlobalState>({
-      matriculaOBastidor: null,
-      metodoBusqueda: null,
+    mockStateSignal = signal<Partial<VehiculoGlobalState>>({
+      matriculaOBastidor: "1234XYZ",
       vehiculoData: {},
-      loading: false,
-      loadingModelos: false,
+      versionMasContratada: "v1",
       loadingVersiones: false,
-      loadingCarrocerias: false,
-      loadingAccesorios: false,
-      error: null,
-      busquedaExitosa: false,
-      marcasCatalog: [],
-      modelosCatalog: [],
-      versionesCatalog: [],
-      carroceriasCatalog: [],
-      accesoriosCatalog: [],
     });
 
     mockNombreVehiculoSignal = signal<string>("Volvo XC90");
@@ -82,6 +69,7 @@ describe("ConfirmacionVersion", () => {
         potencia: "185 cv",
         puertas: "5 puertas",
         inicioFabricacion: "04/2009",
+        tipoVehiculo: '1000'
       },
       {
         id: "v2",
@@ -91,6 +79,7 @@ describe("ConfirmacionVersion", () => {
         potencia: "185 cv",
         puertas: "5 puertas",
         inicioFabricacion: "04/2009",
+        tipoVehiculo: '1000'
       },
       {
         id: "v3",
@@ -100,6 +89,7 @@ describe("ConfirmacionVersion", () => {
         potencia: "185 cv",
         puertas: "5 puertas",
         inicioFabricacion: "04/2009",
+        tipoVehiculo: '1000'
       },
       {
         id: "v4",
@@ -109,6 +99,7 @@ describe("ConfirmacionVersion", () => {
         potencia: "185 cv",
         puertas: "5 puertas",
         inicioFabricacion: "04/2009",
+        tipoVehiculo: '1000'
       },
       {
         id: "v5",
@@ -118,6 +109,7 @@ describe("ConfirmacionVersion", () => {
         potencia: "185 cv",
         puertas: "5 puertas",
         inicioFabricacion: "04/2009",
+        tipoVehiculo: '1000'
       },
     ]);
 
@@ -127,7 +119,11 @@ describe("ConfirmacionVersion", () => {
       loadingVersiones: mockLoadingVersionesSignal.asReadonly(),
       versionesRaw: mockVersionesRawSignal.asReadonly(),
       selectedBrandAndModel: vi.fn().mockReturnValue({
-        marca: { id: "vol", nombre: "Volvo", logo: "assets/logos/volvo.png" },
+        marca: {
+          id: "vol",
+          nombre: "Volvo",
+          logo: "assets/images/marcas/volvo.png",
+        },
         modelo: { id: "xc90", nombre: "XC90" },
       }),
       loadVersionesCatalog: vi.fn(),
@@ -169,12 +165,15 @@ describe("ConfirmacionVersion", () => {
   });
 
   describe("Initialization (ngOnInit)", () => {
-    it("should fallback to unselected states if cache configuration is empty", () => {
-      mockStateSignal.update((s) => ({ ...s, vehiculoData: {} }));
+    it("should fallback to most contracted version if cache selection parameter is empty", () => {
+      mockStateSignal.update((s) => ({
+        ...s,
+        vehiculoData: {},
+        versionMasContratada: "v1",
+      }));
       fixture.detectChanges();
 
       expect(component.versionSeleccionadaId()).toBe("v1");
-      expect(component.idSeleccionadaVista()).toBe("v1");
     });
 
     it("should recover the selected version structural identity if it is present within service stores", () => {
@@ -189,6 +188,7 @@ describe("ConfirmacionVersion", () => {
             potencia: "185 cv",
             puertas: "5 puertas",
             inicioFabricacion: "04/2009",
+            tipoVehiculo: "1000"
           },
         },
       }));
@@ -196,7 +196,6 @@ describe("ConfirmacionVersion", () => {
       fixture.detectChanges();
 
       expect(component.versionSeleccionadaId()).toBe("v3");
-      expect(component.idSeleccionadaVista()).toBe("v3");
     });
   });
 
@@ -241,7 +240,6 @@ describe("ConfirmacionVersion", () => {
 
     it("should slice matches case-insensitively using global textual search keywords", () => {
       const mockSearchEvent = { target: { value: "AuTo" } } as unknown as Event;
-
       Object.defineProperty(mockSearchEvent, "detail", { value: "AuTo" });
       component.onSearchInput(mockSearchEvent);
 
@@ -282,13 +280,15 @@ describe("ConfirmacionVersion", () => {
     });
 
     it("should update local row selection identities upon manual selection tile triggers", () => {
-      component.onTileSelected("v4");
+      const mockTileEvent = { detail: "v4" } as unknown as Event;
+      component.onTileSelected(mockTileEvent);
       expect(component.versionSeleccionadaId()).toBe("v4");
     });
 
     it("should reject tile selections if an invalid or empty id token payload passes into execution paths", () => {
       component.versionSeleccionadaId.set("v1");
-      component.onTileSelected("");
+      const mockEmptyEvent = { detail: "" } as unknown as Event;
+      component.onTileSelected(mockEmptyEvent);
       expect(component.versionSeleccionadaId()).toBe("v1");
     });
 
@@ -302,6 +302,7 @@ describe("ConfirmacionVersion", () => {
         status: "VERSION_CONFIRMED",
       });
     });
+
     it("should block storage integration procedures if submission confirmations trigger on empty forms", () => {
       component.versionSeleccionadaId.set(null);
       component.confirmarVersion();

@@ -22,7 +22,7 @@ import {
 import { TranslateModule } from "@ngx-translate/core";
 import { StepCompleteCallback } from "../../vehiculo.component";
 import { VehiculoStateService } from "../../services/vehiculo-state.service";
-import { useIsMobile } from '@mnv-autos-ng/util';
+import { useIsMobile } from "@mnv-autos-ng/util";
 import { MetodoBusqueda } from "../../models/vehiculo.models";
 
 @Component({
@@ -37,20 +37,21 @@ import { MetodoBusqueda } from "../../models/vehiculo.models";
     BalInput,
     BalFieldControl,
     BalFieldMessage,
-    TranslateModule
+    TranslateModule,
   ],
   templateUrl: "./busqueda-matricula.component.html",
   styleUrl: "./busqueda-matricula.component.scss",
 })
 export class BusquedaMatricula implements OnInit {
   readonly onStepComplete = input<StepCompleteCallback>();
+  readonly stepId = input<string>();
   protected readonly stateService = inject(VehiculoStateService);
 
   readonly esMobile = useIsMobile();
   readonly opcionSeleccionada = signal<MetodoBusqueda>("matricula");
   readonly textoBusqueda = signal<string>("");
 
-  readonly estaCargando = this.stateService.loading; 
+  readonly estaCargando = this.stateService.loading;
   readonly errorApi = this.stateService.error;
 
   private readonly baseLangKey = "vehiculo.busquedaMatricula";
@@ -58,7 +59,6 @@ export class BusquedaMatricula implements OnInit {
   constructor() {
     effect(() => {
       if (this.stateService.busquedaExitosa()) {
-        
         untracked(() => {
           const callback = this.onStepComplete();
           if (callback) {
@@ -66,7 +66,6 @@ export class BusquedaMatricula implements OnInit {
           }
           this.stateService.clearBusquedaExitosa();
         });
-        
       }
     });
   }
@@ -76,13 +75,21 @@ export class BusquedaMatricula implements OnInit {
     if (savedState.metodoBusqueda) {
       this.opcionSeleccionada.set(savedState.metodoBusqueda);
     }
-    
+
     if (savedState.matriculaOBastidor) {
-      const visibleText = savedState.matriculaOBastidor === "MANUAL_SEARCH_ACTIVE" 
-        ? "" 
-        : savedState.matriculaOBastidor;
-        
+      const visibleText =
+        savedState.matriculaOBastidor === "MANUAL_SEARCH_ACTIVE"
+          ? ""
+          : savedState.matriculaOBastidor;
+
       this.textoBusqueda.set(visibleText);
+
+      if (visibleText && this.esTextoValido() && !!savedState.vehiculoData?.marca?.id) {
+        const callback = this.onStepComplete();
+        if (callback) {
+          callback({ status: "REGISTRATION_LOOKUP_COMPLETE" });
+        }
+      }
     }
   }
 
@@ -110,7 +117,9 @@ export class BusquedaMatricula implements OnInit {
     () => this.textoBusqueda().trim().length > 0 && !this.esTextoValido(),
   );
 
-  readonly botonDeshabilitado = computed(() => !this.esTextoValido() || this.estaCargando());
+  readonly botonDeshabilitado = computed(
+    () => !this.esTextoValido() || this.estaCargando(),
+  );
 
   readonly mensajeErrorDinamico = computed(() =>
     this.opcionSeleccionada() === "matricula"
@@ -126,6 +135,9 @@ export class BusquedaMatricula implements OnInit {
 
     this.opcionSeleccionada.set(valorSeleccionado);
     this.textoBusqueda.set("");
+    if (this.stateService.error()) {
+      this.stateService.clearBusquedaExitosa(); 
+    }
   }
 
   onInputUpdate(event: Event): void {
@@ -139,21 +151,23 @@ export class BusquedaMatricula implements OnInit {
   alBuscar(): void {
     if (!this.botonDeshabilitado()) {
       this.stateService.buscarVehiculoPorApi(
-        this.opcionSeleccionada(), 
-        this.textoBusqueda().trim()
+        this.opcionSeleccionada(),
+        this.textoBusqueda().trim(),
       );
     }
   }
 
   activarBusquedaManual(): void {
     const metodo = this.opcionSeleccionada();
-    const valor = this.textoBusqueda().trim() || "MANUAL_SEARCH_ACTIVE";
+    const valor = "MANUAL_SEARCH_ACTIVE";
 
+    this.textoBusqueda.set("");
+    this.stateService.prepareForManualSearch();
     this.stateService.saveMatriculaOBastidor(metodo, valor);
-
+    
     const callback = this.onStepComplete();
     if (callback) {
-      callback({ accion: "FORZAR_BUSQUEDA_MANUAL" });
+      callback({ status: "MANUAL_SEARCH_FORCED" });
     }
   }
 }

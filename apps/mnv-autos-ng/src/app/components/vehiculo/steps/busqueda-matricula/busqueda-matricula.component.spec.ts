@@ -20,9 +20,10 @@ interface MockVehiculoStateService {
   buscarVehiculoPorApi: MockInstance<(metodo: MetodoBusqueda, valor: string) => void>;
   saveMatriculaOBastidor: MockInstance<(metodo: MetodoBusqueda, valor: string) => void>;
   clearBusquedaExitosa: MockInstance<() => void>;
+  prepareForManualSearch: MockInstance<() => void>;
 }
 
-describe("BusquedaMatricula", () => {
+describe("BusquedaMatricula Spec Suite", () => {
   let component: BusquedaMatricula;
   let fixture: ComponentFixture<BusquedaMatricula>;
   let mockStateService: MockVehiculoStateService;
@@ -48,7 +49,8 @@ describe("BusquedaMatricula", () => {
       modelosCatalog: [],
       versionesCatalog: [],
       carroceriasCatalog: [],
-      accesoriosCatalog: []
+      accesoriosCatalog: [],
+      versionMasContratada: null
     });
 
     mockLoadingSignal = signal<boolean>(false);
@@ -63,6 +65,7 @@ describe("BusquedaMatricula", () => {
       buscarVehiculoPorApi: vi.fn(),
       saveMatriculaOBastidor: vi.fn(),
       clearBusquedaExitosa: vi.fn(),
+      prepareForManualSearch: vi.fn()
     };
 
     const mockMobileSignal = signal<boolean>(false);
@@ -233,8 +236,11 @@ describe("BusquedaMatricula", () => {
 
       component.activarBusquedaManual();
 
-      expect(mockStateService.saveMatriculaOBastidor).toHaveBeenCalledWith("matricula", "1234");
-      expect(mockOnStepComplete).toHaveBeenCalledWith({ accion: "FORZAR_BUSQUEDA_MANUAL" });
+      expect(mockStateService.prepareForManualSearch).toHaveBeenCalled();
+      expect(mockStateService.saveMatriculaOBastidor).toHaveBeenCalledWith("matricula", "MANUAL_SEARCH_ACTIVE");
+      
+      expect(mockOnStepComplete).toHaveBeenCalledWith({ status: "MANUAL_SEARCH_FORCED" });
+      expect(component.textoBusqueda()).toBe("");
     });
 
     it("should fall back to placeholder token if manual override runs on an empty string field", () => {
@@ -243,7 +249,9 @@ describe("BusquedaMatricula", () => {
 
       component.activarBusquedaManual();
 
+      expect(mockStateService.prepareForManualSearch).toHaveBeenCalled();
       expect(mockStateService.saveMatriculaOBastidor).toHaveBeenCalledWith("bastidor", "MANUAL_SEARCH_ACTIVE");
+      expect(mockOnStepComplete).toHaveBeenCalledWith({ status: "MANUAL_SEARCH_FORCED" });
     });
   });
 });

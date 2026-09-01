@@ -1,5 +1,5 @@
 import { Injectable, signal } from "@angular/core";
-import { PrecioCoberturasPageState } from "../models/precio-coberturas-state.model";
+import { PrecioCoberturasPageState } from "../models/precio-coberturas.model";
 
 @Injectable({ providedIn: 'root' })
 export class PrecioCoberturasStateService {
@@ -7,7 +7,7 @@ export class PrecioCoberturasStateService {
 
   readonly estado = signal<PrecioCoberturasPageState | null>(null);
 
-  restaurarEstado(): PrecioCoberturasPageState | null {
+  obtenerEstado(): PrecioCoberturasPageState | null {
     const rawState = sessionStorage.getItem(this.STORAGE_KEY);
 
     if (!rawState) {

@@ -51,6 +51,7 @@ describe("GrupoModalidades", () => {
         fixture.componentRef.setInput("titulo", 'Grupo de Modalidades');
         fixture.componentRef.setInput('codigo', 'TEST-001');
         fixture.componentRef.setInput("modalidades", mockModalidades);
+        fixture.componentRef.setInput("disableButtons", false);
         await fixture.whenStable();
     });
 

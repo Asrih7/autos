@@ -1,20 +1,17 @@
-
 <footer>
-  <div class="uso-actions">
-    
+  <div [class]="navService.useCustomClass() || 'uso-actions'">
+
     @if (navService.showBackButton()) {
-      <bal-button color="grey" (click)="navService.navigateBack()">
-        {{ navService.backButtonLabel() }}
-      </bal-button>
-    }
-    
-    <bal-button
-      color="green"
-      [disabled]="!navService.canContinueNext()"
-      (click)="navService.navigateNext()"
-    >
-      Continuar
+    <bal-button color="grey" (click)="navService.navigateBack()">
+      {{ navService.backButtonLabel() }}
     </bal-button>
+    }
+
+    @if (navService.showNextButton()) {
+    <bal-button color="green" [disabled]="!navService.canContinueNext()" (click)="navService.navigateNext()">
+      {{ navService.nextButtonLabel() }}
+    </bal-button>
+    }
 
   </div>
 </footer>
